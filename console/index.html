@@ -37,7 +37,8 @@
     .panel { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; background: #0F1B26; }
     .panel-head { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid rgba(255, 251, 242,0.06); flex-wrap: wrap; }
     .model-pick { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0C3A45; border: 1px solid rgba(255, 251, 242,0.08); border-radius: 9px; font-size: 13px; color: #FFFBF2; }
-    .model-pick select { background: transparent; border: 0; color: inherit; font-family: inherit; font-size: inherit; outline: 0; }
+    .model-pick select { background: transparent; border: 0; color: inherit; font-family: inherit; font-size: inherit; outline: 0; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 0; }
+    .model-pick select::-ms-expand { display: none; }
     .status { margin-left: auto; display: inline-flex; align-items: center; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.62); }
     .status .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #5BBF7A; box-shadow: 0 0 8px rgba(91,191,122,0.7); animation: dotPulse 2.4s ease-in-out infinite; }
     @keyframes dotPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
