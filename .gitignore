@@ -2,6 +2,8 @@
 .imagegen-alt-start
 .omx/
 .vercel/
+design-import/
 dist/
 node_modules/
-design-import/*.zip
+public/images/brand/alts/
+public/images/brand/v1-archive/
