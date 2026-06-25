@@ -1,0 +1,102 @@
+{
+  "generatedAt": "2026-06-13",
+  "finishingPass": "Warm-shifted, higher contrast, Malibu Burn highlight bias, subtle grain, soft vignette; exported as PNG, AVIF, and WebP.",
+  "images": [
+    {
+      "id": "hero-sunset",
+      "slot": "homepage hero",
+      "chosenVariant": 1,
+      "dimensions": { "width": 1672, "height": 941 },
+      "files": {
+        "png": "/images/brand/hero-sunset.png",
+        "avif": "/images/brand/hero-sunset.avif",
+        "webp": "/images/brand/hero-sunset.webp"
+      },
+      "prompt": "A wide cinematic photograph of the Malibu coastline at the last moment of golden hour, the sun a deep amber disc just touching the Pacific Ocean, silhouetted palm fronds in the upper left, distant cliffs receding to soft haze on the right, low waves catching long streaks of orange light, sky gradient from deep burnt orange near the sun to dusty teal at the top edge, shot on Kodak Portra 400, 35mm film, golden hour, soft halation, mild grain, anamorphic lens, warm color grade, cinematic, editorial photography, no people facing camera, no text, no logos."
+    },
+    {
+      "id": "lifestyle-villa-pool",
+      "slot": "lifestyle band",
+      "chosenVariant": 1,
+      "dimensions": { "width": 1536, "height": 1024 },
+      "files": {
+        "png": "/images/brand/lifestyle-villa-pool.png",
+        "avif": "/images/brand/lifestyle-villa-pool.avif",
+        "webp": "/images/brand/lifestyle-villa-pool.webp"
+      },
+      "prompt": "A modernist California villa at sunset with floor-to-ceiling glass doors open to a turquoise infinity pool, terracotta tile, ocean horizon, low sun, long shadows, no people visible, architectural photography crossed with editorial fashion, shot on Kodak Portra 400, 35mm film, soft halation, mild grain, warm color grade."
+    },
+    {
+      "id": "lifestyle-friends-beach",
+      "slot": "lifestyle band",
+      "chosenVariant": 1,
+      "dimensions": { "width": 1122, "height": 1402 },
+      "files": {
+        "png": "/images/brand/lifestyle-friends-beach.png",
+        "avif": "/images/brand/lifestyle-friends-beach.avif",
+        "webp": "/images/brand/lifestyle-friends-beach.webp"
+      },
+      "prompt": "Three friends walking down a weathered wooden staircase to a Malibu beach, photographed from behind, golden hour silhouettes against the ocean, one carrying a surfboard, casual linen clothes, hair backlit and glowing, sand dunes and tall grass, shot on Kodak Portra 400, 35mm film, mild grain, warm color grade."
+    },
+    {
+      "id": "lifestyle-porsche-pch",
+      "slot": "lifestyle band",
+      "chosenVariant": 1,
+      "dimensions": { "width": 1536, "height": 1024 },
+      "files": {
+        "png": "/images/brand/lifestyle-porsche-pch.png",
+        "avif": "/images/brand/lifestyle-porsche-pch.avif",
+        "webp": "/images/brand/lifestyle-porsche-pch.webp"
+      },
+      "prompt": "A 1980s air-cooled Porsche 911 in sun-faded signal orange parked at an overlook on the Pacific Coast Highway, ocean and deep amber sunset filling the frame, chrome trim catching warm highlights, no driver visible, road curving behind, shot on Kodak Portra 400, 35mm film, mild grain, warm color grade."
+    },
+    {
+      "id": "lifestyle-macbook-interior",
+      "slot": "providers section and lifestyle band",
+      "chosenVariant": 2,
+      "dimensions": { "width": 1536, "height": 1024 },
+      "files": {
+        "png": "/images/brand/lifestyle-macbook-interior.png",
+        "avif": "/images/brand/lifestyle-macbook-interior.avif",
+        "webp": "/images/brand/lifestyle-macbook-interior.webp"
+      },
+      "prompt": "An open silver MacBook running the Malibu AI website in desktop view on its screen, resting on a travertine stone table beside orange wine, large open glass doors onto a Pacific Ocean sunset, sheer linen curtain, laptop active and glowing softly, cinematic interior editorial photography, shot on Kodak Portra 400, 35mm film, mild grain, warm color grade."
+    },
+    {
+      "id": "lifestyle-tennis-dusk",
+      "slot": "lifestyle band",
+      "chosenVariant": 1,
+      "dimensions": { "width": 1536, "height": 1024 },
+      "files": {
+        "png": "/images/brand/lifestyle-tennis-dusk.png",
+        "avif": "/images/brand/lifestyle-tennis-dusk.avif",
+        "webp": "/images/brand/lifestyle-tennis-dusk.webp"
+      },
+      "prompt": "A private clay tennis court at the edge of a Malibu cliff, clay glowing terracotta-red under low sun, a single tennis ball mid-bounce, the net casting a long shadow, Pacific Ocean as a calm gold mirror, no players visible, shot on Kodak Portra 400, 35mm film, mild grain, warm color grade."
+    },
+    {
+      "id": "texture-sun-gradient",
+      "slot": "section dividers and editorial texture",
+      "chosenVariant": 1,
+      "dimensions": { "width": 1915, "height": 821 },
+      "files": {
+        "png": "/images/brand/texture-sun-gradient.png",
+        "avif": "/images/brand/texture-sun-gradient.avif",
+        "webp": "/images/brand/texture-sun-gradient.webp"
+      },
+      "prompt": "A flat painterly field of the Malibu sunset sky only, no horizon, no objects, deep burnt sienna through honey amber through dusty rose to faded teal, gentle film grain, empty sky filling a movie frame, shot on Kodak Portra 400, 35mm film, warm color grade."
+    },
+    {
+      "id": "footer-night-pacific",
+      "slot": "footer and dark background",
+      "chosenVariant": 1,
+      "dimensions": { "width": 1915, "height": 821 },
+      "files": {
+        "png": "/images/brand/footer-night-pacific.png",
+        "avif": "/images/brand/footer-night-pacific.avif",
+        "webp": "/images/brand/footer-night-pacific.webp"
+      },
+      "prompt": "The Pacific Ocean a few minutes after sunset, deep navy-teal sky with the last amber band on the horizon, a single distant villa light on the cliff, calm reflective water, photographed wide and quiet, expensive solitude, shot on Kodak Portra 400, 35mm film, mild grain, warm color grade."
+    }
+  ]
+}

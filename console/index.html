@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Malibu Chat — run open models on Apple Silicon. Pay USDC. $MALIBU burns behind every prompt." />
+  <title>Malibu · Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #143A45; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; }
+    ::selection { background: #FF6E5B; color: #FFFBF2; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    em, i { font-style: normal; }
+
+    .app { display: grid; grid-template-columns: 280px 1fr; height: 100vh; }
+    .rail { background: #143A45; border-right: 1px solid rgba(255, 251, 242,0.08); display: flex; flex-direction: column; min-height: 0; }
+    .rail-head { padding: 22px 22px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 251, 242,0.06); }
+    .rail-head .mark { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: #0C3A45; }
+    .rail-head .name { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; letter-spacing: -0.01em; font-size: 17px; }
+    .rail-head .name span { color: rgba(255, 251, 242,0.5); }
+    .rail-section { padding: 18px 14px 8px; }
+    .rail-section h3 { margin: 0 0 8px; padding: 0 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255, 251, 242,0.45); font-weight: 500; }
+    .rail .item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; color: rgba(255, 251, 242,0.78); font-size: 13.5px; transition: background 140ms ease, color 140ms ease; cursor: pointer; }
+    .rail .item:hover { background: rgba(255, 251, 242,0.06); color: #FFFBF2; }
+    .rail .item.active { background: rgba(255, 110, 91,0.16); color: #FFFBF2; }
+    .rail .item .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255, 251, 242,0.4); }
+    .rail .scroll { overflow-y: auto; flex: 1; }
+    .rail-foot { border-top: 1px solid rgba(255, 251, 242,0.06); padding: 16px; }
+    .balance { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .balance .b { padding: 10px 12px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.08); border-radius: 8px; }
+    .balance .b .lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); margin-bottom: 4px; }
+    .balance .b .val { font-family: 'Hanken Grotesk', sans-serif; font-size: 22px; line-height: 1; }
+    .balance .b .val .unit { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255, 251, 242,0.55); margin-left: 4px; letter-spacing: 0.1em; }
+    .topup { width: 100%; margin-top: 10px; padding: 10px 12px; background: #FF6E5B; color: #FFFBF2; border-radius: 8px; font-size: 12.5px; font-weight: 500; letter-spacing: -0.005em; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .topup:hover { background: #C2543A; }
+
+    .new-chat { width: calc(100% - 28px); margin: 0 14px 4px; padding: 11px 14px; border-radius: 9px; background: #FF6E5B; color: #FFFBF2; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; justify-content: center; transition: background 140ms ease; }
+    .new-chat:hover { background: #C2543A; }
+
+    /* main panel */
+    .panel { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; background: #0F1B26; }
+    .panel-head { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid rgba(255, 251, 242,0.06); flex-wrap: wrap; }
+    .model-pick { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0C3A45; border: 1px solid rgba(255, 251, 242,0.08); border-radius: 9px; font-size: 13px; color: #FFFBF2; }
+    .model-pick select { background: transparent; border: 0; color: inherit; font-family: inherit; font-size: inherit; outline: 0; }
+    .status { margin-left: auto; display: inline-flex; align-items: center; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.62); }
+    .status .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #5BBF7A; box-shadow: 0 0 8px rgba(91,191,122,0.7); animation: dotPulse 2.4s ease-in-out infinite; }
+    @keyframes dotPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+    .provider-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255, 198, 41,0.10); border: 1px solid rgba(255, 198, 41,0.28); border-radius: 9999px; color: #FFC629; }
+
+    .stream { overflow-y: auto; padding: 28px 32px 14px; min-height: 0; }
+    .stream-inner { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+    .msg { display: flex; gap: 14px; align-items: flex-start; }
+    .msg .avatar { flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; }
+    .msg.user .avatar { background: #0C3A45; color: rgba(255, 251, 242,0.78); }
+    .msg.ai .avatar { background: #FF6E5B; color: #FFFBF2; }
+    .msg .body { flex: 1; min-width: 0; }
+    .msg .name { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .msg .name .billed { color: #FFC629; }
+    .msg .text { font-size: 15px; line-height: 1.65; color: rgba(255, 251, 242,0.92); white-space: pre-wrap; }
+    .msg.user .text { color: #FFFBF2; }
+
+    .welcome { padding: 14px 0 6px; text-align: center; }
+    .welcome h1 { margin: 0 0 8px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(36px, 4vw, 56px); line-height: 1; letter-spacing: -0.03em; color: #FFFBF2; }
+    .welcome h1 em { color: #FF6E5B; }
+    .welcome p { margin: 0 auto; max-width: 50ch; color: rgba(255, 251, 242,0.7); font-size: 14.5px; line-height: 1.55; }
+
+    .starters { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; max-width: 820px; margin: 22px auto 4px; }
+    .starter { padding: 14px 14px 12px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 12px; text-align: left; transition: background 140ms ease, border-color 140ms ease; }
+    .starter:hover { background: rgba(255, 251, 242,0.07); border-color: rgba(255, 198, 41,0.34); }
+    .starter .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #FFC629; margin-bottom: 6px; }
+    .starter .body { font-size: 13.5px; color: rgba(255, 251, 242,0.88); line-height: 1.45; }
+
+    .composer { padding: 14px 22px 18px; border-top: 1px solid rgba(255, 251, 242,0.06); }
+    .composer-inner { max-width: 820px; margin: 0 auto; }
+    .composer-box { background: #0C3A45; border: 1px solid rgba(255, 251, 242,0.10); border-radius: 16px; padding: 12px 12px 12px 16px; display: flex; align-items: flex-end; gap: 10px; transition: border-color 140ms ease, box-shadow 140ms ease; }
+    .composer-box:focus-within { border-color: rgba(255, 198, 41,0.55); box-shadow: 0 0 0 4px rgba(255, 198, 41,0.08); }
+    .composer-box textarea { flex: 1; min-width: 0; min-height: 26px; max-height: 200px; padding: 8px 0; resize: none; border: 0; outline: 0; background: transparent; color: #FFFBF2; font-family: 'Hanken Grotesk', sans-serif; font-size: 15px; line-height: 1.5; }
+    .composer-box textarea::placeholder { color: rgba(255, 251, 242,0.45); }
+    .send { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; background: #FF6E5B; color: #FFFBF2; border-radius: 10px; font-size: 13px; font-weight: 500; }
+    .send:hover { background: #C2543A; }
+    .send .kb { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; opacity: 0.7; }
+    .composer-meta { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); }
+    .composer-meta .right { color: rgba(255, 198, 41,0.78); }
+
+    .stream::-webkit-scrollbar, .rail .scroll::-webkit-scrollbar { width: 10px; }
+    .stream::-webkit-scrollbar-thumb, .rail .scroll::-webkit-scrollbar-thumb { background: rgba(255, 251, 242,0.08); border-radius: 4px; }
+
+    @media (max-width: 820px) {
+      .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .rail { display: none; }
+      .rail.open { display: flex; position: fixed; inset: 0 30% 0 0; z-index: 30; box-shadow: 24px 0 48px -16px rgba(0,0,0,0.5); }
+      .mobile-bar { display: flex !important; }
+    }
+    .mobile-bar { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+
+    .settings-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(255,251,242,0.06); border: 1px solid rgba(255,251,242,0.10); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,251,242,0.78); }
+    .settings-btn:hover { background: rgba(255,251,242,0.10); color: #FFFBF2; }
+    .settings-btn .auth-dot { width: 7px; height: 7px; border-radius: 50%; background: #FFC629; }
+    .settings-btn.signed-in .auth-dot { background: #5BBF7A; box-shadow: 0 0 6px rgba(91,191,122,0.6); }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(15,27,38,0.72); display: none; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px); }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(440px, 92vw); background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 14px; padding: 22px; }
+    .modal h2 { margin: 0 0 6px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: -0.01em; }
+    .modal p { margin: 0 0 14px; font-size: 13.5px; color: rgba(255,251,242,0.7); line-height: 1.5; }
+    .modal label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,251,242,0.5); margin: 12px 0 6px; }
+    .modal input { width: 100%; padding: 10px 12px; background: #0C3A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 8px; color: #FFFBF2; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; outline: 0; }
+    .modal input:focus { border-color: rgba(255,198,41,0.55); box-shadow: 0 0 0 4px rgba(255,198,41,0.08); }
+    .modal .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .modal .btn { padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+    .modal .btn.primary { background: #FF6E5B; color: #FFFBF2; }
+    .modal .btn.primary:hover { background: #C2543A; }
+    .modal .btn.ghost { background: rgba(255,251,242,0.06); color: #FFFBF2; border: 1px solid rgba(255,251,242,0.10); }
+    .modal .btn.ghost:hover { background: rgba(255,251,242,0.10); }
+    .modal .btn.danger { background: transparent; color: rgba(255,251,242,0.6); margin-left: auto; }
+    .modal .btn.danger:hover { color: #FF6E5B; }
+    .modal a.github { color: #FFC629; }
+
+    .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); padding: 10px 16px; background: #0C3A45; border: 1px solid rgba(255,251,242,0.12); border-radius: 9px; font-size: 13px; color: #FFFBF2; z-index: 60; opacity: 0; transition: opacity 200ms ease; pointer-events: none; max-width: 80vw; }
+    .toast.show { opacity: 1; }
+    .toast.error { border-color: rgba(255,110,91,0.5); color: #FFC0B0; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- LEFT RAIL -->
+  <aside class="rail" data-rail>
+    <div class="rail-head">
+      <a href="/" class="mark" aria-label="Malibu home">
+        <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
+          <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
+          <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
+        </svg>
+      </a>
+      <div class="name">malibu <span>· chat</span></div>
+    </div>
+
+    <button class="new-chat" data-new-chat type="button" style="margin-top: 14px;">
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.5 V12.5 M1.5 7 H12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      New chat
+    </button>
+
+    <div class="scroll">
+      <div class="rail-section">
+        <h3>Recent</h3>
+        <div class="item active"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4 H11 M3 7 H11 M3 10 H8"/></svg> Postcard from Zuma<span class="meta">just now</span></div>
+        <div class="item"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4 H11 M3 7 H11 M3 10 H8"/></svg> JSON schema for menus<span class="meta">2h</span></div>
+        <div class="item"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4 H11 M3 7 H11 M3 10 H8"/></svg> Summarize incident report<span class="meta">yest</span></div>
+        <div class="item"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4 H11 M3 7 H11 M3 10 H8"/></svg> PCH itinerary, 3 days<span class="meta">mon</span></div>
+      </div>
+
+      <div class="rail-section">
+        <h3>Models</h3>
+        <div data-rail-models>
+          <div class="item" style="opacity:0.6;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,251,242,0.3);"></span> checking pool…</div>
+        </div>
+      </div>
+
+      <div class="rail-section">
+        <h3>Workspace</h3>
+        <a class="item" href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="1.4"/><path d="M2 6 H12"/></svg> Dashboard</a>
+        <a class="item" href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</a>
+        <a class="item" href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Settings</a>
+        <a class="item" href="/#token"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3 V11 M5 5 H9 M5 9 H9"/></svg> $MALIBU</a>
+      </div>
+    </div>
+
+    <div class="rail-foot">
+      <div class="balance">
+        <div class="b">
+          <div class="lbl">USDC</div>
+          <div class="val">42.18<span class="unit">USD</span></div>
+        </div>
+        <div class="b">
+          <div class="lbl">$MALIBU</div>
+          <div class="val">142.4<span class="unit">MAL</span></div>
+        </div>
+      </div>
+      <button class="topup" type="button">
+        Top up USDC
+        <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <section class="panel">
+
+    <div class="panel-head">
+      <div class="model-pick">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#FFC629;"></span>
+        <select data-model aria-label="Model">
+          <option value="llama-3.1-70b">Llama 3.1 70B</option>
+          <option value="mistral-large-2">Mistral Large 2</option>
+          <option value="qwen-2.5-72b">Qwen 2.5 72B</option>
+          <option value="deepseek-v3">DeepSeek V3</option>
+        </select>
+        <svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1.2 L4.5 4.5 L8 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="provider-pill" data-provider-pill>
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="2" y="3" width="10" height="7" rx="1"/><path d="M5 12 H9 M7 10 V12"/></svg>
+        <span>MacProvider pool</span>
+      </div>
+      <div class="status">
+        <span><span class="dot"></span> <span data-live-tps>—</span></span>
+        <span>· <span data-live-nodes>checking…</span></span>
+      </div>
+      <button class="settings-btn" data-open-settings type="button" title="Account & quota">
+        <span class="auth-dot"></span>
+        <span data-auth-label>Free tier</span>
+      </button>
+    </div>
+
+    <div class="stream" data-stream>
+      <div class="stream-inner">
+
+        <div class="welcome">
+          <h1>Inference, <em>from the coast.</em></h1>
+          <p>Pay USDC per token. $MALIBU burns behind every prompt. Start a conversation, or pick a starter.</p>
+        </div>
+
+        <div class="starters">
+          <button class="starter" type="button" data-starter="Write me a postcard from Zuma at golden hour.">
+            <div class="lbl">Postcard</div>
+            <div class="body">Write me a postcard from Zuma at golden hour.</div>
+          </button>
+          <button class="starter" type="button" data-starter="Draft a JSON schema for a Malibu restaurant menu with vegan flags and price tiers.">
+            <div class="lbl">JSON</div>
+            <div class="body">Draft a JSON schema for a Malibu restaurant menu.</div>
+          </button>
+          <button class="starter" type="button" data-starter="Summarize the BME token design at /token-design.md in three bullets a fund analyst would forward.">
+            <div class="lbl">Summarize</div>
+            <div class="body">Summarize the $MALIBU token design in three bullets.</div>
+          </button>
+          <button class="starter" type="button" data-starter="A three-day PCH itinerary from Santa Monica to Hearst Castle. Stops only — no fluff.">
+            <div class="lbl">Itinerary</div>
+            <div class="body">A three-day PCH itinerary, stops only.</div>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <form class="composer" data-composer onsubmit="return false;">
+      <div class="composer-inner">
+        <div class="composer-box">
+          <textarea data-input rows="1" placeholder="Ask the coast — Cmd↵ to send"></textarea>
+          <button class="send" type="submit" data-submit>Send <span class="kb">⌘↵</span></button>
+        </div>
+        <div class="composer-meta">
+          <div>Stream · 128k context · Llama 3.1 70B</div>
+          <div class="right" data-est>≈ $0.00018 / response · ~0.00003 $MALIBU burn</div>
+        </div>
+      </div>
+    </form>
+
+  </section>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" data-modal>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">Unlock full quota</h2>
+    <p>You're on the free beta tier — chat away. When you hit the daily cap, sign in with GitHub to keep going and unlock USDC top-ups.</p>
+    <div class="actions">
+      <button class="btn primary" type="button" data-github-signin>
+        Sign in with GitHub
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3 H11 V9 M11 3 L3 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+      <button class="btn ghost" type="button" data-toggle-advanced>Paste an API key instead</button>
+      <button class="btn danger" type="button" data-clear-key>Sign out</button>
+    </div>
+    <div data-advanced hidden>
+      <label for="mp-key">API key</label>
+      <input id="mp-key" type="password" placeholder="mp_…" autocomplete="off" spellcheck="false" />
+      <div class="actions">
+        <button class="btn ghost" type="button" data-save-key>Save key</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" data-toast></div>
+
+<script type="module">
+  import { getStatus, chatStream, loadKey, saveKey } from './api.js';
+
+  const stream = document.querySelector('[data-stream] .stream-inner');
+  const composer = document.querySelector('[data-composer]');
+  const input = document.querySelector('[data-input]');
+  const submit = document.querySelector('[data-submit]');
+  const modelEl = document.querySelector('[data-model]');
+  const railModelsEl = document.querySelector('[data-rail-models]');
+  const liveNodesEls = document.querySelectorAll('[data-live-nodes]');
+  const liveTpsEls = document.querySelectorAll('[data-live-tps]');
+  const providerPillEl = document.querySelector('[data-provider-pill]');
+  const authLabelEl = document.querySelector('[data-auth-label]');
+  const settingsBtn = document.querySelector('[data-open-settings]');
+  const modalEl = document.querySelector('[data-modal]');
+  const keyInput = document.getElementById('mp-key');
+  const saveKeyBtn = document.querySelector('[data-save-key]');
+  const clearKeyBtn = document.querySelector('[data-clear-key]');
+  const githubSignInBtn = document.querySelector('[data-github-signin]');
+  const toggleAdvancedBtn = document.querySelector('[data-toggle-advanced]');
+  const advancedEl = document.querySelector('[data-advanced]');
+  const toastEl = document.querySelector('[data-toast]');
+
+  const OAUTH_STATE_STORAGE = 'malibu.oauth.state';
+  const conversation = [];
+
+  function toast(message, kind) {
+    toastEl.textContent = message;
+    toastEl.classList.toggle('error', kind === 'error');
+    toastEl.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => toastEl.classList.remove('show'), 3200);
+  }
+
+  function refreshAuthBadge() {
+    const has = !!loadKey();
+    settingsBtn.classList.toggle('signed-in', has);
+    authLabelEl.textContent = has ? 'Connected' : 'Free tier';
+  }
+
+  function openSettings() {
+    keyInput.value = loadKey();
+    modalEl.classList.add('open');
+    setTimeout(() => keyInput.focus(), 30);
+  }
+  function closeSettings() { modalEl.classList.remove('open'); }
+
+  function createOAuthStateToken() {
+    if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+    if (!globalThis.crypto?.getRandomValues) return '';
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function getOAuthState() {
+    try { return sessionStorage.getItem(OAUTH_STATE_STORAGE); } catch { return null; }
+  }
+
+  function saveOAuthState(token) {
+    try {
+      sessionStorage.setItem(OAUTH_STATE_STORAGE, token);
+      return sessionStorage.getItem(OAUTH_STATE_STORAGE) === token;
+    } catch {
+      return false;
+    }
+  }
+
+  function clearOAuthState() {
+    try { sessionStorage.removeItem(OAUTH_STATE_STORAGE); } catch {}
+  }
+
+  settingsBtn.addEventListener('click', openSettings);
+  githubSignInBtn.addEventListener('click', () => {
+    const token = createOAuthStateToken();
+    if (!token || !saveOAuthState(token)) {
+      toast('GitHub sign-in needs browser storage. Paste an API key instead.', 'error');
+      return;
+    }
+    const ret = location.origin + location.pathname;
+    location.href = 'https://console.streamvc.live/oauth/github/start'
+      + '?return=' + encodeURIComponent(ret)
+      + '&state=' + encodeURIComponent(token);
+  });
+  modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeSettings(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
+  toggleAdvancedBtn.addEventListener('click', () => {
+    const open = advancedEl.hasAttribute('hidden');
+    if (open) advancedEl.removeAttribute('hidden'); else advancedEl.setAttribute('hidden', '');
+    toggleAdvancedBtn.textContent = open ? 'Hide API key field' : 'Paste an API key instead';
+    if (open) setTimeout(() => keyInput.focus(), 30);
+  });
+
+  saveKeyBtn.addEventListener('click', () => {
+    const k = keyInput.value.trim();
+    if (!saveKey(k)) {
+      refreshAuthBadge();
+      toast('Could not save API key in this browser.', 'error');
+      return;
+    }
+    refreshAuthBadge();
+    closeSettings();
+    toast(k ? 'API key saved.' : 'API key cleared.');
+    refreshStatus();
+  });
+  clearKeyBtn.addEventListener('click', () => {
+    if (!saveKey('')) {
+      toast('Could not clear API key in this browser.', 'error');
+      refreshAuthBadge();
+      return;
+    }
+    keyInput.value = '';
+    refreshAuthBadge();
+    toast('Signed out.');
+    refreshStatus();
+  });
+
+  function scrubHash() {
+    history.replaceState({}, '', location.pathname + location.search);
+  }
+
+  function handleOAuthReturn() {
+    const hash = location.hash.replace(/^#/, '');
+    const keyMatch = hash.match(/(?:^|&)mp_key=([^&]+)/);
+    const stateMatch = hash.match(/(?:^|&)state=([^&]+)/);
+    if (!keyMatch || !stateMatch) {
+      if (keyMatch || stateMatch) {
+        clearOAuthState();
+        toast('GitHub sign-in failed. Please try again.', 'error');
+        scrubHash();
+      }
+      return;
+    }
+
+    const params = new URLSearchParams(hash);
+    const storedState = getOAuthState();
+    const returnedState = params.get('state');
+    if (storedState !== returnedState) {
+      clearOAuthState();
+      toast('GitHub sign-in failed. Please try again.', 'error');
+      scrubHash();
+      return;
+    }
+
+    const key = params.get('mp_key');
+    if (!key || !saveKey(key)) {
+      clearOAuthState();
+      toast('GitHub sign-in failed. Please try again.', 'error');
+      scrubHash();
+      return;
+    }
+
+    clearOAuthState();
+    scrubHash();
+    toast('Signed in with GitHub.');
+    refreshAuthBadge();
+    refreshStatus();
+  }
+
+  handleOAuthReturn();
+  refreshAuthBadge();
+
+  const params = new URLSearchParams(location.search);
+  const q = params.get('q');
+  if (q) input.value = q;
+
+  function grow() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(200, input.scrollHeight) + 'px';
+  }
+  input.addEventListener('input', grow);
+
+  function modelLabel(id) {
+    const tail = id.split('/').pop() || id;
+    return tail.replace(/-Instruct-4bit$/i, '').replace(/-/g, ' ');
+  }
+
+  function populateModels(models) {
+    const available = models.filter(m => m.available !== false);
+    if (!available.length) return;
+    const prev = modelEl.value;
+    modelEl.innerHTML = '';
+    railModelsEl.innerHTML = '';
+    for (const m of available) {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = modelLabel(m.id);
+      modelEl.appendChild(opt);
+
+      const item = document.createElement('div');
+      item.className = 'item';
+      const free = m.slots_free ?? 0;
+      const total = m.total_slots ?? 0;
+      const dotColor = m.degraded ? '#C2543A' : (free > 0 ? '#FFC629' : '#FF6E5B');
+      const dot = document.createElement('span');
+      dot.style.cssText = `display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColor};`;
+      const meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = `${free}/${total}`;
+      item.append(dot, document.createTextNode(` ${modelLabel(m.id)}`), meta);
+      item.addEventListener('click', () => { modelEl.value = m.id; });
+      railModelsEl.appendChild(item);
+    }
+    if (prev && [...modelEl.options].some(o => o.value === prev)) modelEl.value = prev;
+  }
+
+  async function refreshStatus() {
+    try {
+      const s = await getStatus();
+      const ready = s?.pool?.ready ?? 0;
+      const total = s?.pool?.total_providers ?? 0;
+      liveNodesEls.forEach(el => { el.textContent = `${ready}/${total} providers`; });
+      liveTpsEls.forEach(el => { el.textContent = s?.degraded ? 'degraded' : 'live'; });
+      if (providerPillEl) {
+        const label = ready ? `${ready} MacProvider node${ready === 1 ? '' : 's'}` : 'no providers ready';
+        providerPillEl.querySelector('span:last-child').textContent = label;
+      }
+      if (Array.isArray(s?.models)) populateModels(s.models);
+    } catch {
+      liveNodesEls.forEach(el => { el.textContent = 'offline'; });
+      liveTpsEls.forEach(el => { el.textContent = '—'; });
+    }
+  }
+  refreshStatus();
+  setInterval(refreshStatus, 30_000);
+
+  function dismissWelcome() {
+    const w = stream.querySelector('.welcome');
+    const s = stream.querySelector('.starters');
+    if (w) w.remove();
+    if (s) s.remove();
+  }
+
+  function addUserMsg(text) {
+    const el = document.createElement('div');
+    el.className = 'msg user';
+    el.innerHTML = `<div class="avatar">YOU</div><div class="body"><div class="name">You</div><div class="text"></div></div>`;
+    el.querySelector('.text').textContent = text;
+    stream.appendChild(el);
+    return el;
+  }
+
+  function addAiMsg(modelName) {
+    const el = document.createElement('div');
+    el.className = 'msg ai';
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = 'M';
+    const body = document.createElement('div');
+    body.className = 'body';
+    const name = document.createElement('div');
+    name.className = 'name';
+    const pool = document.createElement('span');
+    pool.textContent = 'MacProvider pool';
+    const billed = document.createElement('span');
+    billed.className = 'billed';
+    billed.dataset.bill = '';
+    billed.textContent = 'streaming…';
+    name.append(document.createTextNode(`${modelName} · `), pool, document.createTextNode(' · '), billed);
+    const text = document.createElement('div');
+    text.className = 'text';
+    body.append(name, text);
+    el.append(avatar, body);
+    stream.appendChild(el);
+    return el;
+  }
+
+  function scrollBottom() {
+    const sc = document.querySelector('[data-stream]');
+    sc.scrollTop = sc.scrollHeight;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  }
+
+  let busy = false;
+  async function send() {
+    if (busy) return;
+    const val = (input.value || '').trim();
+    if (!val) return;
+    if (!modelEl.value) { toast('No models available in the pool yet.', 'error'); return; }
+    busy = true;
+    submit.disabled = true;
+    dismissWelcome();
+    addUserMsg(val);
+    conversation.push({ role: 'user', content: val });
+    input.value = '';
+    grow();
+    scrollBottom();
+
+    const modelId = modelEl.value;
+    const modelName = modelEl.options[modelEl.selectedIndex]?.text || modelId;
+    const ai = addAiMsg(modelName);
+    const textEl = ai.querySelector('.text');
+    const billEl = ai.querySelector('[data-bill]');
+    textEl.innerHTML = '<span style="opacity: 0.55;">▍</span>';
+    scrollBottom();
+
+    let buf = '';
+    let chunkCount = 0;
+    const started = performance.now();
+    try {
+      for await (const delta of chatStream({ model: modelId, messages: conversation, maxTokens: 1024 })) {
+        buf += delta;
+        chunkCount += 1;
+        textEl.innerHTML = escapeHtml(buf) + '<span style="opacity: 0.55;">▍</span>';
+        scrollBottom();
+      }
+      textEl.textContent = buf;
+      conversation.push({ role: 'assistant', content: buf });
+      const dt = (performance.now() - started) / 1000;
+      const cps = chunkCount > 0 && dt > 0 ? (chunkCount / dt).toFixed(1) : '—';
+      billEl.textContent = `${cps} chunks/s · ${chunkCount} chunks`;
+    } catch (e) {
+      const status = e?.status;
+      const quotaHit = status === 401 || status === 429;
+      let msg;
+      if (quotaHit) msg = 'Free tier quota used. Sign in with GitHub to keep going →';
+      else if (status === 404) msg = 'Model not in current pool. Pick another.';
+      else msg = e?.message || 'Request failed.';
+      textEl.innerHTML = '';
+      if (quotaHit) {
+        const upsell = document.createElement('button');
+        upsell.type = 'button';
+        upsell.className = 'btn primary';
+        upsell.style.cssText = 'margin-top:4px;padding:8px 12px;background:#FF6E5B;color:#FFFBF2;border-radius:8px;font-size:12.5px;';
+        upsell.textContent = 'Sign in with GitHub to continue →';
+        upsell.addEventListener('click', openSettings);
+        textEl.appendChild(document.createTextNode('Free tier quota used. '));
+        textEl.appendChild(upsell);
+      } else {
+        textEl.textContent = msg;
+      }
+      billEl.textContent = quotaHit ? 'quota' : 'error';
+      toast(msg, 'error');
+    } finally {
+      busy = false;
+      submit.disabled = false;
+    }
+  }
+
+  composer.addEventListener('submit', (e) => { e.preventDefault(); send(); });
+  submit.addEventListener('click', (e) => { e.preventDefault(); send(); });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
+  });
+  document.querySelectorAll('[data-starter]').forEach(b => {
+    b.addEventListener('click', () => { input.value = b.dataset.starter; grow(); input.focus(); });
+  });
+  document.querySelector('[data-new-chat]').addEventListener('click', () => {
+    if (busy) return;
+    conversation.length = 0;
+    stream.innerHTML = '';
+    const w = document.createElement('div');
+    w.className = 'welcome';
+    w.innerHTML = '<h1>Inference, <em>from the coast.</em></h1><p>Pay USDC per token. $MALIBU burns behind every prompt. Start a conversation.</p>';
+    stream.appendChild(w);
+    input.value = ''; grow(); input.focus();
+  });
+</script>
+</body>
+</html>

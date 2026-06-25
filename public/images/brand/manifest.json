@@ -1,0 +1,465 @@
+{
+  "generatedAt": "2026-06-13",
+  "finishingPass": "Per-prompt film-stock-specific grade baked in via imagegen; no universal post pass. Final crop/format normalization performed with sharp.",
+  "diversityAudit": {
+    "timeOfDay": {
+      "blueHour": 3,
+      "goldenHour": 4,
+      "lateAfternoon": 5,
+      "morningFog": 2,
+      "night": 1,
+      "preDawn": 1,
+      "midday": 2
+    },
+    "focalLength": {
+      "longTele": 3,
+      "standard": 8,
+      "shortTele": 2,
+      "wide": 3,
+      "macro": 1,
+      "ultraWide": 1
+    },
+    "filmStock": {
+      "ektar100": 3,
+      "portra400": 5,
+      "cinestill800T": 2,
+      "fujiPro400H": 2,
+      "kodachrome64": 2,
+      "triX400": 2,
+      "polaroid600": 2
+    },
+    "subject": {
+      "architecture": 3,
+      "landscapeVista": 5,
+      "techArtifact": 3,
+      "humanGesture": 2,
+      "vehicle": 1,
+      "wildlife": 1,
+      "objectStillLife": 3
+    },
+    "mood": {
+      "cinematicTension": 4,
+      "quietLuxury": 3,
+      "casualIntimacy": 4,
+      "solitaryStillness": 3,
+      "sunBleachedNostalgia": 3,
+      "neonNocturne": 1
+    }
+  },
+  "images": [
+    {
+      "id": "hero-pier-silhouette",
+      "slot": "homepage-hero",
+      "section": "Homepage hero (foundation layer)",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 2400,
+        "height": 1350
+      },
+      "files": {
+        "png": "/images/brand/hero-pier-silhouette.png",
+        "avif": "/images/brand/hero-pier-silhouette.avif",
+        "webp": "/images/brand/hero-pier-silhouette.webp"
+      },
+      "prompt": "A 200mm telephoto compression of the Malibu Pier at blue hour from the south beach, wooden pier silhouette against deep teal-to-amber sky, warm Beachcomber glow, tiny silhouettes on the deck, wet sand reflection, Kodak Ektar 100, cinematic tension, no people facing camera, no text, no logos. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "blueHour",
+        "focalLength": "longTele",
+        "filmStock": "ektar100",
+        "subject": "architecture",
+        "mood": "cinematicTension"
+      }
+    },
+    {
+      "id": "hero-alt-pch-curve",
+      "slot": "hero-ab-alt",
+      "section": "Hero A/B alt + manifest fallback",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 2400,
+        "height": 1350
+      },
+      "files": {
+        "png": "/images/brand/hero-alt-pch-curve.png",
+        "avif": "/images/brand/hero-alt-pch-curve.avif",
+        "webp": "/images/brand/hero-alt-pch-curve.webp"
+      },
+      "prompt": "A 35mm editorial photograph of PCH curving around a Malibu cliff at golden hour, wet asphalt catching one car's taillight streaks, chaparral and mustard flowers, Pacific calm gold sheet, Kodak Portra 400, quiet luxury, no driver, no text, no logos. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "goldenHour",
+        "focalLength": "standard",
+        "filmStock": "portra400",
+        "subject": "landscapeVista",
+        "mood": "quietLuxury"
+      }
+    },
+    {
+      "id": "card-buy-screen-streaming",
+      "slot": "join-buy-inference-card",
+      "section": "Join — Card A (Buy Inference)",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1600
+      },
+      "files": {
+        "png": "/images/brand/card-buy-screen-streaming.png",
+        "avif": "/images/brand/card-buy-screen-streaming.avif",
+        "webp": "/images/brand/card-buy-screen-streaming.webp"
+      },
+      "prompt": "An 85mm close-up of a MacBook Pro screen filling 80% of frame at a Malibu kitchen counter, chat interface streaming AI response with malibu.ai wordmark, hand on trackpad, iced coffee on terracotta tile, matchbook and salt, late afternoon raking light, Cinestill 800T, casual intimacy. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "lateAfternoon",
+        "focalLength": "shortTele",
+        "filmStock": "cinestill800T",
+        "subject": "techArtifact",
+        "mood": "casualIntimacy"
+      }
+    },
+    {
+      "id": "card-sell-mac-window",
+      "slot": "join-sell-inference-card",
+      "section": "Join — Card B (Sell Inference)",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1600
+      },
+      "files": {
+        "png": "/images/brand/card-sell-mac-window.png",
+        "avif": "/images/brand/card-sell-mac-window.avif",
+        "webp": "/images/brand/card-sell-mac-window.webp"
+      },
+      "prompt": "A 50mm shot of a silver MacBook Air on a sun-bleached wood kitchen island during morning fog burn-off, palm-frond shadow on keyboard, cordless landline and dog leash, ocean partly obscured by marine layer through open window, Fuji Pro 400H, lived-in casual intimacy. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "morningFog",
+        "focalLength": "standard",
+        "filmStock": "fujiPro400H",
+        "subject": "techArtifact",
+        "mood": "casualIntimacy"
+      }
+    },
+    {
+      "id": "lifestyle-surf-lineup",
+      "slot": "lifestyle-band-1",
+      "section": "Lifestyle band #1",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/lifestyle-surf-lineup.png",
+        "avif": "/images/brand/lifestyle-surf-lineup.avif",
+        "webp": "/images/brand/lifestyle-surf-lineup.webp"
+      },
+      "prompt": "A 300mm telephoto compression of 6 to 8 surfer silhouettes waiting at Surfrider Beach, heads and boards floating against glassy golden water, Malibu Point Break building behind them, Kodak Portra 400, off-frame flare, solitary stillness, no readable faces. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "goldenHour",
+        "focalLength": "longTele",
+        "filmStock": "portra400",
+        "subject": "humanGesture",
+        "mood": "solitaryStillness"
+      }
+    },
+    {
+      "id": "lifestyle-pch-porsche",
+      "slot": "lifestyle-band-2",
+      "section": "Lifestyle band #2",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/lifestyle-pch-porsche.png",
+        "avif": "/images/brand/lifestyle-pch-porsche.avif",
+        "webp": "/images/brand/lifestyle-pch-porsche.webp"
+      },
+      "prompt": "A 35mm photograph of a sun-faded signal-orange 1980s air-cooled Porsche 911 at a dirt PCH overlook, graffiti-tagged sun-bleached guardrail foreground, Pacific as calm blue sheet behind, Kodachrome 64, late afternoon raking light, sun-bleached nostalgia. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "lateAfternoon",
+        "focalLength": "standard",
+        "filmStock": "kodachrome64",
+        "subject": "vehicle",
+        "mood": "sunBleachedNostalgia"
+      }
+    },
+    {
+      "id": "lifestyle-tennis-clay",
+      "slot": "lifestyle-band-3",
+      "section": "Lifestyle band #3",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/lifestyle-tennis-clay.png",
+        "avif": "/images/brand/lifestyle-tennis-clay.avif",
+        "webp": "/images/brand/lifestyle-tennis-clay.webp"
+      },
+      "prompt": "A 24mm low-angle photograph of a private clay tennis court at a Malibu cliff edge, ankle-height camera, single tennis ball mid-bounce, net shadow toward camera, ocean horizon past baseline, terracotta clay grain, Kodak Ektar 100, quiet luxury. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "lateAfternoon",
+        "focalLength": "wide",
+        "filmStock": "ektar100",
+        "subject": "architecture",
+        "mood": "quietLuxury"
+      }
+    },
+    {
+      "id": "lifestyle-friends-stairs",
+      "slot": "lifestyle-band-4",
+      "section": "Lifestyle band #4",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1280,
+        "height": 1600
+      },
+      "files": {
+        "png": "/images/brand/lifestyle-friends-stairs.png",
+        "avif": "/images/brand/lifestyle-friends-stairs.avif",
+        "webp": "/images/brand/lifestyle-friends-stairs.webp"
+      },
+      "prompt": "A 35mm portrait photograph of three friends descending a weathered wooden beach staircase to a Malibu cove, photographed from below, golden backlight silhouettes, one carries a surfboard, linen and denim, stair planks fill bottom third, Portra 400, casual intimacy, no faces visible. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "goldenHour",
+        "focalLength": "standard",
+        "filmStock": "portra400",
+        "subject": "humanGesture",
+        "mood": "casualIntimacy"
+      }
+    },
+    {
+      "id": "lifestyle-pier-neon",
+      "slot": "lifestyle-band-5",
+      "section": "Lifestyle band #5",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/lifestyle-pier-neon.png",
+        "avif": "/images/brand/lifestyle-pier-neon.avif",
+        "webp": "/images/brand/lifestyle-pier-neon.webp"
+      },
+      "prompt": "A 50mm full-night photograph of a PCH roadside seafood shack, weathered wood siding, buzzing red neon OPEN or EATS sign, parked pickup trucks, dark Pacific barely beyond road, Cinestill 800T halation and blue cast, neon nocturne, no real brand names. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "night",
+        "focalLength": "standard",
+        "filmStock": "cinestill800T",
+        "subject": "architecture",
+        "mood": "neonNocturne"
+      }
+    },
+    {
+      "id": "editorial-canyon-fog",
+      "slot": "editorial-card-1",
+      "section": "Editorial / journal card #1",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/editorial-canyon-fog.png",
+        "avif": "/images/brand/editorial-canyon-fog.avif",
+        "webp": "/images/brand/editorial-canyon-fog.webp"
+      },
+      "prompt": "A 24mm pre-dawn photograph of Malibu Canyon Road with marine-layer fog filling the canyon and burning off at the ridge into pale teal sky, road curving into fog, yellow centerline barely visible, sage and chaparral shoulders, Fuji Pro 400H, cinematic tension. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "preDawn",
+        "focalLength": "wide",
+        "filmStock": "fujiPro400H",
+        "subject": "landscapeVista",
+        "mood": "cinematicTension"
+      }
+    },
+    {
+      "id": "editorial-pelicans",
+      "slot": "editorial-card-2",
+      "section": "Editorial / journal card #2",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/editorial-pelicans.png",
+        "avif": "/images/brand/editorial-pelicans.avif",
+        "webp": "/images/brand/editorial-pelicans.webp"
+      },
+      "prompt": "A 200mm telephoto black-and-white photograph of six pelicans in close V-formation low over glassy Pacific water at blue hour, compressed against empty pale sky, Kodak Tri-X 400, high grain, deep blacks, solitary stillness. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "blueHour",
+        "focalLength": "longTele",
+        "filmStock": "triX400",
+        "subject": "wildlife",
+        "mood": "solitaryStillness"
+      }
+    },
+    {
+      "id": "editorial-tile-keys",
+      "slot": "editorial-card-3",
+      "section": "Editorial / journal card #3",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/editorial-tile-keys.png",
+        "avif": "/images/brand/editorial-tile-keys.avif",
+        "webp": "/images/brand/editorial-tile-keys.webp"
+      },
+      "prompt": "A 100mm macro overhead still-life on weathered terracotta Adamson tile at hard midday: brass house key on leather fob, tortoise-shell sunglasses, folded Malibu map with no readable text, grains of sand, sharp shadows, Polaroid 600 faded palette, sun-bleached nostalgia. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "midday",
+        "focalLength": "macro",
+        "filmStock": "polaroid600",
+        "subject": "objectStillLife",
+        "mood": "sunBleachedNostalgia"
+      }
+    },
+    {
+      "id": "dev-code-reflected",
+      "slot": "developers-code-bg",
+      "section": "For developers code block bg",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 2400,
+        "height": 1029
+      },
+      "files": {
+        "png": "/images/brand/dev-code-reflected.png",
+        "avif": "/images/brand/dev-code-reflected.avif",
+        "webp": "/images/brand/dev-code-reflected.webp"
+      },
+      "prompt": "A 50mm late-afternoon photograph of a MacBook Pro screen on a wood desk by a window, right half showing soft-focus API streaming response and JSON-like terminal output, left half showing Malibu ocean and palm silhouette through window, code and coast equal weight, Portra 400. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "lateAfternoon",
+        "focalLength": "standard",
+        "filmStock": "portra400",
+        "subject": "techArtifact",
+        "mood": "quietLuxury"
+      }
+    },
+    {
+      "id": "network-band-towels",
+      "slot": "network-band",
+      "section": "Network band (3-col reveal)",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1600,
+        "height": 1067
+      },
+      "files": {
+        "png": "/images/brand/network-band-towels.png",
+        "avif": "/images/brand/network-band-towels.avif",
+        "webp": "/images/brand/network-band-towels.webp"
+      },
+      "prompt": "A 16mm ultrawide overhead hard-midday photograph of three folded beach towels on sand forming a triptych: worn paperback, closed MacBook with USB-C cable, white espresso cup and saucer, hard noon shadows, Kodak Ektar 100, casual intimacy. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "midday",
+        "focalLength": "ultraWide",
+        "filmStock": "ektar100",
+        "subject": "objectStillLife",
+        "mood": "casualIntimacy"
+      }
+    },
+    {
+      "id": "texture-cliff-raking",
+      "slot": "section-divider-primary",
+      "section": "Section divider strip",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 2400,
+        "height": 1029
+      },
+      "files": {
+        "png": "/images/brand/texture-cliff-raking.png",
+        "avif": "/images/brand/texture-cliff-raking.avif",
+        "webp": "/images/brand/texture-cliff-raking.webp"
+      },
+      "prompt": "An 85mm 21:9 photograph of Point Dume sandstone cliff at late-afternoon raking light, horizontal sediment striations glowing terracotta-orange-pink, single hawk silhouette on updraft, thin strip of Pacific along bottom, Kodachrome 64, cinematic tension. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "lateAfternoon",
+        "focalLength": "shortTele",
+        "filmStock": "kodachrome64",
+        "subject": "landscapeVista",
+        "mood": "cinematicTension"
+      }
+    },
+    {
+      "id": "texture-storm-mono",
+      "slot": "section-divider-alt",
+      "section": "Section divider strip (alt)",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 2400,
+        "height": 1029
+      },
+      "files": {
+        "png": "/images/brand/texture-storm-mono.png",
+        "avif": "/images/brand/texture-storm-mono.avif",
+        "webp": "/images/brand/texture-storm-mono.webp"
+      },
+      "prompt": "A 24mm wide black-and-white 21:9 photograph of a stormcloud bank rolling over Malibu in morning fog burn-off, dramatic sky filling 80%, thin bright Pacific band at bottom, no land or objects, Kodak Tri-X 400, high grain, cinematic tension. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "morningFog",
+        "focalLength": "wide",
+        "filmStock": "triX400",
+        "subject": "landscapeVista",
+        "mood": "cinematicTension"
+      }
+    },
+    {
+      "id": "footer-pacific-night",
+      "slot": "footer-background",
+      "section": "Footer background",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 2400,
+        "height": 1029
+      },
+      "files": {
+        "png": "/images/brand/footer-pacific-night.png",
+        "avif": "/images/brand/footer-pacific-night.avif",
+        "webp": "/images/brand/footer-pacific-night.webp"
+      },
+      "prompt": "A 35mm deep-blue-hour photograph of the Pacific from a Malibu cliffside, deep teal sky with thin amber horizon band, single distant villa light on left cliff, calm reflective water, no moon, Portra 400, solitary stillness. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "blueHour",
+        "focalLength": "standard",
+        "filmStock": "portra400",
+        "subject": "landscapeVista",
+        "mood": "solitaryStillness"
+      }
+    },
+    {
+      "id": "signature-surfboard-fence",
+      "slot": "signature-about-404",
+      "section": "Easter egg / 404 / About page",
+      "chosenVariant": 1,
+      "dimensions": {
+        "width": 1280,
+        "height": 1600
+      },
+      "files": {
+        "png": "/images/brand/signature-surfboard-fence.png",
+        "avif": "/images/brand/signature-surfboard-fence.avif",
+        "webp": "/images/brand/signature-surfboard-fence.webp"
+      },
+      "prompt": "A 50mm photograph of three single-fin surfboards leaning against a sun-bleached gray wood fence in a sandy Malibu backyard at golden hour, wax bumps and salt stains visible, hose coiled at base, wetsuit hanging and dripping, Polaroid 600 faded palette, sun-bleached nostalgia. No Airbnb interior, no wine glass, no infinity pool, no duplicated luxury-rental vocabulary.",
+      "diversityMatrix": {
+        "timeOfDay": "goldenHour",
+        "focalLength": "standard",
+        "filmStock": "polaroid600",
+        "subject": "objectStillLife",
+        "mood": "sunBleachedNostalgia"
+      }
+    }
+  ]
+}
