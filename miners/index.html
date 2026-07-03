@@ -53,12 +53,12 @@
 
     .earnings { max-width: 1080px; margin: clamp(56px, 10vw, 96px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
     .earnings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-    .tier { padding: 28px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; text-align: left; }
+    .tier { padding: 28px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; text-align: left; display: flex; flex-direction: column; }
     .tier .name { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px; }
     .tier .amount { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 42px; line-height: 1; letter-spacing: -0.025em; color: #FFFBF2; margin-bottom: 4px; }
     .tier .amount .u { font-size: 20px; color: rgba(255, 251, 242,0.7); font-weight: 500; }
     .tier .basis { font-size: 12.5px; line-height: 1.5; color: rgba(255, 251, 242,0.55); margin-bottom: 20px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
-    .tier .payback { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(255, 198, 41,0.14); border: 1px solid rgba(255, 198, 41,0.35); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #FFC629; }
+    .tier .payback { display: inline-flex; align-self: flex-start; margin-top: auto; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(255, 198, 41,0.14); border: 1px solid rgba(255, 198, 41,0.35); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #FFC629; }
     .earnings-note { font-size: 13px; line-height: 1.6; color: rgba(255, 251, 242,0.55); text-align: center; margin-top: 26px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.03em; }
 
     .how { max-width: 1080px; margin: clamp(72px, 12vw, 120px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
