@@ -2,6 +2,8 @@
   "rewrites": [
     { "source": "/api/mp/:path*", "destination": "https://api.streamvc.live/:path*" },
     { "source": "/v1/pool/check", "destination": "https://coordinator.streamvc.live/v1/pool/check" },
-    { "source": "/providers/:provider_id/earnings", "destination": "https://coordinator.streamvc.live/providers/:provider_id/earnings" }
+    { "source": "/providers/:provider_id/earnings", "destination": "https://coordinator.streamvc.live/providers/:provider_id/earnings" },
+    { "source": "/docs", "destination": "https://malibu.mintlify.site/docs" },
+    { "source": "/docs/:match*", "destination": "https://malibu.mintlify.site/docs/:match*" }
   ]
 }
