@@ -49,10 +49,12 @@
       <img data-hero-photo aria-hidden="true" src="/images/brand/hero-malibu-bay.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; filter: saturate(1.05) contrast(1.02); transform: translate3d(calc(var(--mx, 0) * -8px), calc(var(--my, 0) * -5px), 0) scale(1.06); transition: transform 700ms cubic-bezier(.2,.7,.3,1);" />
     </picture>
 
-    <!-- Looping ocean video. Drop hero-malibu-bay.webm + .mp4 into /public/images/brand/ and it kicks in. -->
+    <!-- Looping ocean video. Mobile gets a small 540p file; desktop gets native quality. -->
     <video data-hero-video aria-hidden="true" autoplay muted loop playsinline preload="auto" poster="/images/brand/hero-malibu-bay.png" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; filter: saturate(1.05) contrast(1.02); transform: translate3d(calc(var(--mx, 0) * -8px), calc(var(--my, 0) * -5px), 0) scale(1.06);">
+      <source src="/images/brand/hero-malibu-bay-mobile.webm" type="video/webm" media="(max-width: 768px)" />
+      <source src="/images/brand/hero-malibu-bay-mobile.mp4"  type="video/mp4"  media="(max-width: 768px)" />
       <source src="/images/brand/hero-malibu-bay.webm" type="video/webm" />
-      <source src="/images/brand/hero-malibu-bay.mp4" type="video/mp4" />
+      <source src="/images/brand/hero-malibu-bay.mp4"  type="video/mp4" />
     </video>
 
     <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(194, 84, 58,0.55) 0%, rgba(255, 110, 91,0.32) 25%, rgba(255, 198, 41,0.18) 55%, rgba(90,30,18,0.55) 100%); mix-blend-mode: multiply; animation: skyShift 60s ease-in-out infinite; pointer-events: none;"></div>
