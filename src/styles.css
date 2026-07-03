@@ -26,6 +26,12 @@ em, i { font-style: normal; }
 @keyframes pillPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 @keyframes streamCursor { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
 
+[data-hero-video] { will-change: transform; transition: transform 700ms cubic-bezier(.2,.7,.3,1); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hero-video] { display: none; }
+}
+
 [data-hero-content] > * {
   opacity: 0;
   animation: heroFadeUp 1.2s cubic-bezier(.2,.65,.3,1) forwards;
