@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Turn your Apple Silicon Mac into an income-producing asset. Serve open AI models. Earn USDC and $MALIBU while you sleep." />
+  <title>Malibu · Miners</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #143A45; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+    * { box-sizing: border-box; }
+    ::selection { background: #FF6E5B; color: #FFFBF2; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    @keyframes pillPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+    nav[data-nav-pill] {
+      position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100;
+      display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px;
+      background: #143A45; border-radius: 9999px;
+      box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);
+    }
+    nav .mark { display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12); }
+    nav .mark span.dot { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #0C3A45; }
+    nav .mark span.name { font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; line-height: 1; }
+    nav .links { display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72); }
+    nav .links a { transition: color 180ms ease; }
+    nav .links a:hover { color: #FFFBF2; }
+    nav .cta { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; margin-left: 4px; background: #FF6E5B; color: #FFFBF2; border-radius: 9999px; font-family: 'Hanken Grotesk', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: -0.005em; white-space: nowrap; }
+
+    .hero { padding: clamp(120px, 18vh, 180px) clamp(28px, 5vw, 64px) clamp(56px, 10vh, 96px); text-align: center; max-width: 1080px; margin: 0 auto; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: rgba(255, 251, 242,0.06); border: 1px solid rgba(255, 198, 41,0.42); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #FFFBF2; margin-bottom: 28px; }
+    .pill .b { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #FF6E5B; color: #FFFBF2; font-size: 12px; }
+    .pill .d { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #FFC629; animation: pillPulse 2.4s ease-in-out infinite; }
+    h1 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(54px, 8vw, 108px); line-height: 0.94; letter-spacing: -0.035em; color: #FFFBF2; margin: 0 0 22px; text-wrap: balance; }
+    h1 .dot { color: #FF6E5B; }
+    .sub { font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.8vw, 22px); line-height: 1.5; color: rgba(255, 251, 242,0.82); margin: 0 auto 44px; max-width: 60ch; }
+
+    .cta-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; background: #FF6E5B; color: #FFFBF2; border-radius: 9999px; font-family: 'Hanken Grotesk', sans-serif; font-size: 15px; font-weight: 500; letter-spacing: -0.005em; transition: background 140ms ease; }
+    .cta-btn:hover { background: #C2543A; }
+    .cta-btn.secondary { background: transparent; border: 1px solid rgba(255, 251, 242,0.20); color: #FFFBF2; }
+    .cta-btn.secondary:hover { background: rgba(255, 251, 242, 0.06); }
+    .hero-ctas { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+    .section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 14px; text-align: center; }
+    .section-title { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(32px, 4.5vw, 52px); line-height: 1.06; letter-spacing: -0.025em; color: #FFFBF2; margin: 0 auto 20px; max-width: 22ch; text-align: center; }
+    .section-sub { font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.5; color: rgba(255, 251, 242,0.72); max-width: 60ch; margin: 0 auto 56px; text-align: center; }
+
+    .earnings { max-width: 1080px; margin: clamp(56px, 10vw, 96px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
+    .earnings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+    .tier { padding: 28px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; text-align: left; }
+    .tier .name { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px; }
+    .tier .amount { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 42px; line-height: 1; letter-spacing: -0.025em; color: #FFFBF2; margin-bottom: 4px; }
+    .tier .amount .u { font-size: 20px; color: rgba(255, 251, 242,0.7); font-weight: 500; }
+    .tier .basis { font-size: 12.5px; line-height: 1.5; color: rgba(255, 251, 242,0.55); margin-bottom: 20px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em; }
+    .tier .payback { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: rgba(255, 198, 41,0.14); border: 1px solid rgba(255, 198, 41,0.35); border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #FFC629; }
+    .earnings-note { font-size: 13px; line-height: 1.6; color: rgba(255, 251, 242,0.55); text-align: center; margin-top: 26px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.03em; }
+
+    .how { max-width: 1080px; margin: clamp(72px, 12vw, 120px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+    .how-card { padding: 28px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; }
+    .how-card .n { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 16px; }
+    .how-card h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 22px; line-height: 1.2; letter-spacing: -0.01em; color: #FFFBF2; margin: 0 0 10px; }
+    .how-card p { font-size: 14.5px; line-height: 1.55; color: rgba(255, 251, 242,0.72); margin: 0; }
+
+    .why-now { max-width: 1080px; margin: clamp(72px, 12vw, 120px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
+    .why-now-card { padding: 40px 36px; background: linear-gradient(180deg, rgba(255,110,91,0.10) 0%, rgba(255,110,91,0.02) 100%); border: 1px solid rgba(255,110,91,0.28); border-radius: 18px; }
+    .why-now-card h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(26px, 3vw, 34px); line-height: 1.15; letter-spacing: -0.02em; color: #FFFBF2; margin: 0 0 16px; text-wrap: balance; }
+    .why-now-card p { font-size: 16px; line-height: 1.6; color: rgba(255, 251, 242,0.82); margin: 0 0 12px; max-width: 68ch; }
+    .why-now-card .em { color: #FF6E5B; font-weight: 500; }
+
+    .final-cta { max-width: 1080px; margin: clamp(96px, 14vw, 160px) auto clamp(80px, 12vh, 140px); padding: 0 clamp(28px, 5vw, 64px); text-align: center; }
+    .final-cta h2 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(40px, 6vw, 72px); line-height: 0.96; letter-spacing: -0.03em; color: #FFFBF2; margin: 0 0 20px; text-wrap: balance; }
+    .final-cta p { font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.5; color: rgba(255, 251, 242,0.72); margin: 0 auto 32px; max-width: 50ch; }
+    .final-cta .dot { color: #FF6E5B; }
+
+    .footer { padding: 48px clamp(28px, 5vw, 64px); border-top: 1px solid rgba(255, 251, 242,0.08); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); }
+    .footer a:hover { color: #FFFBF2; }
+
+    @media (max-width: 720px) {
+      nav .links a { display: none; }
+      nav .links a:nth-child(1) { display: inline; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+<nav data-nav-pill aria-label="Primary navigation">
+  <a href="/" class="mark" aria-label="Malibu home">
+    <span class="dot">
+      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
+        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
+      </svg>
+    </span>
+    <span class="name">malibu</span>
+  </a>
+  <div class="links">
+    <a href="/#network">Network</a>
+    <a href="/#token">$MALIBU</a>
+    <a href="/docs">Docs</a>
+    <a href="/console/">Chat</a>
+  </div>
+  <a href="/host/" class="cta">
+    Host a model
+    <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="pill">
+      <span class="b">$</span>
+      <span>Miners &middot; earn from day one</span>
+    </div>
+    <h1>Your Mac just got a job<span class="dot">.</span></h1>
+    <p class="sub">Two hundred million idle Apple Silicon Macs are the world's largest AI cloud. Malibu turns yours on. Serve open models. Earn USDC on every prompt, and $MALIBU on every mined block.</p>
+    <div class="hero-ctas">
+      <a href="/host/" class="cta-btn">Start hosting &rarr;</a>
+      <a href="/docs" class="cta-btn secondary">Read the litepaper</a>
+    </div>
+  </section>
+
+  <section class="earnings">
+    <div class="section-label">Year-5 base case &middot; whitepaper numbers</div>
+    <h2 class="section-title">What each Mac earns per year</h2>
+    <p class="section-sub">Modeled at $MALIBU = $2. USDC from serving + $MALIBU from mining. Payback is time to earn back the retail cost of the hardware.</p>
+
+    <div class="earnings-grid">
+      <div class="tier">
+        <div class="name">Mac Studio Ultra</div>
+        <div class="amount">$10&ndash;13K<span class="u">&nbsp;/&nbsp;yr</span></div>
+        <div class="basis">~$25K+ at $MALIBU = $5</div>
+        <div class="payback">Payback &lt; 12 months</div>
+      </div>
+      <div class="tier">
+        <div class="name">M4 Max</div>
+        <div class="amount">$5,100<span class="u">&nbsp;/&nbsp;yr</span></div>
+        <div class="basis">~$12K at $MALIBU = $5</div>
+        <div class="payback">Payback &lt; 12 months</div>
+      </div>
+      <div class="tier">
+        <div class="name">M4 Pro</div>
+        <div class="amount">$3,400<span class="u">&nbsp;/&nbsp;yr</span></div>
+        <div class="basis">at $MALIBU = $2</div>
+        <div class="payback">Runs fanned</div>
+      </div>
+      <div class="tier">
+        <div class="name">Air</div>
+        <div class="amount">$1,050<span class="u">&nbsp;/&nbsp;yr</span></div>
+        <div class="basis">at $MALIBU = $2, fanless</div>
+        <div class="payback">Zero maintenance</div>
+      </div>
+    </div>
+    <p class="earnings-note">Compound income on hardware you were going to buy anyway.</p>
+  </section>
+
+  <section class="how">
+    <div class="section-label">Mining state is serving state</div>
+    <h2 class="section-title">Two paychecks, one binary</h2>
+    <p class="section-sub">Idle Mac mines Proof-of-Model-Walk on the canonical model weights. Buyer request arrives, miner yields in ~50ms. Same weights, same Metal pipeline, no reconfigure.</p>
+
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="n">01 &middot; USDC</div>
+        <h3>70&cent; per served $1</h3>
+        <p>Every buyer prompt served on your Mac pays out USDC on Base. Weekly automated settlement, min-payout thresholds you control.</p>
+      </div>
+      <div class="how-card">
+        <div class="n">02 &middot; $MALIBU</div>
+        <h3>Mined on a public schedule</h3>
+        <p>100M tokens emitted in year one, smoothly decaying to a perpetual 15M / year floor. Your share is proportional to your Mac's measured throughput.</p>
+      </div>
+      <div class="how-card">
+        <div class="n">03 &middot; Cooperative</div>
+        <h3>The Mac stays yours</h3>
+        <p>Mining runs in the background. Serving interrupts for milliseconds at a time. No fans screaming, no rack space, no electricity bill worth noticing.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="why-now">
+    <div class="why-now-card">
+      <h3>Being early is the structural incentive.</h3>
+      <p>The emission curve pays the earliest miners the most. Mining reputation transfers to serving-revenue priority when the buyer marketplace activates.</p>
+      <p><span class="em">Every new provider makes the next one more valuable.</span> Being early isn't a marketing pitch. It's the mechanism the network is designed around.</p>
+    </div>
+  </section>
+
+  <section class="final-cta">
+    <h2>Turn it on<span class="dot">.</span></h2>
+    <p>One binary. Any Apple Silicon Mac shipped since 2020. Two minutes from install to first paid request.</p>
+    <div class="hero-ctas">
+      <a href="/host/" class="cta-btn">Start hosting &rarr;</a>
+      <a href="/docs" class="cta-btn secondary">Read the litepaper</a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>&copy; 2026 Malibu AI, Inc.</span>
+  <div style="display: flex; gap: 26px;">
+    <a href="/#network">Network</a>
+    <a href="/#token">$MALIBU</a>
+    <a href="/docs">Docs</a>
+    <a href="/console/">Chat</a>
+  </div>
+</footer>
+
+</body>
+</html>

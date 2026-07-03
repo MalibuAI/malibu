@@ -26,6 +26,8 @@ export default defineConfig({
         console: resolve(__dirname, 'console/index.html'),
         host: resolve(__dirname, 'host/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
+        miners: resolve(__dirname, 'miners/index.html'),
+        buyers: resolve(__dirname, 'buyers/index.html'),
       },
     },
   },
