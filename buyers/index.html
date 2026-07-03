@@ -52,11 +52,13 @@
     .section-sub { font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.5; color: rgba(255, 251, 242,0.72); max-width: 60ch; margin: 0 auto 56px; text-align: center; }
 
     .pillars { max-width: 1080px; margin: clamp(56px, 10vw, 96px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
-    .pillars-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; }
-    .pillar { padding: 28px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; }
-    .pillar .lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 14px; }
-    .pillar h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: -0.01em; color: #FFFBF2; margin: 0 0 10px; }
-    .pillar p { font-size: 14px; line-height: 1.55; color: rgba(255, 251, 242,0.72); margin: 0; }
+    .pillars-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .pillar { padding: 24px 20px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; }
+    .pillar .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #FFC629; margin-bottom: 14px; }
+    .pillar h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 18px; line-height: 1.2; letter-spacing: -0.01em; color: #FFFBF2; margin: 0 0 10px; text-wrap: balance; }
+    .pillar p { font-size: 13.5px; line-height: 1.55; color: rgba(255, 251, 242,0.72); margin: 0; }
+    @media (max-width: 960px) { .pillars-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .pillars-grid { grid-template-columns: 1fr; } }
 
     .catalog { max-width: 1080px; margin: clamp(72px, 12vw, 120px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
     .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
