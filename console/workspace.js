@@ -54,10 +54,6 @@ export function createWorkspace({
     }
     activeView = null;
     panelEl?.classList.remove('workspace-open');
-    chatHeadEl?.removeAttribute('hidden');
-    workspaceHeadEl?.setAttribute('hidden', '');
-    chatShellEl?.removeAttribute('hidden');
-    workspacePaneEl?.setAttribute('hidden', '');
     workspaceContentEl.innerHTML = '';
     setRailActive('');
     updateUrl('chat');
@@ -78,10 +74,6 @@ export function createWorkspace({
 
     activeView = viewId;
     panelEl?.classList.add('workspace-open');
-    chatHeadEl?.setAttribute('hidden', '');
-    workspaceHeadEl?.removeAttribute('hidden');
-    chatShellEl?.setAttribute('hidden', '');
-    workspacePaneEl?.removeAttribute('hidden');
     workspaceTitleEl.textContent = mod.title || viewId;
     workspaceContentEl.innerHTML = '';
     setRailActive(viewId);

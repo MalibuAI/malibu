@@ -141,7 +141,9 @@ export function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE);
     if (!raw) return { ...DEFAULT_SETTINGS };
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const settings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    if (settings.chatMode === 'json') settings.chatMode = 'chat';
+    return settings;
   } catch {
     return { ...DEFAULT_SETTINGS };
   }

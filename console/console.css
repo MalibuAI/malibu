@@ -11,8 +11,8 @@ h1 { margin: 14px 0 6px; font-weight: 500; font-size: 32px; letter-spacing: -0.0
 .card .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,251,242,0.45); margin-bottom: 8px; }
 .card .val { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; }
 .card .hint { margin-top: 6px; font-size: 13px; color: rgba(255,251,242,0.55); }
-.panel { margin-top: 20px; background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
-.panel h2 { margin: 0 0 12px; font-size: 16px; font-weight: 500; }
+.workspace-scroll .panel { margin-top: 20px; background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
+.workspace-scroll .panel h2 { margin: 0 0 12px; font-size: 16px; font-weight: 500; }
 .bar-track { height: 8px; background: rgba(255,251,242,0.08); border-radius: 4px; overflow: hidden; margin: 12px 0; }
 .bar-fill { height: 100%; background: #FFC629; border-radius: 4px; transition: width 300ms ease; }
 .bar-fill.warn { background: #FF6E5B; }

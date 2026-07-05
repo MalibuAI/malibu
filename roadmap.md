@@ -43,7 +43,7 @@
 |------------|-----|------------|
 | Sticky conversations | `X-MacProvider-Conversation` | Per-thread KV cache, cheaper multi-turn |
 | Multi-turn tool calling | SPEC-018 `tools`, `tool_calls[]` | Agent mode (Phase 2) |
-| Structured output | `response_format: json_schema` | JSON starter prompts |
+| Structured output | `response_format: json_schema` | API-only; not a console mode |
 | Signed receipts | `X-MacProvider-Receipt` | Verified inference badge |
 | Settlement | `X-MacProvider-Settlement-*` | Per-message trust UX |
 | Demo mode | `POST /auth/demo-session` | Anonymous first chat |
@@ -94,12 +94,12 @@
 | # | Initiative | Status |
 |---|------------|--------|
 | 2.1 | Tool-call streaming in client (SPEC-018) | Done |
-| 2.2 | Agent mode toggle (Chat ↔ Agent ↔ JSON) | Done |
+| 2.2 | Agent mode toggle (Chat ↔ Agent) | Done |
 | 2.3 | Task timeline (Cline-style) | Done |
 | 2.4 | Built-in client tools: web_fetch, json_validate, calculator | Done |
 | 2.5 | Human-in-the-loop approve/reject | Done |
 | 2.6 | MCP connector in Settings | Stub (URL field; full MCP in Phase 3) |
-| 2.7 | Structured output mode for JSON prompts | Done |
+| 2.7 | Structured output mode for JSON prompts | Removed (out of product scope) |
 | 2.8 | OpenAI SDK export snippet per thread | Done (`/console/agent-docs/`) |
 | 2.9 | Cline / Continue compatibility docs | Done |
 
