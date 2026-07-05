@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./console.css" />
   <style>
     html, body { margin: 0; padding: 0; background: #143A45; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; }
     * { box-sizing: border-box; }
@@ -25,7 +26,7 @@
     .rail-head .name span { color: rgba(255, 251, 242,0.5); }
     .rail-section { padding: 18px 14px 8px; }
     .rail-section h3 { margin: 0 0 8px; padding: 0 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255, 251, 242,0.45); font-weight: 500; }
-    .rail .item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; color: rgba(255, 251, 242,0.78); font-size: 13.5px; transition: background 140ms ease, color 140ms ease; cursor: pointer; }
+    .rail .item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 8px; border: 0; color: rgba(255, 251, 242,0.78); font-size: 13.5px; transition: background 140ms ease, color 140ms ease; cursor: pointer; text-align: left; }
     .rail .item:hover { background: rgba(255, 251, 242,0.06); color: #FFFBF2; }
     .rail .item.active { background: rgba(255, 110, 91,0.16); color: #FFFBF2; }
     .rail .item .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255, 251, 242,0.4); }
@@ -146,6 +147,16 @@
     .tl-dot.pending { background: #FFC629; }
     .tool-preview { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,251,242,0.65); white-space: pre-wrap; margin: 8px 0; max-height: 120px; overflow: auto; }
     .msg .text.tool-call { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: rgba(255,198,41,0.9); }
+
+    .panel.workspace-open { grid-template-rows: auto 1fr; }
+    .workspace-head { gap: 12px; }
+    .ws-close { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255,251,242,0.06); border: 1px solid rgba(255,251,242,0.10); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,251,242,0.78); }
+    .ws-close:hover { background: rgba(255,251,242,0.10); color: #FFFBF2; }
+    .ws-title { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 18px; letter-spacing: -0.01em; }
+    .workspace-pane { overflow-y: auto; min-height: 0; }
+    .workspace-scroll { max-width: 920px; margin: 0 auto; padding: 28px 32px 48px; }
+    .workspace-scroll .sub { color: rgba(255,251,242,0.65); margin: 0 0 24px; line-height: 1.5; font-size: 14px; }
+    .workspace-scroll h1 { display: none; }
   </style>
 </head>
 <body>
@@ -184,20 +195,20 @@
 
       <div class="rail-section">
         <h3>Workspace</h3>
-        <a class="item" href="/console/dashboard/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="1.4"/><path d="M2 6 H12"/></svg> Dashboard</a>
-        <a class="item" href="/console/keys/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</a>
-        <button class="item" type="button" data-open-settings style="width:100%;border:0;text-align:left;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Account</button>
-        <a class="item" href="/console/settings/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M7 4 V7 L9 9"/></svg> Settings</a>
-        <a class="item" href="/console/agent-docs/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3 H11 V11 H3 Z M5 5 H9 M5 8 H9"/></svg> Agent SDK</a>
+        <button class="item" type="button" data-workspace="dashboard"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="1.4"/><path d="M2 6 H12"/></svg> Dashboard</button>
+        <button class="item" type="button" data-workspace="keys"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</button>
+        <button class="item" type="button" data-open-settings><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Account</button>
+        <button class="item" type="button" data-workspace="settings"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M7 4 V7 L9 9"/></svg> Settings</button>
+        <button class="item" type="button" data-workspace="agent-docs"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3 H11 V11 H3 Z M5 5 H9 M5 8 H9"/></svg> Agent SDK</button>
         <a class="item" href="/#token"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3 V11 M5 5 H9 M5 9 H9"/></svg> $MALIBU</a>
       </div>
     </div>
   </aside>
 
   <!-- MAIN PANEL -->
-  <section class="panel">
+  <section class="panel" data-panel>
 
-    <div class="panel-head">
+    <div class="panel-head" data-chat-head>
       <div class="model-pick">
         <select data-model aria-label="Model"></select>
         <svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1.2 L4.5 4.5 L8 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -220,6 +231,12 @@
       </button>
     </div>
 
+    <div class="panel-head workspace-head" data-workspace-head hidden>
+      <button type="button" class="ws-close" data-close-workspace>← Chat</button>
+      <span class="ws-title" data-workspace-title>Dashboard</span>
+    </div>
+
+    <div data-chat-shell>
     <div class="stream" data-stream>
       <div class="stream-inner">
 
@@ -257,11 +274,16 @@
     <form class="composer" data-composer onsubmit="return false;">
       <div class="composer-inner">
         <div class="composer-box">
-          <textarea data-input rows="1" placeholder="Ask anything — ⌘↵ to send"></textarea>
-          <button class="send" type="submit" data-submit>Send <span class="kb">⌘↵</span></button>
+          <textarea data-input rows="1" placeholder="Ask anything — ↵ to send"></textarea>
+          <button class="send" type="submit" data-submit>Send <span class="kb">↵</span></button>
         </div>
       </div>
     </form>
+    </div>
+
+    <div class="workspace-pane" data-workspace-pane hidden>
+      <div class="workspace-scroll" data-workspace-content></div>
+    </div>
 
   </section>
 </div>
@@ -324,6 +346,7 @@
   } from './api.js';
   import { runAgentLoop } from './agent.js';
   import { toolsForMode } from './tools.js';
+  import { createWorkspace } from './workspace.js';
 
   const stream = document.querySelector('[data-stream] .stream-inner');
   const composer = document.querySelector('[data-composer]');
@@ -443,10 +466,10 @@
     if (timelineEl) timelineEl.hidden = m !== 'agent';
     if (m !== 'agent') clearTimeline();
     input.placeholder = m === 'agent'
-      ? 'Describe a task — Malibu can use tools (⌘↵)'
+      ? 'Describe a task — Malibu can use tools (↵ to send)'
       : m === 'json'
-        ? 'Ask for structured JSON output (⌘↵)'
-        : 'Ask anything — ⌘↵ to send';
+        ? 'Ask for structured JSON output (↵ to send)'
+        : 'Ask anything — ↵ to send';
   }
 
   modePickEl?.addEventListener('click', (e) => {
@@ -455,6 +478,21 @@
     setChatMode(btn.dataset.mode);
   });
   setChatMode(loadSettings().chatMode || 'chat');
+
+  const workspace = createWorkspace({
+    panelEl: document.querySelector('[data-panel]'),
+    chatHeadEl: document.querySelector('[data-chat-head]'),
+    workspaceHeadEl: document.querySelector('[data-workspace-head]'),
+    chatShellEl: document.querySelector('[data-chat-shell]'),
+    workspacePaneEl: document.querySelector('[data-workspace-pane]'),
+    workspaceContentEl: document.querySelector('[data-workspace-content]'),
+    workspaceTitleEl: document.querySelector('[data-workspace-title]'),
+    closeBtnEl: document.querySelector('[data-close-workspace]'),
+    railEl: document.querySelector('[data-rail]'),
+    toast,
+    onSettingsSaved: () => setChatMode(loadSettings().chatMode || 'chat'),
+    openAccount: openSettings,
+  });
 
   function openReceipt(receipt) {
     if (!receipt) return;
@@ -680,6 +718,7 @@
 
   function loadThread(id) {
     if (busy) return;
+    workspace.close();
     const t = getThread(id);
     if (!t) return;
     threadId = t.id;
@@ -935,7 +974,7 @@
   composer.addEventListener('submit', (e) => { e.preventDefault(); send(); });
   submit.addEventListener('click', (e) => { e.preventDefault(); send(); });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
   document.querySelectorAll('[data-starter]').forEach((b) => {
     b.addEventListener('click', () => {
@@ -947,6 +986,7 @@
   });
   document.querySelector('[data-new-chat]').addEventListener('click', () => {
     if (busy) return;
+    workspace.close();
     threadId = createThreadId();
     conversation = [];
     threadTitle = '';
