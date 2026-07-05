@@ -1,0 +1,99 @@
+---
+title: Flags & config
+description: malibu-cli command-line flags and config-file reference.
+---
+
+# Flags & config
+
+> malibu-cli command-line flags and config-file reference.
+
+`malibu-cli` reads config in this order: command-line flags > environment variables > `~/.malibu/config.yaml` > defaults.
+
+## Common flags
+
+| Flag                       | Env                     | Default                                     | Purpose                                      |
+| -------------------------- | ----------------------- | ------------------------------------------- | -------------------------------------------- |
+| `--config <path>`          | `MALIBU_CONFIG`         | `~/.malibu/config.yaml`                     | Config file location                         |
+| `--coordinator <url>`      | `MALIBU_COORDINATOR`    | `wss://coordinator.malibu.tech/ws/provider` | Coordinator WebSocket URL                    |
+| `--provider-id <id>`       | `MALIBU_PROVIDER_ID`    | —                                           | Stable provider handle used as pool identity |
+| `--provider-token <token>` | `MALIBU_PROVIDER_TOKEN` | —                                           | Bearer token minted at first admission       |
+| `--model <id>`             | `MALIBU_MODEL`          | (from autotune)                             | MLX model to load                            |
+| `--log-level <level>`      | `MALIBU_LOG_LEVEL`      | `info`                                      | `debug` \| `info` \| `warn` \| `error`       |
+| `--log-file <path>`        | `MALIBU_LOG_FILE`       | `~/Library/Logs/malibu/malibu-cli.log`      | Log destination                              |
+| `--data-dir <path>`        | `MALIBU_DATA_DIR`       | `~/.malibu`                                 | Config, keys, model cache root               |
+
+## Config file
+
+Default: `~/.malibu/config.yaml`.
+
+```yaml theme={null}
+provider_id: my-mac-01
+provider_token: <token minted on first admission>
+coordinator: wss://coordinator.malibu.tech/ws/provider
+
+model:
+  id: mlx-community/Qwen2.5-7B-Instruct-4bit
+  # Or a list to hold multiple warm:
+  # ids:
+  #   - mlx-community/Qwen2.5-7B-Instruct-4bit
+  #   - mlx-community/Llama-3.2-3B-Instruct-4bit
+
+runtime:
+  max_context: 8192          # tokens
+  max_batch: 1
+  gpu_memory_reserve_gb: 2   # leave this much unified memory for the OS
+
+heartbeat:
+  interval_s: 30
+
+autoupdate:
+  enabled: true              # opt out only for pinned/audited fleets
+
+autotune:
+  enabled: true              # run recommend on first launch
+  min_tps: 15                # skip candidates below this
+  max_ttft_ms: 4000          # skip candidates above this on 4K prompts
+
+logging:
+  level: info
+  file: ~/Library/Logs/malibu/malibu-cli.log
+```
+
+## Environment variables
+
+Every config field has an environment equivalent, uppercased with dots replaced by underscores:
+
+| Env                           | Config field           |
+| ----------------------------- | ---------------------- |
+| `MALIBU_COORDINATOR`          | `coordinator`          |
+| `MALIBU_PROVIDER_ID`          | `provider_id`          |
+| `MALIBU_PROVIDER_TOKEN`       | `provider_token`       |
+| `MALIBU_MODEL_ID`             | `model.id`             |
+| `MALIBU_RUNTIME_MAX_CONTEXT`  | `runtime.max_context`  |
+| `MALIBU_HEARTBEAT_INTERVAL_S` | `heartbeat.interval_s` |
+| `MALIBU_AUTOUPDATE_ENABLED`   | `autoupdate.enabled`   |
+| `MALIBU_LOG_LEVEL`            | `logging.level`        |
+
+## Data directory layout
+
+```
+~/.malibu/
+├── config.yaml
+├── keys/
+│   ├── provider.pub.pem      # advertised via /v1/receipt-keys
+│   └── provider.key.pem      # signs every receipt (chmod 600)
+├── models/                    # MLX weight cache
+│   └── mlx-community__Qwen2.5-7B-Instruct-4bit/
+└── state/
+    ├── last-connect.json
+    └── autoupdate.json
+```
+
+## Verifier config
+
+`malibu-verify` reads a subset:
+
+| Env                                       | Purpose                                                  |
+| ----------------------------------------- | -------------------------------------------------------- |
+| `MALIBU_COORDINATOR`                      | Default `--coordinator` for receipt-key resolution       |
+| `MALIBU_VERIFY_ALLOW_PRIVATE_COORDINATOR` | Set to `1` to allow RFC1918 / loopback coordinator hosts |

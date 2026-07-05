@@ -1,0 +1,60 @@
+---
+title: Security & trust model
+description: What the coordinator sees, what receipts prove, and what they don't.
+---
+
+# Security & trust model
+
+> What the coordinator sees, what receipts prove, and what they don't.
+
+Malibu is a cooperative-trust network with cryptographic guarantees at specific boundaries. This page lays out what each participant sees and what a signed receipt does and does not prove.
+
+## What the coordinator sees
+
+Prompts and responses pass through the gateway and coordinator to enable routing and billing. **Model weights stay on the provider Mac and never leave.** Buyer prompts and provider responses are processed as plaintext on provider hardware — providers can technically observe prompts and outputs that route through their machine.
+
+This is acceptable for cooperative deployments where buyer and provider have an established trust relationship. **It is NOT a private-inference guarantee.** A self-hosted coordinator is on the roadmap for buyers who need local-only trust.
+
+## What a valid receipt proves
+
+A `valid` verdict from `malibu-verify` proves:
+
+* A holder of the provider signing key signed the canonical `(prompt, output, model, provider, timestamp)` tuple.
+* The verifier resolved that key through the configured trust source (`/v1/receipt-keys/{provider_id}` by default, or `--pubkey` if supplied explicitly).
+
+## What it does NOT prove
+
+* **Model honesty** beyond `model_hash` matching the catalog. If a provider signs a receipt whose `model_hash` matches the advertised model but ran a different computation, the receipt still verifies.
+* **Timestamp honesty.** The `unix_ts` is the provider's clock. Buyers cross-checking against their own capture timestamps get an implicit sanity bound.
+* **Response uniqueness.** The receipt does not prevent a provider from returning the same response to the same prompt twice.
+* **Privacy.** The receipt does not conceal prompt content from the provider or coordinator.
+* **Replay resistance.** The receipt is signed but not nonce-bound to the buyer's request.
+* **Absolute trust in the coordinator.** The coordinator resolves the pubkey by default. If the coordinator is compromised, `--pubkey` (offline) is the escape hatch.
+
+## Buyer-side validation obligation
+
+For tool-calling responses, emitted `tool_calls[]` reflect **model output**, not provider-verified intent. Buyer-side agent frameworks **MUST** validate before execution. Malibu transports the parsed OpenAI-compatible shape; it does not decide whether a requested tool name or argument payload is safe for your agent policy. Treat emitted tool calls with the same trust posture you would apply to a model running on local hardware.
+
+See [Agentic tooling → Buyer-side validation](/agentic/buyer-side-validation).
+
+## Transport
+
+* **Provider ↔ coordinator.** Outbound WSS over TLS 1.3. Bearer-token auth. No inbound port on the provider.
+* **Buyer ↔ gateway.** HTTPS. API-key auth.
+* **Provider signing keys.** Ed25519. Rotated with a grace window. Public key resolved via `/v1/receipt-keys/{provider_id}`.
+
+## Provider onboarding
+
+For production public onboarding both token gates are set:
+
+```yaml theme={null}
+auth:
+  require_provider_tokens: true
+  allow_tokenless_provisional_bootstrap: true
+```
+
+`require_provider_tokens` keeps normal reconnects fail-closed. `allow_tokenless_provisional_bootstrap` admits the first tokenless provisional connect far enough to mint and persist its own `provider_token`; subsequent reconnects require the persisted token.
+
+## Reporting security issues
+
+Security-sensitive reports use GitHub's private vulnerability reporting on the relevant repository. Do not attach private prompts, responses, API keys, or receipt bundles to public issues.

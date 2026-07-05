@@ -1,0 +1,57 @@
+---
+title: Transport
+description: Outbound WebSocket from provider to coordinator. No inbound ports.
+---
+
+# Transport
+
+> Outbound WebSocket from provider to coordinator. No inbound ports.
+
+Providers connect **outbound** to the coordinator. There is no inbound port, no NAT hole-punching, no reverse proxy on the provider Mac. This is the foundation of the "any Apple Silicon Mac can serve" property.
+
+## The connection
+
+```
+Provider Mac  ──── wss://coordinator.malibu.tech/ws/provider ────▶  Coordinator
+              (single long-lived WebSocket, TLS 1.3)
+```
+
+* **Direction.** Provider initiates; coordinator accepts. No inbound connectivity on the provider.
+* **Protocol.** Length-framed JSON messages over WSS.
+* **Auth.** Bearer token (`provider_token`) presented in the initial handshake. See [Token gates](#token-gates) below.
+* **Heartbeat.** 30-second interval; streaming inference chunks count as heartbeat activity.
+* **Reap threshold.** 90 seconds (`pool.heartbeat_miss_threshold_s`). No frame in that window → connection closed by the coordinator.
+
+## Message flow per request
+
+1. Coordinator picks this provider for an incoming buyer request.
+2. Coordinator sends a `request` frame with the model, canonicalized prompt, and generation params.
+3. Provider runs MLX inference, emitting `chunk` frames for streaming or a single `response` frame for non-streaming.
+4. Provider emits a final `receipt` frame carrying the signed v0.3 receipt tuple.
+5. Coordinator forwards the response and receipt back to the gateway, which relays to the buyer.
+
+## Token gates
+
+For production public onboarding the coordinator runs with both token gates set:
+
+```yaml theme={null}
+auth:
+  require_provider_tokens: true
+  allow_tokenless_provisional_bootstrap: true
+```
+
+* `require_provider_tokens: true` — normal reconnects are fail-closed. A provider without a valid token cannot reconnect.
+* `allow_tokenless_provisional_bootstrap: true` — the **first** tokenless provisional connect is admitted just far enough to mint and persist its own `provider_token`. Subsequent reconnects require the persisted token. Pinned providers and provider IDs whose active token has already been used still reject tokenless reconnects.
+
+Invite-only deployments can set the bootstrap flag to `false`; then new Macs need an operator-preprovisioned `provider_token`.
+
+## What breaks the connection
+
+* **Lid-close sleep.** `caffeinate` prevents display and user-idle sleep during a run but not lid-close sleep. The binary reconnects automatically on wake; in-flight requests are lost.
+* **Network transitions.** Wi-Fi disconnects, VPN toggles, ISP resets — same reconnect logic.
+* **Heartbeat reaping.** If the provider stops emitting frames for 90 s the coordinator closes the connection.
+* **Version drift.** If autoupdate advertises a `recommended_binary_version` newer than the running binary, the provider drains in-flight traffic and swaps in place. See [Provider autoupdate](/operations/provider-autoupdate).
+
+## Warmup gate
+
+After reconnect the coordinator holds the provider in a **warmup** state for up to 90 s (`pool.warmup_gate_timeout_s`) while verifying it can handle requests. Requests during warmup route to other pool members.

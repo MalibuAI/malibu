@@ -1,0 +1,58 @@
+---
+title: Pinning to a provider
+description: Route every request in a session to a specific provider.
+---
+
+# Pinning to a provider
+
+> Route every request in a session to a specific provider.
+
+Pin a request session to one provider via `X-Malibu-Pin-Provider`. Useful for reproducibility, debugging, or when you're contracting a specific Mac.
+
+```python theme={null}
+from openai import OpenAI
+
+client_pinned = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-malibu-api-key>",
+    default_headers={"X-Malibu-Pin-Provider": "provider-air5"},
+)
+
+resp = client_pinned.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+```
+
+## Behavior
+
+* **Strict.** If the pinned provider is offline the request returns `503 no_provider_available`. Malibu will not route to a substitute.
+* **Provider IDs** are visible on the pool dashboard at [console.malibu.tech](https://console.malibu.tech).
+* **Composes with sticky.** Pinning trumps `X-Malibu-Conversation`. If you pin, sticky becomes redundant.
+
+## Discovering the served provider
+
+Every response carries `X-Malibu-Provider` — the ID of the provider that actually served the request. Use it to feed a subsequent pin:
+
+```python theme={null}
+raw = client.chat.completions.with_raw_response.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "First request"}],
+)
+served_by = raw.headers.get("X-Malibu-Provider")
+
+# Now pin the rest of the session
+client_pinned = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-malibu-api-key>",
+    default_headers={"X-Malibu-Pin-Provider": served_by},
+)
+```
+
+## When to pin
+
+* **Reproducing a bug** on a specific Mac's hardware or model quantization.
+* **Enterprise contracts** where a specific Mac Studio is dedicated to a buyer.
+* **Benchmarking** — comparing responses across providers by pinning each in turn.
+
+For latency-sensitive multi-turn conversations, prefer [sticky conversations](/guides/sticky-conversations) — you get prefix-cache reuse without the strictness of a pin.

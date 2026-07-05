@@ -1,0 +1,60 @@
+---
+title: Receipts
+description: Signed inference receipts as the network's proof primitive.
+---
+
+# Receipts
+
+> Signed inference receipts as the network's proof primitive.
+
+Every response emitted by a Malibu provider is bound to a signed **receipt tuple** — an Ed25519 signature over the canonical `(prompt, output, model, provider, timestamp)` binding. The receipt is what turns the network from "trust the coordinator" into "verify the provider's signature."
+
+For a buyer-facing guide including capture and verification, see [Guides → Signed receipts](/guides/receipts).
+
+## The v0.3 tuple
+
+Nine fields, canonicalized in a fixed order:
+
+| Field             | Meaning                                                                         |
+| ----------------- | ------------------------------------------------------------------------------- |
+| `model_hash`      | SHA-256 of the model weights actually loaded on the provider (catalog-anchored) |
+| `model_id`        | Model identifier (`mlx-community/…`)                                            |
+| `prompt_hash`     | SHA-256 of the canonicalized request body                                       |
+| `output_hash`     | SHA-256 of the canonicalized response body                                      |
+| `provider_pubkey` | Ed25519 public key that signed this receipt                                     |
+| `receipt_version` | `0.3.x`                                                                         |
+| `tokens_out`      | Completion tokens generated                                                     |
+| `ttft_ms`         | Time-to-first-token in milliseconds                                             |
+| `unix_ts`         | Signing timestamp (seconds since epoch)                                         |
+
+Signed as `Ed25519(canonicalize(tuple))`. Streaming responses emit a settlement-capable receipt too.
+
+## Trust source
+
+The verifier resolves `provider_pubkey` through `/v1/receipt-keys/{provider_id}` on the coordinator. The endpoint returns the currently-active key plus any keys within the operator-defined **grace window** for recent rotations. Verifications against an expired key outside the grace window return `invalid`.
+
+For offline verification, pass `--pubkey` explicitly and skip the resolver. `--pubkey` is the trust root — an explicit key wins over live resolution.
+
+## Version compatibility
+
+| Verifier              | Receipts accepted |
+| --------------------- | ----------------- |
+| `malibu-verify` 1.0.x | 0.2.0 – 0.2.4     |
+| `malibu-verify` 1.1.x | 0.2.0 – 0.3.3     |
+
+Locked 1.0.x verifiers report v0.3 receipts as `invalid`. Operators rolling out v0.3-emitting providers must release v1.1.x to buyers **before** that provider rollout reaches them.
+
+## Where receipts get used
+
+* **Buyer audit trails.** Batch verification of a day's receipts for dispute resolution.
+* **Verified model settlement.** Coordinator receipt verdicts drive gateway buyer debit/refund. Missing or invalid receipts settle with zero provider credits. See [Operations → Verified model settlement](/operations/verified-model-settlement).
+* **Reputation.** Aggregate receipt validity by provider surfaces to the public [Reputation](/network/reputation) view.
+
+## What a valid receipt proves
+
+A `valid` result proves:
+
+* A holder of the provider signing key signed the canonical tuple.
+* The verifier resolved that key through the configured trust source.
+
+It does **not** prove: model honesty (beyond `model_hash` matching the catalog), timestamp honesty, response uniqueness, privacy, replay resistance, or absolute trust in the coordinator. Full text: [Security & trust model](/network/security).

@@ -1,0 +1,71 @@
+---
+title: Usage object
+description: "OpenAI usage shape plus one field: cached_prompt_tokens."
+---
+
+# Usage object
+
+> OpenAI usage shape plus one field: cached_prompt_tokens.
+
+Every response includes a `usage` object matching OpenAI's shape, extended with one Malibu-specific field.
+
+## Shape
+
+```json theme={null}
+{
+  "prompt_tokens": 1500,
+  "completion_tokens": 300,
+  "total_tokens": 1800,
+  "cached_prompt_tokens": 1200
+}
+```
+
+| Field                  | Meaning                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| `prompt_tokens`        | Total tokens in the request prompt                                                 |
+| `completion_tokens`    | Tokens generated in the response                                                   |
+| `total_tokens`         | Sum of the two above                                                               |
+| `cached_prompt_tokens` | Prompt tokens served from the provider's warm KV-cache (subset of `prompt_tokens`) |
+
+## `cached_prompt_tokens`
+
+Reports how many of the prompt tokens were served from the sticky provider's warm KV-cache. Always present; `0` when there was no cache reuse.
+
+**When you'll see non-zero values:**
+
+* You sent `X-Malibu-Conversation` and the request routed to the same provider as a recent turn on the same tag.
+* The shared prefix between the two turns exceeds the provider's cache-miss threshold (typically a few hundred tokens).
+
+**When it'll always be zero:**
+
+* No `X-Malibu-Conversation` header on the request.
+* The sticky provider was unavailable and the request fell through to normal routing.
+* The provider serving the request is legacy (pre prefix-cache billing) — safe to consume unconditionally.
+
+## Billing implication
+
+Cached tokens are billed at the per-model `prompt_cache_hit_rate_per_mtok` rate instead of the full `promptRate`. See [Network overview → Metering & billing](/network/metering-and-billing) for the formula and [Sticky conversations](/guides/sticky-conversations) for how to opt in.
+
+## Reading from the SDK
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[...],
+)
+
+usage = resp.usage
+print(usage.prompt_tokens, usage.completion_tokens, usage.total_tokens)
+print("cached:", getattr(usage, "cached_prompt_tokens", 0))
+```
+
+The `getattr` fallback handles cases where you're using an older `openai-python` version that doesn't expose the field on the typed object — the raw JSON still contains it.
+
+## Aggregated usage
+
+For per-day / per-model buyer aggregates use the `/v1/usage` endpoint:
+
+```bash theme={null}
+curl -s -H "Authorization: Bearer $MALIBU_API_KEY" \
+  "https://api.malibu.tech/v1/usage?from=2026-06-01&to=2026-06-30" | jq .
+```

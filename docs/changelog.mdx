@@ -1,0 +1,27 @@
+---
+title: Changelog
+description: API, receipt, and documentation changes for Malibu.
+---
+
+# Changelog
+
+> API field additions, receipt version bumps, and docs semantic changes.
+
+## July 2026
+
+### Documentation
+
+- Mintlify docs source moved into `MalibuAI/malibu` repo under `/docs`
+- Litepaper remains `/docs` default opening page
+- Added [Network status](/status), [Roadmap](/roadmap), and Changelog ledger pages
+- Litepaper updated with live vs planned status labels and trust-boundary pointers
+
+### API (live)
+
+- Receipt tuple **v0.3** — nine-field signed receipt on settlement-capable traffic
+- `usage.cached_prompt_tokens` — always present on sticky-routed requests
+- `GET /v1/network-stats` — 30 s edge cache; pool + throughput + receipt validity aggregates
+
+### Deprecation policy
+
+Fields on `/v1/network-stats` are versioned. Additions are backwards-compatible. Removals or semantic changes are announced via a `Deprecation` response header and noted here.

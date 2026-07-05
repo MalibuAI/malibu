@@ -1,0 +1,74 @@
+---
+title: Verified model settlement
+description: Coordinator receipt verdicts drive the money path.
+---
+
+# Verified model settlement
+
+> Coordinator receipt verdicts drive the money path.
+
+For settlement-capable traffic (v0.3+ receipts), the coordinator's receipt verdict is what drives gateway buyer debit/refund. Missing or invalid receipts settle with zero provider credits — no receipt, no pay.
+
+## The money path
+
+For each billed request:
+
+```
+provider response
+      │
+      ▼
+provider signs receipt (Ed25519)  ── settlement-capable if v0.3+
+      │
+      ▼
+coordinator verifies:
+  - signature vs current or grace-window pubkey
+  - canonical tuple hashes vs seen request/response
+  - model_hash vs catalog
+      │
+      ▼
+verdict:
+  valid          → buyer debited, provider credited, settlement proceeds
+  invalid        → FaultBreakerQualifying, zero provider credit, buyer NOT debited
+  missing / late → FaultBreakerQualifying, zero provider credit, buyer NOT debited
+```
+
+## The receipt deadline
+
+For settlement-capable traffic a provider receipt must arrive before the coordinator's `pending_deadline_seconds` window closes. Receipts arriving after the deadline are **non-settling and non-recoverable** — they cannot create provider credit, payout readiness, or a new buyer debit unless a future operator-review exception spec explicitly changes that rule.
+
+The deadline is measured from the end of the response frame; typical operator defaults are on the order of tens of seconds. Providers on a healthy network sign and emit receipts inside the same tick that completes the response, so the deadline is a backstop, not an active constraint.
+
+## Fault-qualifying outcomes
+
+A `FaultBreakerQualifying` outcome means:
+
+* Provider gets **zero** credit for this request.
+* Buyer is **not debited** for this request.
+* The event contributes to the provider's fault rate for the current window.
+* Repeated faults trip the per-provider circuit breaker, excluding the provider from routing until recovery.
+
+## Why this matters
+
+* **Buyer safety.** A buyer never pays for a request that can't be cryptographically attributed to the claimed model on the claimed provider.
+* **Provider incentive alignment.** A provider that skips signing, tampers with the tuple, or serves a mismatched model earns nothing.
+* **Operator solvency.** The gateway ledger balances against verified receipts, not raw request counts.
+
+## Version rollout hazard
+
+Locked `malibu-verify` 1.0.x buyers see v0.3 receipts as `invalid`. If a provider running v0.3 emissions is routed to a buyer whose verifier is stuck at 1.0.x, that buyer's audit reads `invalid` even though settlement passed.
+
+The operator runbook says: **roll `malibu-verify` 1.1.x to buyers BEFORE v0.3-emitting providers reach them.** The coordinator's own verifier is always current — settlement itself isn't affected — but buyer-side audits are.
+
+Full compatibility matrix: [Receipts](/network/receipts).
+
+## What's NOT tied to receipts
+
+* **Non-settlement-capable legacy traffic** (v0.1/v0.2 receipts) still settles on the old path — receipt validity is verified but the fail-closed logic doesn't apply.
+* **Free-tier / demo traffic** (if enabled by the operator) is metered but not settlement-capable.
+* **Coordinator-internal probes** (warmup, health checks) do not go through settlement at all.
+
+## Related
+
+* [Signed receipts](/guides/receipts) — buyer-side verification
+* [malibu-verify](/cli/malibu-verify) — the verifier CLI
+* [Metering & billing](/network/metering-and-billing) — how credits become USDC

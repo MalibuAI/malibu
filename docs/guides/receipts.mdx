@@ -1,0 +1,88 @@
+---
+title: Signed receipts
+description: Every response carries an Ed25519-signed receipt. Verify offline with malibu-verify.
+---
+
+# Signed receipts
+
+> Every response carries an Ed25519-signed receipt. Verify offline with malibu-verify.
+
+Every Malibu response carries an `X-Malibu-Receipt` header signed with the provider's Ed25519 receipt key. The receipt binds the canonical prompt hash, output hash, model hash, provider public key, and timestamp. You can verify it offline — no gateway trust required.
+
+## What the receipt contains
+
+The v0.3 receipt is a nine-field tuple:
+
+| Field             | Meaning                                                          |
+| ----------------- | ---------------------------------------------------------------- |
+| `model_hash`      | SHA-256 of the model weights actually loaded on the provider     |
+| `model_id`        | Model identifier (e.g. `mlx-community/Qwen2.5-7B-Instruct-4bit`) |
+| `prompt_hash`     | SHA-256 of the canonicalized request body                        |
+| `output_hash`     | SHA-256 of the canonicalized response body                       |
+| `provider_pubkey` | Ed25519 public key that signed this receipt                      |
+| `receipt_version` | `0.3.x`                                                          |
+| `tokens_out`      | Completion tokens generated                                      |
+| `ttft_ms`         | Time-to-first-token in milliseconds                              |
+| `unix_ts`         | Signing timestamp (seconds since epoch)                          |
+
+Signed with the provider's Ed25519 key. Streaming responses emit a settlement-capable receipt too. Back-compat with v0.1/v0.2 receipts is preserved.
+
+## Capturing the receipt
+
+```python theme={null}
+raw = client.chat.completions.with_raw_response.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+resp = raw.parse()
+receipt = raw.headers.get("X-Malibu-Receipt")
+```
+
+## Verifying offline
+
+Install `malibu-verify` from [CLI Reference → malibu-verify](/cli/malibu-verify). Then:
+
+```bash theme={null}
+malibu-verify \
+  --receipt "$RECEIPT" \
+  --prompt-hash "$PROMPT_SHA256_HEX" \
+  --output-hash "$OUTPUT_SHA256_HEX" \
+  --provider-id m1-anon \
+  --json
+```
+
+Or verify a bundled capture (receipt + OpenAI request body + OpenAI response body + provider\_id):
+
+```bash theme={null}
+malibu-verify --bundle receipt-bundle.json --json
+```
+
+Exit codes:
+
+| Code | Meaning                                                                       |
+| ---- | ----------------------------------------------------------------------------- |
+| 0    | `valid`                                                                       |
+| 1    | `invalid` (signature, canonicalization, or previous-key-outside-grace-window) |
+| 2    | `inconclusive` (pubkey unresolvable, cache stale + live unreachable)          |
+| 64   | Usage error                                                                   |
+| 65   | Input format error                                                            |
+
+## When to verify
+
+Most buyers verify **post-hoc** for audit trails rather than on every request — per-request verification adds a round-trip. Batch a day's receipts, run `malibu-verify` in a nightly job, keep the verified receipts for dispute resolution.
+
+## Trust boundary
+
+A `valid` result proves:
+
+* A holder of the provider signing key signed the canonical tuple.
+* The verifier resolved that key through the configured trust source.
+
+It does **not** prove: model honesty (beyond `model_hash` matching the catalog), timestamp honesty, response uniqueness, privacy, replay resistance, or absolute trust in the coordinator. See [Network overview → Security & trust model](/network/security).
+
+## Why it matters
+
+* **Audit trail.** A buyer can prove an inference happened, on which model, at which provider — without trusting the gateway to be honest after the fact.
+* **Provider accountability.** Disputes over output quality or downtime become resolvable from receipts rather than from memory.
+* **New compositions.** Receipts can be replayed into systems that don't trust the issuer but trust the signature (escrow, reputation, on-chain settlement).
+* **Settlement.** Coordinator receipt verdicts drive gateway buyer debit/refund on the money path. See [Verified model settlement](/operations/verified-model-settlement).

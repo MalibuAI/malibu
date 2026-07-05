@@ -1,0 +1,302 @@
+---
+title: Using Malibu with the OpenAI SDK
+description: The OpenAI SDK is the Malibu SDK. Every buyer-facing pattern in one page.
+---
+
+# Using Malibu with the OpenAI SDK
+
+> The OpenAI SDK is the Malibu SDK. Every buyer-facing pattern in one page.
+
+Malibu speaks OpenAI-compatible `/v1/chat/completions`. If you have `openai-python` or `openai-node` installed you already have a Malibu client — set the `base_url`, use your Malibu API key, done. This page collects the copy-pasteable patterns for every buyer-facing surface: streaming, tool calling, structured output, sticky conversations with prefix caching, provider pinning, and signed-receipt verification.
+
+There is no `malibu` SDK. The OpenAI SDK IS the Malibu SDK. That is deliberate — every agent framework already targets `openai`, and a wrapper would just add friction. When you need something the OpenAI SDK doesn't cover directly (a Malibu-specific header, a receipt), it's a one-liner on the client or a call to the [`malibu-verify`](/cli/malibu-verify) CLI.
+
+## Base setup
+
+```python theme={null}
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-malibu-api-key>",
+)
+```
+
+TypeScript / JavaScript:
+
+```typescript theme={null}
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.malibu.tech/v1",
+  apiKey: process.env.MALIBU_API_KEY,
+});
+```
+
+Get an API key: [api.malibu.tech/auth/github/start](https://api.malibu.tech/auth/github/start)
+
+## Basic completion
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Hello, world"}],
+)
+print(resp.choices[0].message.content)
+```
+
+Any MLX chat model in the pool works. List available models: `client.models.list()` or `curl https://api.malibu.tech/v1/models`.
+
+## Streaming
+
+```python theme={null}
+stream = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Explain WebSocket ping/pong in one sentence."}],
+    stream=True,
+)
+for chunk in stream:
+    delta = chunk.choices[0].delta.content or ""
+    print(delta, end="", flush=True)
+```
+
+Server-Sent Events, OpenAI-compatible chunks. No Malibu-specific handling needed.
+
+## Tool calling
+
+Malibu ships OpenAI-shape `tools` + `tool_choice`. Multi-turn tool loops, streamed tool-call deltas, and `tool_call_id` back-references all work for Qwen 2.5 and Llama 3.3 chat templates.
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
+    tools=[
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather for a city",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string"}},
+                    "required": ["city"],
+                },
+            },
+        }
+    ],
+)
+
+for call in resp.choices[0].message.tool_calls or []:
+    print(call.function.name, call.function.arguments)  # arguments is a JSON string
+```
+
+**Note.** `function.arguments` is a JSON-encoded STRING per OpenAI's wire shape — `json.loads(call.function.arguments)` to get a dict.
+
+Caps: 1 MiB per `function.arguments`, 2 MiB per response, 256 KiB per `role: "tool"` message.
+
+For the buyer-side safety obligation on emitted tool calls, see [Agentic tooling → Buyer-side validation](/agentic/buyer-side-validation).
+
+## Structured output (JSON schema)
+
+Grammar-constrained sampling. Works in both streaming and non-streaming.
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "Extract contact info as JSON."},
+        {"role": "user", "content": "Call John at 555-0100, john@example.com"},
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "contact",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "phone": {"type": "string"},
+                    "email": {"type": "string"},
+                },
+                "required": ["name", "phone", "email"],
+            },
+            "strict": True,
+        },
+    },
+)
+
+import json
+contact = json.loads(resp.choices[0].message.content)
+```
+
+`strict: true` guarantees schema conformance via constrained decoding.
+
+## Sticky conversations (prefix-cache reuse)
+
+Multi-turn conversations get routed to the same provider via a buyer-supplied opaque tag on the `X-Malibu-Conversation` header. When the sticky provider serves turn N+1, its warm KV-cache is reused for the shared prefix and the request is billed at a discounted `prompt_cache_hit_rate_per_mtok` for the cached tokens.
+
+```python theme={null}
+conversation_id = "thread-42"  # any opaque string stable across turns
+
+client_sticky = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-malibu-api-key>",
+    default_headers={"X-Malibu-Conversation": conversation_id},
+)
+
+# Turn 1: cold prefix, provider caches it
+resp1 = client_sticky.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "You are a code review assistant."},
+        {"role": "user", "content": "Explain the SOLID principles."},
+    ],
+)
+
+# Turn 2: same conversation_id -> same provider, warm KV-cache reused
+resp2 = client_sticky.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "You are a code review assistant."},
+        {"role": "user", "content": "Explain the SOLID principles."},
+        {"role": "assistant", "content": resp1.choices[0].message.content},
+        {"role": "user", "content": "Which one is most often violated in practice?"},
+    ],
+)
+
+print(resp2.usage.model_dump())
+# {"prompt_tokens": 1500, "completion_tokens": 300, "total_tokens": 1800, "cached_prompt_tokens": 1200}
+```
+
+* The tag is opaque and buyer-chosen. Use a stable per-thread identifier.
+* The gateway HMACs the tag with your `account_id` before forwarding — one buyer's `thread-42` never collides with another buyer's `thread-42`.
+* If the sticky provider is unavailable, the request falls through to normal routing and `cached_prompt_tokens` will be `0`.
+* Legacy providers that don't report cache hits emit `cached_prompt_tokens: 0` — safe to consume unconditionally.
+
+## Pinning to a specific provider
+
+Route every request in a session to a specific provider via `X-Malibu-Pin-Provider`. Useful for reproducibility, debugging, or when you're contracting a specific Mac.
+
+```python theme={null}
+client_pinned = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-malibu-api-key>",
+    default_headers={"X-Malibu-Pin-Provider": "provider-air5"},
+)
+```
+
+Provider IDs are visible on the pool dashboard at [console.malibu.tech](https://console.malibu.tech). If the pinned provider is offline the request returns `503 no_provider_available` rather than routing to a substitute — pinning is strict.
+
+`X-Malibu-Pin-Provider` and `X-Malibu-Conversation` compose: pinning trumps sticky. If you pin, sticky becomes redundant.
+
+## Which provider served this request?
+
+Every response carries `X-Malibu-Provider` identifying which provider actually served it — useful for logging, debugging, or feeding a subsequent pin.
+
+```python theme={null}
+raw = client.chat.completions.with_raw_response.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+served_by = raw.headers.get("X-Malibu-Provider")
+```
+
+## Signed inference receipts
+
+Every response carries an Ed25519-signed receipt in the `X-Malibu-Receipt` response header. The receipt binds the canonical prompt hash, output hash, provider public key, model hash, and timestamp — the provider signs the tuple, you verify it offline, no gateway trust required. This is what makes Malibu verifiable inference.
+
+Capture the receipt at request time:
+
+```python theme={null}
+raw = client.chat.completions.with_raw_response.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+resp = raw.parse()
+receipt = raw.headers.get("X-Malibu-Receipt")
+```
+
+Verify offline with the [`malibu-verify`](/cli/malibu-verify) CLI:
+
+```bash theme={null}
+malibu-verify \
+  --receipt "$RECEIPT" \
+  --request-body "$REQUEST_JSON" \
+  --response-body "$RESPONSE_JSON"
+# Exit code 0 = valid, non-zero = invalid/inconclusive
+```
+
+Pure Go, no runtime dependencies, cross-platform.
+
+**When to verify:** most buyers verify post-hoc for audit trails rather than on every request. Batch a day's receipts, run `malibu-verify` in a nightly job, keep the verified receipts for dispute resolution.
+
+## Full working example
+
+```python theme={null}
+import json
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-malibu-api-key>",
+    default_headers={"X-Malibu-Conversation": "session-2026-07-02-a"},
+)
+
+raw = client.chat.completions.with_raw_response.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Give me one interesting fact about Apple Silicon."},
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "fact",
+            "schema": {
+                "type": "object",
+                "properties": {"fact": {"type": "string"}, "source": {"type": "string"}},
+                "required": ["fact", "source"],
+            },
+            "strict": True,
+        },
+    },
+)
+resp = raw.parse()
+
+print("served by:  ", raw.headers.get("X-Malibu-Provider"))
+print("cached toks:", getattr(resp.usage, "cached_prompt_tokens", 0))
+print("receipt:    ", raw.headers.get("X-Malibu-Receipt")[:60], "...")
+print("payload:    ", json.loads(resp.choices[0].message.content))
+```
+
+## Header reference
+
+| Header                  | Direction | Purpose                                    |
+| ----------------------- | --------- | ------------------------------------------ |
+| `X-Malibu-Conversation` | Request   | Sticky-affinity tag for prefix-cache reuse |
+| `X-Malibu-Pin-Provider` | Request   | Strict-pin to a specific provider          |
+| `X-Malibu-Provider`     | Response  | Which provider actually served this        |
+| `X-Malibu-Receipt`      | Response  | Ed25519-signed inference receipt           |
+
+Full reference: [API → Headers](/api/headers).
+
+## Framework compatibility
+
+Any framework built on `openai-python` or `openai-node` works out of the box:
+
+* **LangChain.** `ChatOpenAI(base_url=..., api_key=...)` — full compatibility including tool calling and structured output.
+* **LlamaIndex.** `OpenAI(base_url=..., api_key=...)` — same story.
+* **Instructor.** Structured output via `response_format` works; Instructor's `patch()` layer sees Malibu as plain OpenAI.
+* **Aider.** Point `OPENAI_API_BASE` at `https://api.malibu.tech/v1`; existing config keys work.
+* **Cline / Continue.** Set the OpenAI-compatible endpoint to `https://api.malibu.tech/v1`.
+
+If you find a framework where the OpenAI SDK works but Malibu doesn't, that's a wire-shape bug — file an issue with a minimal repro.
+
+## What's not in the OpenAI SDK
+
+Two things live outside the SDK because they don't fit its request/response shape:
+
+1. **Receipt verification** — one-way offline check, better as a separate tool ([`malibu-verify`](/cli/malibu-verify)).
+2. **Provider selection / autotune** — buyer-side (`malibu-cli models browse`, `malibu-cli autotune`) is separate from the API surface.
+
+Everything else — routing, retries, billing, model catalog, model-hash verification, tool calling, structured output, streaming, sticky affinity, provider pinning — is transparent through the OpenAI SDK.

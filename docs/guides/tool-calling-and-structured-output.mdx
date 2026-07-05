@@ -1,0 +1,93 @@
+---
+title: Tool calling & structured output
+description: Multi-turn tool loops and JSON-schema constrained decoding, OpenAI wire shape.
+---
+
+# Tool calling & structured output
+
+> Multi-turn tool loops and JSON-schema constrained decoding, OpenAI wire shape.
+
+Malibu ships both features as OpenAI-compatible wire surfaces. Any framework built on the OpenAI SDK sees them transparently.
+
+## Tool calling
+
+Multi-turn tool loops, streamed tool-call deltas, `tool_call_id` back-references, and `role: "tool"` acceptance all work. Anchor framework: [Cline](https://github.com/cline/cline) — Malibu is a drop-in target.
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
+    tools=[
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather for a city",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string"}},
+                    "required": ["city"],
+                },
+            },
+        }
+    ],
+)
+
+for call in resp.choices[0].message.tool_calls or []:
+    print(call.function.name, call.function.arguments)  # JSON-encoded string
+```
+
+Supported chat templates: **Qwen 2.5** and **Llama 3.3**. Other models fall back to normal assistant text.
+
+Caps:
+
+| Field                      | Cap     |
+| -------------------------- | ------- |
+| Per `function.arguments`   | 1 MiB   |
+| Per response               | 2 MiB   |
+| Per `role: "tool"` message | 256 KiB |
+
+Full multi-turn example lives in [Agentic tooling → Tool calling](/agentic/tool-calling).
+
+### Buyer-side validation obligation
+
+Emitted `tool_calls[]` reflect model output, not provider-verified intent. Buyer-side agent frameworks **MUST** validate before execution. Malibu transports the parsed OpenAI-compatible shape; it does not decide whether a requested tool name or argument payload is safe for your agent policy. Treat emitted tool calls with the same trust posture you would apply to a model running on local hardware. See [Agentic tooling → Buyer-side validation](/agentic/buyer-side-validation).
+
+## Structured output
+
+Grammar-constrained sampling via `response_format`. Works in streaming and non-streaming. `strict: true` guarantees schema conformance via constrained decoding.
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "Extract contact info as JSON."},
+        {"role": "user", "content": "Call John at 555-0100, john@example.com"},
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "contact",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "phone": {"type": "string"},
+                    "email": {"type": "string"},
+                },
+                "required": ["name", "phone", "email"],
+            },
+            "strict": True,
+        },
+    },
+)
+
+import json
+contact = json.loads(resp.choices[0].message.content)
+```
+
+**Supported subset:** OpenAI's strict-mode JSON Schema subset. If your schema uses features outside that subset the request returns a 400.
+
+`response_format: {"type": "json_object"}` also works — Malibu ships the bundled fix that actually enforces top-level JSON on this form.
+
+Full reference: [Agentic tooling → Structured output](/agentic/structured-output).

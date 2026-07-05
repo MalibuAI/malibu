@@ -1,0 +1,90 @@
+---
+title: Structured output
+description: JSON-schema constrained decoding. OpenAI strict-mode subset.
+---
+
+# Structured output
+
+> JSON-schema constrained decoding. OpenAI strict-mode subset.
+
+Malibu supports OpenAI's `response_format` for structured output — both `json_schema` (schema-constrained) and `json_object` (top-level JSON enforced). Locked surface.
+
+## JSON Schema (strict)
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "Extract contact info as JSON."},
+        {"role": "user", "content": "Call John at 555-0100, john@example.com"},
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {
+            "name": "contact",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "phone": {"type": "string"},
+                    "email": {"type": "string"},
+                },
+                "required": ["name", "phone", "email"],
+            },
+            "strict": True,
+        },
+    },
+)
+
+import json
+contact = json.loads(resp.choices[0].message.content)
+```
+
+`strict: true` guarantees schema conformance via **constrained decoding** — the model can only emit tokens that keep the output valid against the schema. Combined with a post-hoc validate-and-fault, this is a hard guarantee, not a best-effort heuristic.
+
+## Supported schema subset
+
+Malibu implements the **OpenAI strict-mode JSON Schema subset**:
+
+* `type: "object"` with `properties` and `required`
+* `type: "string" | "number" | "integer" | "boolean" | "array"`
+* `enum`
+* `additionalProperties: false` (recommended)
+* Nested objects and arrays
+* `$ref` to definitions within the same schema
+
+Not supported (return 400):
+
+* `oneOf`, `anyOf` at the top level (some nested uses OK)
+* `pattern`, `format` (validated post-hoc as best-effort but not constrained)
+* Unbounded recursion
+* `if` / `then` / `else` conditionals
+
+If your schema uses features outside the subset, the request returns 400 with the field named.
+
+## `json_object` — top-level JSON without a schema
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "Reply as a JSON object with keys `answer` and `confidence`."},
+        {"role": "user", "content": "Is 42 prime?"},
+    ],
+    response_format={"type": "json_object"},
+)
+
+data = json.loads(resp.choices[0].message.content)
+```
+
+Malibu ships the bundled fix that makes `json_object` actually enforce top-level JSON on the wire — you get a parseable object even when the model would otherwise wrap it in prose.
+
+## Streaming + structured output
+
+Both `json_schema` and `json_object` work with `stream: true`. The emitted `delta.content` chunks are still constrained; concatenating them yields valid JSON.
+
+## Failure modes
+
+* **Schema outside the subset** → 400 with the offending field.
+* **Model can't satisfy the schema in the token budget** → response truncated; parse fails. Increase `max_tokens` or simplify the schema.
+* **Fallback model** (non-supported chat template) → structured output falls back to prompted JSON with post-hoc validation. `strict: true` will still fault the response if the output doesn't parse.

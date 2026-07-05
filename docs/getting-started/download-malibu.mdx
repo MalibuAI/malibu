@@ -1,0 +1,47 @@
+---
+title: Download Malibu
+description: Turn any Apple Silicon Mac into a paid AI provider in a few clicks.
+---
+
+# Download Malibu
+
+> Turn any Apple Silicon Mac into a paid AI provider in a few clicks.
+
+The Malibu app is the primary way to join the network as a provider. Signed `.dmg`, menu-bar wrapper around the underlying `malibu-cli` binary. No terminal required.
+
+<Card title="Download for Apple Silicon" icon="apple" href="https://malibu.tech/host">
+  macOS 14+ · Apple Silicon (M1 or newer)
+</Card>
+
+## What onboarding looks like
+
+<Frame>
+  <img src="https://mintcdn.com/malibu/L7FmLqpSAaaj9-FX/logo/dark.svg?fit=max&auto=format&n=L7FmLqpSAaaj9-FX&q=85&s=9586cdc31612889d779f97fafbfd7f6f" alt="Malibu app onboarding screenshot placeholder" width="140" height="36" data-path="logo/dark.svg" />
+</Frame>
+
+The app walks you through four steps:
+
+1. **Pick a model.** Malibu detects your Mac's RAM tier and sustained TPS, then recommends an MLX model that fits — Qwen, Llama, or Gemma family. You can override.
+2. **Sign in.** GitHub OAuth. This links your Mac to a provider identity you can move between machines.
+3. **Start serving.** The app registers with the coordinator over an outbound WebSocket. First request usually arrives within seconds.
+4. **Check earnings.** Balance, per-model breakdown, payout status — all in the app. No portal, no dashboard.
+
+## What you get
+
+* **Auto-detected model choice** matched to your Mac's RAM, sustained TPS, and 4K-prompt TTFT.
+* **Auto-updates.** When a newer binary ships, the app validates the signed release, drains in-flight requests, and swaps in place.
+* **Menu-bar controls.** Pause serving, switch models, view live request rate without leaving the menu bar.
+* **Weekly USDC payouts** on Base once you cross the minimum payout threshold. See [Payments & payouts](/guides/payments).
+
+## Requirements
+
+* Apple Silicon Mac (M1 or newer)
+* macOS 14 or later
+* 16 GB RAM minimum (32 GB+ for larger models)
+* Stable network connection (outbound WebSocket to `coordinator.malibu.tech`)
+
+No port-forwarding, no static IP, no incoming firewall rules.
+
+## Headless install
+
+Running on a CI runner, a headless Mac Studio, or a remote Mac without a display? Use the [headless install](/cli/headless-install) — same underlying binary, no app UI.

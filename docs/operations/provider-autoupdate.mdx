@@ -1,0 +1,82 @@
+---
+title: Provider autoupdate
+description: How malibu-cli swaps itself in place when a newer signed release ships.
+---
+
+# Provider autoupdate
+
+> How malibu-cli swaps itself in place when a newer signed release ships.
+
+Providers automatically upgrade to newer signed releases. The coordinator advertises a `recommended_binary_version`; the running `malibu-cli` validates the signed release, drains in-flight traffic, and swaps itself in place.
+
+## The flow
+
+1. **Advertisement.** The coordinator's periodic broadcast frame includes a `recommended_binary_version` field.
+2. **Compare.** The provider compares against its running version. If the advertised version is newer and autoupdate is enabled, it enters the update path.
+3. **Fetch.** The provider downloads the release artifact from the signed release mirror.
+4. **Verify.** SHA-256 checksum against the signed release manifest. Ed25519 signature on the manifest verified against the pinned release key.
+5. **Drain.** Stop accepting new requests. Wait for in-flight requests to complete (with a bounded timeout).
+6. **Swap.** Replace the binary in place under `~/.malibu/bin/`.
+7. **Restart.** `launchd` respawns the process; it reconnects and re-enters warmup.
+
+Total interruption is typically under 60 seconds for a healthy Mac.
+
+## Configuration
+
+In `~/.malibu/config.yaml`:
+
+```yaml theme={null}
+autoupdate:
+  enabled: true            # default true — opt out only for pinned/audited fleets
+  channel: stable          # stable | beta
+  drain_timeout_s: 60      # how long to wait for in-flight requests
+```
+
+Or via environment variables:
+
+```
+MALIBU_AUTOUPDATE_ENABLED=true
+MALIBU_AUTOUPDATE_CHANNEL=stable
+```
+
+## Opting out
+
+Set `autoupdate.enabled: false`. You are then responsible for pulling and installing new releases manually — including any breaking receipt version bumps.
+
+**Don't opt out casually.** Receipt version rollouts have a version-compatibility matrix (see [Receipts](/network/receipts)); running an old provider against a coordinator that expects newer receipts silently degrades settlement.
+
+## Rollback
+
+If a swap fails verification or the restart doesn't reconnect within the drain window, the previous binary is retained at `~/.malibu/bin/.prev` and reinstated automatically. `launchd` then respawns the previous version and the provider tries again on the next advertisement cycle.
+
+Manual rollback:
+
+```bash theme={null}
+malibu-cli --version                          # what's running now
+ls -la ~/.malibu/bin/.prev                    # confirm previous version present
+malibu-cli autoupdate rollback --to-prev      # swap back
+launchctl kickstart -k gui/$(id -u)/tech.malibu.malibu-cli
+```
+
+## Signed release verification
+
+The release manifest is Ed25519-signed with a pinned release key. Providers refuse to install any binary whose manifest signature fails.
+
+The release key is embedded in the binary at build time — a compromised mirror cannot serve a valid update. Rotating the release key requires a manual out-of-band update.
+
+## Coordinator side
+
+The coordinator publishes `recommended_binary_version` from operator config. Rolling a new version to providers means:
+
+1. Cut the release, sign the manifest, publish to the release mirror.
+2. Bump `recommended_binary_version` in coordinator config.
+3. Restart the coordinator so the next advertisement carries the new version.
+4. Providers pick it up on their next advertisement cycle.
+
+For staged rollouts, the coordinator can advertise different versions to different tiers (pinned first, provisional after).
+
+## Related
+
+* [malibu-cli](/cli/malibu-cli) — the binary being updated
+* [Receipts](/network/receipts) — receipt version compatibility matrix
+* [Model catalog](/operations/model-catalog) — the catalog feed is versioned separately

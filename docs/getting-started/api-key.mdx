@@ -1,0 +1,66 @@
+---
+title: Get an API key
+description: OpenAI-compatible endpoint. Bring your own SDK.
+---
+
+# Get an API key
+
+> OpenAI-compatible endpoint. Bring your own SDK.
+
+Buyers hit Malibu at `https://api.malibu.tech/v1` with the OpenAI SDK. To get an API key, sign in with GitHub:
+
+<Card title="Get an API key" icon="key" href="https://api.malibu.tech/auth/github/start">
+  GitHub OAuth · No credit card required to browse
+</Card>
+
+## First request
+
+```python theme={null}
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-api-key>",
+)
+
+response = client.chat.completions.create(
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+print(response.choices[0].message.content)
+```
+
+TypeScript:
+
+```typescript theme={null}
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://api.malibu.tech/v1",
+  apiKey: process.env.MALIBU_API_KEY,
+});
+```
+
+## What the API surface covers
+
+* **Streaming** (`stream: true`) with token-incremental deltas.
+* **Multi-turn tool calling** — first-turn emission, second-turn `role: "tool"` acceptance, assistant-history rendering. Cline drop-in.
+* **Structured output** — `response_format: {"type": "json_schema", ...}` with the OpenAI strict-mode subset.
+* **Sticky conversations** — pass a stable `conversation_id`; the coordinator routes back to the same provider and reports `cached_prompt_tokens`.
+* **Signed receipts** — every response carries an Ed25519-signed receipt in the `X-Malibu-Receipt` header.
+
+Every pattern with runnable code lives in [Using Malibu with the OpenAI SDK](/guides/openai-sdk).
+
+## Model catalog
+
+Browse available models:
+
+```bash theme={null}
+curl https://api.malibu.tech/v1/models
+```
+
+Or from Python: `client.models.list()`. Full catalog in [Operations → Model catalog](/operations/model-catalog).
+
+## Billing
+
+Pay-as-you-go, USDC on Base. Rate card served live at `/v1/rate-card` and priced against the OpenRouter frontier. No subscription, no monthly commit.
