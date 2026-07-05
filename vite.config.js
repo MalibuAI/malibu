@@ -25,6 +25,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         console: resolve(__dirname, 'console/index.html'),
         host: resolve(__dirname, 'host/index.html'),
+        network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
       },
     },

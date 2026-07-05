@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Malibu network stats — live tokens served, requests, nodes online, and bandwidth across the Malibu AI network." />
+  <meta property="og:title" content="Malibu · Network stats" />
+  <meta property="og:description" content="Live view of the Malibu AI network. Tokens, requests, nodes, bandwidth, and 30-minute throughput." />
+  <title>Malibu · Network</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+
+<!-- ============ FLOATING NAV ============ -->
+<nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
+  <a href="/" style="display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12);">
+    <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #0C3A45;">
+      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
+        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
+      </svg>
+    </span>
+    <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; line-height: 1;">malibu</span>
+  </a>
+  <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72);">
+    <a href="/network/" style="color: #FFFBF2;">Network</a>
+    <a href="/#token">$MALIBU</a>
+    <a href="/docs">Docs</a>
+    <a href="/console/">Chat</a>
+  </div>
+  <a href="/host/" data-nowrap style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; margin-left: 4px; background: #FF6E5B; color: #FFFBF2; border-radius: 9999px; font-family: 'Hanken Grotesk', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: -0.005em;">
+    Host a model
+    <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+</nav>
+
+<main id="top" style="background: #143A45; color: #FFFBF2; min-height: 100vh;">
+
+  <!-- ============ HEADER ============ -->
+  <section style="position: relative; padding: clamp(120px, 18vh, 200px) clamp(20px, 5vw, 80px) clamp(32px, 5vh, 56px);">
+    <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 260px; background: radial-gradient(ellipse at top, rgba(255, 198, 41,0.18), transparent 70%); pointer-events: none;"></div>
+
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">The network, live</div>
+          <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(56px, 8vw, 128px); line-height: 0.9; letter-spacing: -0.035em; color: #FFFBF2; margin: 0;">
+            Malibu <em style="font-style: normal; color: #FF6E5B;">runs.</em>
+          </h1>
+          <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; color: rgba(255, 251, 242,0.72); margin: 22px 0 0; max-width: 60ch;">
+            Every number below comes off the coordinator itself. Real Macs, real prompts, refreshed every few seconds.
+          </p>
+        </div>
+
+        <div data-net-status-wrap style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 251, 242,0.72);">
+          <div data-net-status-pill style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(255, 251, 242,0.06); border: 1px solid rgba(255, 251, 242,0.14); border-radius: 9999px;">
+            <span data-net-status-dot style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 251, 242,0.35); animation: pillPulse 2.4s ease-in-out infinite;"></span>
+            <span data-net-status-label>Connecting…</span>
+          </div>
+          <div style="display: inline-flex; align-items: center; gap: 12px; color: rgba(255, 251, 242,0.5);">
+            <span data-net-updated>—</span>
+            <button data-net-refresh type="button" aria-label="Refresh now" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid rgba(255, 251, 242,0.18); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.82); background: transparent;">
+              <svg width="10" height="10" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7a5 5 0 0 1 8.5-3.5M12 7a5 5 0 0 1-8.5 3.5M10 2v3h3M4 12V9H1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div data-net-banner hidden style="margin-top: 28px; padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(255, 198, 41,0.35); background: rgba(255, 198, 41,0.08); font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.88);">
+        <span data-net-banner-text></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRIMARY COUNTERS ============ -->
+  <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(48px, 6vh, 80px);">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div class="net-counter-grid">
+        <div class="net-counter" data-accent="coral">
+          <div class="net-counter-label">Tokens served</div>
+          <div class="net-counter-value" data-metric="tokens_served_total">—</div>
+          <div class="net-counter-sub">All-time · in + out</div>
+        </div>
+        <div class="net-counter" data-accent="yellow">
+          <div class="net-counter-label">Requests</div>
+          <div class="net-counter-value" data-metric="requests_total">—</div>
+          <div class="net-counter-sub">Prompts routed by the coordinator</div>
+        </div>
+        <div class="net-counter" data-accent="aqua">
+          <div class="net-counter-label">Nodes online</div>
+          <div class="net-counter-value" data-metric="nodes_online">—</div>
+          <div class="net-counter-sub"><span data-metric="nodes_hardware_attested">—</span> hardware-attested</div>
+        </div>
+        <div class="net-counter" data-accent="cream">
+          <div class="net-counter-label">Bandwidth</div>
+          <div class="net-counter-value"><span data-metric="bandwidth_gb_per_s">—</span><span class="net-counter-unit">GB/s</span></div>
+          <div class="net-counter-sub">Aggregate pool capacity</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CHARTS ============ -->
+  <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(56px, 8vh, 96px);">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div class="net-chart-grid">
+        <div class="net-chart-card">
+          <div class="net-chart-head">
+            <div>
+              <div class="net-chart-eyebrow">Requests / min · last 30m</div>
+              <div class="net-chart-title">Traffic</div>
+            </div>
+            <div class="net-chart-legend">
+              <span class="net-chart-legend-dot" style="background: #FF6E5B;"></span>
+              <span>rpm</span>
+            </div>
+          </div>
+          <div class="net-chart-body">
+            <svg data-chart="rpm" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Requests per minute over the last 30 minutes">
+              <defs>
+                <linearGradient id="grad-rpm" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#FF6E5B" stop-opacity="0.55"/>
+                  <stop offset="100%" stop-color="#FF6E5B" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <g data-chart-grid></g>
+              <path data-chart-area d="" fill="url(#grad-rpm)"/>
+              <path data-chart-line d="" fill="none" stroke="#FF6E5B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="net-chart-empty" data-chart-empty="rpm" hidden>No traffic in the last 30 minutes.</div>
+          </div>
+          <div class="net-chart-foot">
+            <span>Peak <strong data-chart-peak="rpm">—</strong></span>
+            <span>Now <strong data-chart-now="rpm">—</strong></span>
+          </div>
+        </div>
+
+        <div class="net-chart-card">
+          <div class="net-chart-head">
+            <div>
+              <div class="net-chart-eyebrow">Tokens / min · last 30m</div>
+              <div class="net-chart-title">Throughput</div>
+            </div>
+            <div class="net-chart-legend">
+              <span class="net-chart-legend-dot" style="background: #4FBFD4;"></span><span>in</span>
+              <span class="net-chart-legend-dot" style="background: #FFC629; margin-left: 12px;"></span><span>out</span>
+            </div>
+          </div>
+          <div class="net-chart-body">
+            <svg data-chart="tpm" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Tokens per minute, input and output, over the last 30 minutes">
+              <defs>
+                <linearGradient id="grad-tpm-in" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#4FBFD4" stop-opacity="0.42"/>
+                  <stop offset="100%" stop-color="#4FBFD4" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="grad-tpm-out" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#FFC629" stop-opacity="0.42"/>
+                  <stop offset="100%" stop-color="#FFC629" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <g data-chart-grid></g>
+              <path data-chart-area-in d="" fill="url(#grad-tpm-in)"/>
+              <path data-chart-area-out d="" fill="url(#grad-tpm-out)"/>
+              <path data-chart-line-in d="" fill="none" stroke="#4FBFD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path data-chart-line-out d="" fill="none" stroke="#FFC629" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="net-chart-empty" data-chart-empty="tpm" hidden>No throughput in the last 30 minutes.</div>
+          </div>
+          <div class="net-chart-foot">
+            <span>In peak <strong data-chart-peak="tpm-in">—</strong></span>
+            <span>Out peak <strong data-chart-peak="tpm-out">—</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Token IO split -->
+      <div class="net-io-card">
+        <div class="net-io-head">
+          <div>
+            <div class="net-chart-eyebrow">Token split · all-time</div>
+            <div class="net-chart-title">In vs out</div>
+          </div>
+          <div class="net-io-numbers">
+            <div><span class="net-io-swatch" style="background: #4FBFD4;"></span> in <strong data-metric="tokens_in_total">—</strong></div>
+            <div><span class="net-io-swatch" style="background: #FFC629;"></span> out <strong data-metric="tokens_out_total">—</strong></div>
+          </div>
+        </div>
+        <div class="net-io-bar" role="img" aria-label="Ratio of input to output tokens served">
+          <div class="net-io-bar-fill" data-io-bar="in" style="width: 0%;"></div>
+          <div class="net-io-bar-fill" data-io-bar="out" style="width: 0%;"></div>
+        </div>
+        <div class="net-io-foot">
+          <span data-io-pct="in">— %</span>
+          <span data-io-pct="out">— %</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SECONDARY CARDS ============ -->
+  <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(72px, 10vh, 120px);">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div style="margin-bottom: 32px;">
+        <div class="net-chart-eyebrow">Under the hood</div>
+        <h2 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(28px, 3vw, 40px); line-height: 1.1; letter-spacing: -0.02em; color: #FFFBF2; margin: 8px 0 0;">The pool, right now.</h2>
+      </div>
+
+      <div class="net-card-grid">
+        <div class="net-card">
+          <div class="net-card-label">Network power</div>
+          <div class="net-card-value"><span data-metric="network_power_kw">—</span><span class="net-card-unit">kW</span></div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">Utilization</div>
+          <div class="net-card-value"><span data-metric="network_utilization_pct">—</span><span class="net-card-unit">%</span></div>
+          <div class="net-util-bar" aria-hidden="true"><div class="net-util-fill" data-util-fill style="width: 0%;"></div></div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">GPU cores</div>
+          <div class="net-card-value" data-metric="gpu_cores_total">—</div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">CPU cores</div>
+          <div class="net-card-value" data-metric="cpu_cores_total">—</div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">Unified RAM</div>
+          <div class="net-card-value"><span data-metric="unified_ram_gb_total">—</span><span class="net-card-unit">GB</span></div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">Avg tokens / request</div>
+          <div class="net-card-value" data-metric="avg_tokens_per_request">—</div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">Models serving</div>
+          <div class="net-card-value" data-metric="models_serving">—</div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">Hardware attested</div>
+          <div class="net-card-value" data-metric="nodes_hardware_attested">—</div>
+          <div class="net-card-sub">of <span data-metric="nodes_online">—</span> online</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTAs ============ -->
+  <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(96px, 14vh, 160px);">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div class="net-cta-grid">
+        <a href="/console/" class="net-cta net-cta-coral">
+          <div class="net-cta-label">Use the network</div>
+          <div class="net-cta-title">Open the chat →</div>
+        </a>
+        <a href="/host/" class="net-cta net-cta-aqua">
+          <div class="net-cta-label">Add capacity</div>
+          <div class="net-cta-title">Host a model →</div>
+        </a>
+        <a href="/docs" class="net-cta net-cta-ghost">
+          <div class="net-cta-label">Learn</div>
+          <div class="net-cta-title">Read the docs →</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FFFBF2; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap;">
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+            <a href="/console/">Chat</a>
+            <a href="/network/">Network</a>
+            <a href="/#token">$MALIBU</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Coast</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+            <a href="/docs">About</a>
+            <a href="/host/">Host a model</a>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5);">
+        <div>© 2026 Malibu AI, Inc.</div>
+        <a href="/">Back to malibu →</a>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<script type="module" src="/src/network.js"></script>
+</body>
+</html>
