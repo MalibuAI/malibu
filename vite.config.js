@@ -40,6 +40,8 @@ export default defineConfig({
         consoleKeys: resolve(__dirname, 'console/keys/index.html'),
         consoleSettings: resolve(__dirname, 'console/settings/index.html'),
         consoleAgentDocs: resolve(__dirname, 'console/agent-docs/index.html'),
+        consoleTeam: resolve(__dirname, 'console/team/index.html'),
+        widget: resolve(__dirname, 'widget/index.html'),
         host: resolve(__dirname, 'host/index.html'),
         network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),

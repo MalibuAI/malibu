@@ -15,6 +15,10 @@ const DEFAULT_SETTINGS = {
   chatMode: 'chat',
   agentAutoApprove: false,
   mcpServerUrl: '',
+  modelPolicy: 'all',
+  allowedModels: [],
+  blockedModels: [],
+  threadSyncEnabled: false,
 };
 
 export function loadKey() {
@@ -207,6 +211,66 @@ export function formatModelPrice(modelId, rateCard) {
   return `${formatUsd(inp)}/${formatUsd(out)} per M`;
 }
 
+export function isModelAllowed(modelId, settings = loadSettings()) {
+  const id = String(modelId || '');
+  if (!id) return false;
+  const policy = settings.modelPolicy || 'all';
+  const allowed = settings.allowedModels || [];
+  const blocked = settings.blockedModels || [];
+  if (policy === 'allowlist') return allowed.length ? allowed.includes(id) : true;
+  if (policy === 'blocklist') return !blocked.includes(id);
+  return true;
+}
+
+export function filterPoolModels(models, settings = loadSettings()) {
+  const list = Array.isArray(models) ? models : [];
+  return list.filter((m) => isModelAllowed(m.id, settings));
+}
+
+export function exportThreadsBundle() {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    threads: loadThreads(),
+    settings: loadSettings(),
+  };
+}
+
+export function importThreadsBundle(raw, { merge = true } = {}) {
+  const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  if (!data || !Array.isArray(data.threads)) throw new Error('Invalid thread export');
+  const incoming = data.threads.slice(0, MAX_THREADS);
+  if (!merge) saveThreads(incoming);
+  else {
+    const byId = new Map(loadThreads().map((t) => [t.id, t]));
+    for (const t of incoming) byId.set(t.id, t);
+    saveThreads([...byId.values()].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)));
+  }
+  return loadThreads().length;
+}
+
+export function inferMessageSurface(msg, thread = {}) {
+  if (msg?.surface) return msg.surface;
+  if (msg?.role === 'tool' || msg?.tool_calls?.length) return 'agent';
+  return thread.lastSurface || 'chat';
+}
+
+export function malibuCreditsFromUsage(usage) {
+  const w = usage?.wallet || usage?.malibu || {};
+  const bal = w.malibu_balance ?? w.balance ?? usage?.malibu_credits ?? usage?.malibu_balance;
+  return bal == null ? null : Number(bal);
+}
+
+export async function fetchNetworkOverview() {
+  try {
+    const r = await fetch('https://stats.streamvc.live/v1/stats/overview', { headers: { Accept: 'application/json' } });
+    if (!r.ok) return null;
+    return r.json();
+  } catch {
+    return null;
+  }
+}
+
 export function inferPlan(usage) {
   const limit = Number(usage?.quota?.daily_tokens_limit) || 100000;
   const tier = Number(usage?.capacity?.tier) || 0;
@@ -225,6 +289,8 @@ export function aggregateLocalUsage(days = 30) {
     completion: 0,
     byModel: {},
     byDay: {},
+    bySurface: { chat: { requests: 0, tokens: 0 }, agent: { requests: 0, tokens: 0 }, api: { requests: 0, tokens: 0 } },
+    byProvider: {},
   };
   for (const thread of loadThreads()) {
     const ts = thread.updatedAt || 0;
@@ -247,6 +313,16 @@ export function aggregateLocalUsage(days = 30) {
       totals.byModel[model].requests += 1;
       totals.byModel[model].tokens += total;
       totals.byModel[model].cached += cached;
+      const surface = inferMessageSurface(msg, thread);
+      if (!totals.bySurface[surface]) totals.bySurface[surface] = { requests: 0, tokens: 0 };
+      totals.bySurface[surface].requests += 1;
+      totals.bySurface[surface].tokens += total;
+      const provider = msg.meta?.provider || '';
+      if (provider) {
+        if (!totals.byProvider[provider]) totals.byProvider[provider] = { requests: 0, tokens: 0 };
+        totals.byProvider[provider].requests += 1;
+        totals.byProvider[provider].tokens += total;
+      }
       if (!totals.byDay[day]) totals.byDay[day] = { requests: 0, tokens: 0 };
       totals.byDay[day].requests += 1;
       totals.byDay[day].tokens += total;
@@ -495,9 +571,6 @@ export function formatBillMeta({ usage, meta, latencyMs }) {
   if (latencyMs) parts.push(`${Math.round(latencyMs)}ms`);
   if (meta?.settlement) parts.push(meta.settlement);
   else if (meta?.receipt) parts.push('verified');
-  if (meta?.provider) {
-    const short = meta.provider.length > 12 ? meta.provider.slice(0, 10) + '…' : meta.provider;
-    parts.push(short);
-  }
+  if (meta?.provider) parts.push(meta.provider);
   return parts.length ? parts.join(' · ') : 'complete';
 }

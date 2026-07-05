@@ -167,6 +167,10 @@
     .workspace-pane { overflow-y: auto; min-height: 0; }
     .workspace-scroll { max-width: 920px; margin: 0 auto; padding: 28px 32px 48px; }
     .workspace-scroll .sub { color: rgba(255,251,242,0.65); margin: 0 0 24px; line-height: 1.5; font-size: 14px; }
+    .provider-link { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #FFC629; font-family: inherit; font-size: inherit; border: 0; background: none; padding: 0; }
+    .provider-link:hover { color: #FFFBF2; }
+    .app.embed .rail { display: none; }
+    .app.embed { grid-template-columns: 1fr; }
   </style>
 </head>
 <body>
@@ -209,6 +213,7 @@
         <button class="item" type="button" data-workspace="keys"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</button>
         <button class="item" type="button" data-open-settings><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Account</button>
         <button class="item" type="button" data-workspace="settings"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M7 4 V7 L9 9"/></svg> Settings</button>
+        <button class="item" type="button" data-workspace="team"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="4.5" cy="5" r="2"/><circle cx="9.5" cy="5" r="2"/><path d="M2 11 C2 9 3.5 8 4.5 8 H9.5 C10.5 8 12 9 12 11"/></svg> Team</button>
         <button class="item" type="button" data-workspace="agent-docs"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3 H11 V11 H3 Z M5 5 H9 M5 8 H9"/></svg> Agent SDK</button>
         <a class="item" href="/#token"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3 V11 M5 5 H9 M5 9 H9"/></svg> $MALIBU</a>
       </div>
@@ -353,7 +358,7 @@
     getStatus, getUsage, getRateCard, chatStream, loadKey, saveKey, authMode,
     ensureDemoToken, createThreadId, loadThreads, upsertThread, getThread,
     formatBillMeta, formatTokenCount, formatModelPrice, loadSettings, saveSettings,
-    checkQuotaAlert, estimateLocalSpendUsd, quotaPct,
+    checkQuotaAlert, estimateLocalSpendUsd, quotaPct, filterPoolModels, isModelAllowed,
   } from './api.js';
   import { runAgentLoop } from './agent.js';
   import { toolsForMode } from './tools.js';
@@ -572,6 +577,7 @@
   const params = new URLSearchParams(location.search);
   const q = params.get('q');
   const threadParam = params.get('thread');
+  if (params.get('embed') === '1') document.querySelector('.app')?.classList.add('embed');
   if (q) input.value = q;
 
   function grow() {
@@ -594,8 +600,9 @@
 
   function populateModels(models) {
     const list = Array.isArray(models) ? models : [];
-    const available = list.filter((m) => m.available !== false);
-    const pick = available.length ? available : list;
+    const policyFiltered = filterPoolModels(list);
+    const available = policyFiltered.filter((m) => m.available !== false);
+    const pick = available.length ? available : policyFiltered;
     if (!pick.length) {
       railModelsEl.innerHTML = '<div class="item skeleton">No models in pool</div>';
       return;
@@ -714,12 +721,14 @@
 
   function persistThread() {
     if (!conversation.length) return;
+    const settings = loadSettings();
     const title = threadTitle || conversation.find((m) => m.role === 'user')?.content?.slice(0, 48) || 'New chat';
     upsertThread({
       id: threadId,
       title,
       messages: conversation,
       model: modelEl.value,
+      lastSurface: settings.chatMode || 'chat',
       updatedAt: Date.now(),
     });
     renderRecent();
@@ -836,7 +845,18 @@
   }
 
   function finishBill(billEl, usage, meta, latencyMs) {
-    billEl.textContent = formatBillMeta({ usage, meta, latencyMs });
+    billEl.textContent = '';
+    billEl.append(document.createTextNode(formatBillMeta({ usage, meta, latencyMs })));
+    if (meta?.provider) {
+      const plink = document.createElement('button');
+      plink.type = 'button';
+      plink.className = 'provider-link';
+      plink.title = 'View network transparency';
+      plink.textContent = 'node';
+      plink.addEventListener('click', () => window.open('/network/', '_blank', 'noopener'));
+      billEl.append(document.createTextNode(' · '));
+      billEl.appendChild(plink);
+    }
     if (meta?.receipt) {
       const link = document.createElement('button');
       link.type = 'button';
@@ -854,6 +874,7 @@
     const val = (input.value || '').trim();
     if (!val) return;
     if (!modelEl.value) { toast('No models available in the pool yet.', 'error'); return; }
+    if (!isModelAllowed(modelEl.value)) { toast('This model is blocked by your local policy. Check Settings.', 'error'); return; }
     busy = true;
     submit.disabled = true;
     dismissWelcome();
@@ -875,6 +896,7 @@
     const settings = loadSettings();
     const mode = settings.chatMode || 'chat';
     const maxTokens = settings.maxTokens || 1024;
+    const surface = mode === 'agent' ? 'agent' : 'chat';
     const started = performance.now();
     let usage = null;
     let meta = {};
@@ -913,6 +935,7 @@
             content: result.content,
             usage,
             meta,
+            surface,
             latencyMs: performance.now() - started,
           });
         } else if (result.cancelled) {
@@ -921,6 +944,7 @@
             content: result.content,
             usage,
             meta,
+            surface,
             latencyMs: performance.now() - started,
           });
         }
@@ -945,7 +969,7 @@
           }
         }
         textEl.textContent = buf;
-        conversation.push({ role: 'assistant', content: buf, usage, meta, latencyMs: performance.now() - started });
+        conversation.push({ role: 'assistant', content: buf, usage, meta, surface, latencyMs: performance.now() - started });
         finishBill(billEl, usage, meta, performance.now() - started);
       }
       persistThread();

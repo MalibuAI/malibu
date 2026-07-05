@@ -2,12 +2,14 @@ import * as dashboard from './views/dashboard.js';
 import * as keys from './views/keys.js';
 import * as settings from './views/settings.js';
 import * as agentDocs from './views/agent-docs.js';
+import * as team from './views/team.js';
 
 const VIEWS = {
   dashboard,
   keys,
   settings,
   'agent-docs': agentDocs,
+  team,
 };
 
 export function esc(s) {

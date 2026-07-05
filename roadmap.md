@@ -109,15 +109,15 @@
 
 ### Phase 3 — Platform & growth (10–16 weeks)
 
-| # | Initiative |
-|---|------------|
-| 3.1 | Team workspace + shared billing |
-| 3.2 | Usage analytics by surface (Chat / Agent / API) |
-| 3.3 | Model allow/block lists |
-| 3.4 | $MALIBU token credits integration |
-| 3.5 | Server-side encrypted thread sync |
-| 3.6 | Embeddable chat widget |
-| 3.7 | Provider transparency (hardware, region) |
+| # | Initiative | Status |
+|---|------------|--------|
+| 3.1 | Team workspace + shared billing | Stub (`/console/?view=team`) |
+| 3.2 | Usage analytics by surface (Chat / Agent / API) | Done (local Chat + Agent; API pending gateway) |
+| 3.3 | Model allow/block lists | Done (local policy in Settings) |
+| 3.4 | $MALIBU token credits integration | Stub (dashboard wallet card; gateway API pending) |
+| 3.5 | Server-side encrypted thread sync | Partial (JSON export/import; sync API pending) |
+| 3.6 | Embeddable chat widget | Done (`/widget/` demo embed) |
+| 3.7 | Provider transparency (hardware, region) | Partial (provider IDs + network stats; per-node disclosure pending) |
 
 ---
 
@@ -125,9 +125,11 @@
 
 ```
 /console/                 Chat (default)
-/console/dashboard/       Usage, tokens, settlement
-/console/keys/            API keys
-/console/                 Settings modal (account)
+/console/?view=dashboard  Usage, tokens, surface analytics
+/console/?view=team       Team workspace (stub)
+/console/?view=keys       API keys
+/console/?view=settings   Settings, model policy, thread backup
+/widget/                  Embeddable demo chat
 /network/                 Public pool stats
 /host/                    Provider onboarding
 /seller-portal/           Provider dashboard
@@ -167,7 +169,7 @@ Week 1–2:  Phase 0 — alive product ✓
 Week 3–4:  Phase 1 dashboard, keys, settings, rate card ✓
 Week 5–6:  Billing/credits + rate card + receipt viewer (credits pending gateway)
 Week 7–10: Phase 2 agent mode v1 ✓
-Week 11+:  MCP, teams, $MALIBU, server history
+Week 11+:  Phase 3 platform — teams stub, surface analytics, model policy, widget ✓
 ```
 
 ---

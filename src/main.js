@@ -76,8 +76,8 @@ const samples = {
   default: [
     "Dear friend — the light here is on a timer. ",
     "The Pacific has flattened to a sheet of orange foil. ",
-    "Your prompt routed through an M2 Ultra in a back office in Encino. ",
-    "Settled in USDC. $0.00184. ",
+    "Your prompt routes through the Malibu pool on Apple Silicon. ",
+    "Settled on-chain when enabled. ",
     "0.00033 $MALIBU burned. ",
     "From the coast, with warmth.",
   ],
