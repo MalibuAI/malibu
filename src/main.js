@@ -52,9 +52,11 @@ async function refreshLiveStats() {
       if (ready > 0) nodes = ready;
       else if (total > 0) nodes = total;
     }
+    let networkStats = null;
     if (statsRes?.ok) {
       const stats = await statsRes.json();
       const n = stats?.network || {};
+      networkStats = n;
       if (nodes == null && n.nodes_online > 0) nodes = n.nodes_online;
       requestsTotal = n.requests_total;
       tokensTotal = n.tokens_served_total;
@@ -93,6 +95,25 @@ async function refreshLiveStats() {
     if (tokensTotal != null) {
       document.querySelectorAll('[data-proof-tokens]').forEach((el) => {
         el.textContent = fmtCompact(tokensTotal);
+      });
+    }
+
+    if (networkStats) {
+      const merged = { ...networkStats };
+      if (nodes != null && merged.nodes_online == null) merged.nodes_online = nodes;
+      const fmtMetric = (name, v) => {
+        if (v == null || !Number.isFinite(Number(v))) return '—';
+        const num = Number(v);
+        if (name === 'network_power_kw') return num.toFixed(1);
+        if (name === 'network_utilization_pct') return Math.round(num).toString();
+        if (name === 'bandwidth_gb_per_s') return num < 10 ? num.toFixed(2).replace(/\.?0+$/, '') : fmtCompact(num);
+        if (name === 'avg_tokens_per_request') return Math.round(num).toLocaleString();
+        if (['tokens_served_total', 'requests_total'].includes(name)) return fmtCompact(num);
+        return num.toLocaleString();
+      };
+      document.querySelectorAll('[data-proof-metric]').forEach((el) => {
+        const name = el.dataset.proofMetric;
+        if (name in merged) el.textContent = fmtMetric(name, merged[name]);
       });
     }
   } catch {}

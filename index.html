@@ -51,7 +51,7 @@
       <source srcset="/images/brand/hero-malibu-bay.webp" type="image/webp" />
       <img data-hero-photo aria-hidden="true" src="/images/brand/hero-malibu-bay.png" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; filter: saturate(1.05) contrast(1.02); transform: translate3d(calc(var(--mx, 0) * -8px), calc(var(--my, 0) * -5px), 0) scale(1.06); transition: transform 700ms cubic-bezier(.2,.7,.3,1);" />
     </picture>
-    <video data-hero-video aria-hidden="true" autoplay muted loop playsinline preload="auto" poster="/images/brand/hero-malibu-bay.png" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; filter: saturate(1.05) contrast(1.02); transform: translate3d(calc(var(--mx, 0) * -8px), calc(var(--my, 0) * -5px), 0) scale(1.06);">
+    <video data-hero-video aria-hidden="true" autoplay muted loop playsinline preload="auto" poster="/images/brand/hero-malibu-bay.png" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; filter: saturate(1.05) contrast(1.02); transform: translate3d(calc(var(--mx, 0) * -8px), calc(var(--my, 0) * -5px), 0) scale(1.06); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 58%, black 70%, black 100%); mask-image: linear-gradient(to bottom, transparent 0%, transparent 58%, black 70%, black 100%);">
       <source src="/images/brand/hero-malibu-bay-mobile.webm" type="video/webm" media="(max-width: 768px)" />
       <source src="/images/brand/hero-malibu-bay-mobile.mp4"  type="video/mp4"  media="(max-width: 768px)" />
       <source src="/images/brand/hero-malibu-bay.webm" type="video/webm" />
@@ -85,17 +85,13 @@
     <div aria-hidden="true" class="grain-layer"></div>
 
     <div data-hero-content style="position: absolute; z-index: 5; left: clamp(28px, 5vw, 64px); right: clamp(28px, 5vw, 64px); bottom: clamp(48px, 8vh, 96px); max-width: 100%;">
-      <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: rgba(20, 58, 69,0.55); border: 1px solid rgba(255, 198, 41,0.42); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #FFFBF2; backdrop-filter: blur(10px); margin-bottom: 22px;">
-        <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #4FBFD4; color: #FFFBF2; font-size: 9px; font-weight: 600;">API</span>
-        <span data-nowrap>Open models · Apple Silicon · OpenAI-compatible</span>
-      </div>
       <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(72px, 11vw, 184px); line-height: 0.86; letter-spacing: -0.035em; color: #FFFBF2; margin: 0 0 18px; text-wrap: balance; text-shadow: 0 6px 40px rgba(12, 58, 69,0.85), 0 2px 12px rgba(12, 58, 69,0.7);">
         Malibu<span style="color: #FF6E5B;">.</span>
       </h1>
       <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(22px, 2.4vw, 38px); line-height: 1.2; letter-spacing: -0.01em; color: #FFFBF2; margin: 0 0 22px; max-width: 40ch; text-shadow: 0 3px 20px rgba(12, 58, 69,0.95), 0 1px 8px rgba(12, 58, 69,0.85);">
         Open-model inference on real Macs. Private, verifiable, cheaper.
       </p>
-      <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.55; letter-spacing: -0.005em; color: #FFFBF2; margin: 0 0 28px; max-width: 58ch; text-shadow: 0 2px 14px rgba(12, 58, 69,0.95), 0 1px 6px rgba(12, 58, 69,0.85);">
+      <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.55; letter-spacing: -0.005em; color: #FFFBF2; margin: 0 0 28px; max-width: 72ch; text-wrap: balance; text-shadow: 0 2px 14px rgba(12, 58, 69,0.95), 0 1px 6px rgba(12, 58, 69,0.85);">
         Mac owners host open models on idle Apple Silicon and earn USDC. Developers point Cursor, Cline, or Aider at one API endpoint. $MALIBU is the network — every prompt pays providers, burns supply, and grows the floor.
       </p>
 
@@ -110,27 +106,34 @@
           <svg width="13" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </form>
-      <p data-hero-chat-meta style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.55); margin: 14px 0 0;">
-        <span data-live-nodes>— nodes</span> · <span data-live-tps>— t/s</span> · usdc settled<a href="/network/" data-live-teaser>See the network →</a>
-      </p>
     </div>
   </section>
 
   <!-- SOCIAL PROOF -->
   <section class="home-proof" aria-label="Network status">
-    <div class="home-proof-inner">
-      <div class="home-proof-stats">
-        <div><strong data-proof-requests>—</strong>requests routed</div>
-        <div><strong data-proof-tokens>—</strong>tokens served</div>
-        <div><strong data-proof-nodes>—</strong>providers</div>
-      </div>
-      <div class="home-proof-shipped" aria-label="Shipped">
-        <span>OpenAI-compatible API</span>
-        <span>Tool calling</span>
-        <span>Signed receipts</span>
-        <span>Mac provider app</span>
-        <span>Weekly USDC payouts</span>
-      </div>
+    <div class="home-proof-track">
+      <div class="home-proof-item"><strong data-proof-metric="tokens_served_total">—</strong>tokens served</div>
+      <div class="home-proof-item"><strong data-proof-metric="requests_total">—</strong>requests</div>
+      <div class="home-proof-item"><strong data-proof-metric="nodes_online">—</strong>nodes online</div>
+      <div class="home-proof-item"><strong data-proof-metric="bandwidth_gb_per_s">—</strong>GB/s bandwidth</div>
+      <div class="home-proof-item"><strong data-proof-metric="network_power_kw">—</strong>kW network power</div>
+      <div class="home-proof-item"><strong data-proof-metric="network_utilization_pct">—</strong>% utilization</div>
+      <div class="home-proof-item"><strong data-proof-metric="gpu_cores_total">—</strong>GPU cores</div>
+      <div class="home-proof-item"><strong data-proof-metric="cpu_cores_total">—</strong>CPU cores</div>
+      <div class="home-proof-item"><strong data-proof-metric="unified_ram_gb_total">—</strong>GB unified RAM</div>
+      <div class="home-proof-item"><strong data-proof-metric="avg_tokens_per_request">—</strong>avg tokens / req</div>
+      <div class="home-proof-item"><strong data-proof-metric="models_serving">—</strong>models serving</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="tokens_served_total">—</strong>tokens served</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="requests_total">—</strong>requests</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="nodes_online">—</strong>nodes online</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="bandwidth_gb_per_s">—</strong>GB/s bandwidth</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="network_power_kw">—</strong>kW network power</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="network_utilization_pct">—</strong>% utilization</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="gpu_cores_total">—</strong>GPU cores</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="cpu_cores_total">—</strong>CPU cores</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="unified_ram_gb_total">—</strong>GB unified RAM</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="avg_tokens_per_request">—</strong>avg tokens / req</div>
+      <div class="home-proof-item" aria-hidden="true"><strong data-proof-metric="models_serving">—</strong>models serving</div>
     </div>
   </section>
 
