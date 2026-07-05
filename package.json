@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vite build",
+    "build": "vite build && npm run docs:build",
+    "docs:build": "node scripts/build-docs.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "check": "npm run build",
     "docs:dev": "cd docs && npx --yes mintlify@latest dev",

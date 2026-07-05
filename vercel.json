@@ -7,8 +7,6 @@
     { "source": "/v1/rate-card", "destination": "https://coordinator.streamvc.live/v1/rate-card" },
     { "source": "/v1/pool/check", "destination": "https://coordinator.streamvc.live/v1/pool/check" },
     { "source": "/providers/:provider_id/earnings", "destination": "https://coordinator.streamvc.live/providers/:provider_id/earnings" },
-    { "source": "/docs", "destination": "https://malibu.mintlify.site/docs" },
-    { "source": "/docs/", "destination": "https://malibu.mintlify.site/docs" },
-    { "source": "/docs/:match*", "destination": "https://malibu.mintlify.site/docs/:match*" }
+    { "source": "/docs", "destination": "/docs/litepaper" }
   ]
 }
