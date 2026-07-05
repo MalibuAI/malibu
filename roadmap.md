@@ -91,17 +91,17 @@
 
 ### Phase 2 — Agentic Chat (6–10 weeks) — differentiator
 
-| # | Initiative |
-|---|------------|
-| 2.1 | Tool-call streaming in client (SPEC-018) |
-| 2.2 | Agent mode toggle (Chat ↔ Agent) |
-| 2.3 | Task timeline (Cline-style) |
-| 2.4 | Built-in client tools: web_fetch, json_validate, calculator |
-| 2.5 | Human-in-the-loop approve/reject |
-| 2.6 | MCP connector in Settings |
-| 2.7 | Structured output mode for JSON prompts |
-| 2.8 | OpenAI SDK export snippet per thread |
-| 2.9 | Cline / Continue compatibility docs |
+| # | Initiative | Status |
+|---|------------|--------|
+| 2.1 | Tool-call streaming in client (SPEC-018) | Done |
+| 2.2 | Agent mode toggle (Chat ↔ Agent ↔ JSON) | Done |
+| 2.3 | Task timeline (Cline-style) | Done |
+| 2.4 | Built-in client tools: web_fetch, json_validate, calculator | Done |
+| 2.5 | Human-in-the-loop approve/reject | Done |
+| 2.6 | MCP connector in Settings | Stub (URL field; full MCP in Phase 3) |
+| 2.7 | Structured output mode for JSON prompts | Done |
+| 2.8 | OpenAI SDK export snippet per thread | Done (`/console/agent-docs/`) |
+| 2.9 | Cline / Continue compatibility docs | Done |
 
 **Positioning:** *ChatGPT talks. Malibu proves what ran, on which node, and can act.*
 
@@ -166,7 +166,7 @@
 Week 1–2:  Phase 0 — alive product ✓
 Week 3–4:  Phase 1 dashboard, keys, settings, rate card ✓
 Week 5–6:  Billing/credits + rate card + receipt viewer (credits pending gateway)
-Week 7–10: Phase 2 agent mode v1
+Week 7–10: Phase 2 agent mode v1 ✓
 Week 11+:  MCP, teams, $MALIBU, server history
 ```
 

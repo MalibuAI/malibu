@@ -34,7 +34,7 @@
     .new-chat:hover { background: rgba(255, 251, 242,0.10); }
 
     /* main panel */
-    .panel { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; background: #0F1B26; }
+    .panel { display: grid; grid-template-rows: auto 1fr auto auto; min-height: 0; background: #0F1B26; }
     .panel-head { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid rgba(255, 251, 242,0.06); flex-wrap: wrap; }
     .model-pick { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; background: #0C3A45; border: 1px solid rgba(255, 251, 242,0.08); border-radius: 9px; font-size: 13px; color: #FFFBF2; }
     .model-pick select { background: transparent; border: 0; color: inherit; font-family: inherit; font-size: inherit; outline: 0; -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 0; }
@@ -105,6 +105,7 @@
     .settings-btn.signed-in .auth-dot { background: #5BBF7A; box-shadow: 0 0 6px rgba(91,191,122,0.6); }
 
     .modal-backdrop { position: fixed; inset: 0; background: rgba(15,27,38,0.72); display: none; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px); }
+    .modal-backdrop.open { display: flex; }
     .model-pick .price { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,198,41,0.75); margin-left: 6px; }
     .receipt-link { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #FFC629; }
     .receipt-link:hover { color: #FFFBF2; }
@@ -129,6 +130,22 @@
     .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); padding: 10px 16px; background: #0C3A45; border: 1px solid rgba(255,251,242,0.12); border-radius: 9px; font-size: 13px; color: #FFFBF2; z-index: 60; opacity: 0; transition: opacity 200ms ease; pointer-events: none; max-width: 80vw; }
     .toast.show { opacity: 1; }
     .toast.error { border-color: rgba(255,110,91,0.5); color: #FFC0B0; }
+
+    .mode-pick { display: inline-flex; gap: 4px; padding: 3px; background: rgba(255,251,242,0.05); border: 1px solid rgba(255,251,242,0.08); border-radius: 9px; }
+    .mode-pick button { padding: 6px 10px; border-radius: 7px; font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,251,242,0.55); }
+    .mode-pick button.active { background: rgba(255,110,91,0.22); color: #FFFBF2; }
+    .mode-pick button:hover:not(.active) { color: rgba(255,251,242,0.85); }
+
+    .timeline { border-top: 1px solid rgba(255,251,242,0.06); background: rgba(12,58,69,0.35); padding: 10px 22px; max-height: 140px; overflow-y: auto; }
+    .timeline h4 { margin: 0 0 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,198,41,0.75); }
+    .tl-item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: rgba(255,251,242,0.82); padding: 4px 0; }
+    .tl-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,251,242,0.25); flex-shrink: 0; }
+    .tl-dot.running { background: #FFC629; animation: dotPulse 1.2s ease-in-out infinite; }
+    .tl-dot.done { background: #5BBF7A; }
+    .tl-dot.error, .tl-dot.rejected { background: #FF6E5B; }
+    .tl-dot.pending { background: #FFC629; }
+    .tool-preview { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,251,242,0.65); white-space: pre-wrap; margin: 8px 0; max-height: 120px; overflow: auto; }
+    .msg .text.tool-call { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: rgba(255,198,41,0.9); }
   </style>
 </head>
 <body>
@@ -171,6 +188,7 @@
         <a class="item" href="/console/keys/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</a>
         <button class="item" type="button" data-open-settings style="width:100%;border:0;text-align:left;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Account</button>
         <a class="item" href="/console/settings/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M7 4 V7 L9 9"/></svg> Settings</a>
+        <a class="item" href="/console/agent-docs/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3 H11 V11 H3 Z M5 5 H9 M5 8 H9"/></svg> Agent SDK</a>
         <a class="item" href="/#token"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3 V11 M5 5 H9 M5 9 H9"/></svg> $MALIBU</a>
       </div>
     </div>
@@ -183,6 +201,11 @@
       <div class="model-pick">
         <select data-model aria-label="Model"></select>
         <svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1.2 L4.5 4.5 L8 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="mode-pick" data-mode-pick>
+        <button type="button" data-mode="chat" class="active">Chat</button>
+        <button type="button" data-mode="agent">Agent</button>
+        <button type="button" data-mode="json">JSON</button>
       </div>
       <div class="status">
         <span><span class="dot" data-pool-dot></span> <span data-live-nodes class="skeleton-pulse">checking pool…</span></span>
@@ -209,7 +232,7 @@
             <div class="lbl">Postcard</div>
             <div class="body">Write me a postcard from Zuma at golden hour.</div>
           </button>
-          <button class="starter" type="button" data-starter="Draft a JSON schema for a Malibu restaurant menu with vegan flags and price tiers.">
+          <button class="starter" type="button" data-starter="Draft a JSON schema for a Malibu restaurant menu with vegan flags and price tiers." data-mode="json">
             <div class="lbl">JSON</div>
             <div class="body">Draft a JSON schema for a Malibu restaurant menu.</div>
           </button>
@@ -224,6 +247,11 @@
         </div>
 
       </div>
+    </div>
+
+    <div class="timeline" data-timeline hidden>
+      <h4>Agent timeline</h4>
+      <div data-timeline-list></div>
     </div>
 
     <form class="composer" data-composer onsubmit="return false;">
@@ -275,13 +303,27 @@
   </div>
 </div>
 
+<div class="modal-backdrop" data-tool-modal>
+  <div class="modal" role="dialog" aria-modal="true">
+    <h2>Approve tool calls</h2>
+    <p>Malibu runs tools in your browser. Review before executing.</p>
+    <div class="tool-preview" data-tool-preview></div>
+    <div class="actions">
+      <button class="btn primary" type="button" data-approve-tools>Approve &amp; run</button>
+      <button class="btn ghost" type="button" data-reject-tools>Reject</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import {
     getStatus, getUsage, getRateCard, chatStream, loadKey, saveKey, authMode,
     ensureDemoToken, createThreadId, loadThreads, upsertThread, getThread,
-    formatBillMeta, formatTokenCount, formatModelPrice, loadSettings,
+    formatBillMeta, formatTokenCount, formatModelPrice, loadSettings, saveSettings,
     checkQuotaAlert, estimateLocalSpendUsd, quotaPct,
   } from './api.js';
+  import { runAgentLoop } from './agent.js';
+  import { toolsForMode } from './tools.js';
 
   const stream = document.querySelector('[data-stream] .stream-inner');
   const composer = document.querySelector('[data-composer]');
@@ -308,12 +350,18 @@
   const quotaLabelEl = document.querySelector('[data-quota-label]');
   const receiptModal = document.querySelector('[data-receipt-modal]');
   const receiptBody = document.querySelector('[data-receipt-body]');
+  const modePickEl = document.querySelector('[data-mode-pick]');
+  const timelineEl = document.querySelector('[data-timeline]');
+  const timelineListEl = document.querySelector('[data-timeline-list]');
+  const toolModal = document.querySelector('[data-tool-modal]');
+  const toolPreviewEl = document.querySelector('[data-tool-preview]');
   const modelPriceEl = document.createElement('span');
   modelPriceEl.className = 'price';
   document.querySelector('.model-pick')?.appendChild(modelPriceEl);
 
   let rateCard = null;
   let currentReceipt = '';
+  let toolApprovalResolve = null;
 
   let threadId = createThreadId();
   let conversation = [];
@@ -345,6 +393,68 @@
       toast('Could not copy.', 'error');
     }
   });
+
+  document.querySelector('[data-approve-tools]')?.addEventListener('click', () => {
+    toolModal?.classList.remove('open');
+    toolApprovalResolve?.(true);
+    toolApprovalResolve = null;
+  });
+  document.querySelector('[data-reject-tools]')?.addEventListener('click', () => {
+    toolModal?.classList.remove('open');
+    toolApprovalResolve?.(false);
+    toolApprovalResolve = null;
+  });
+  toolModal?.addEventListener('click', (e) => { if (e.target === toolModal) toolModal.classList.remove('open'); });
+  window.addEventListener('malibu:tool-approval', (e) => {
+    const { toolCalls, resolve } = e.detail || {};
+    toolApprovalResolve = resolve;
+    toolPreviewEl.textContent = (toolCalls || [])
+      .map((tc) => `${tc.function?.name || 'tool'}(${tc.function?.arguments || ''})`)
+      .join('\n\n');
+    toolModal?.classList.add('open');
+  });
+
+  function clearTimeline() {
+    if (timelineListEl) timelineListEl.innerHTML = '';
+  }
+
+  function addTimelineItem(item) {
+    if (!timelineListEl) return;
+    const key = `${item.kind || 'step'}:${item.label || ''}`;
+    let row = timelineListEl.querySelector(`[data-tl-key="${CSS.escape(key)}"]`);
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'tl-item';
+      row.dataset.tlKey = key;
+      row.innerHTML = '<span class="tl-dot"></span><span class="tl-text"></span>';
+      timelineListEl.appendChild(row);
+    }
+    const dot = row.querySelector('.tl-dot');
+    dot.className = 'tl-dot' + (item.status ? ` ${item.status}` : '');
+    row.querySelector('.tl-text').textContent = item.label || '';
+  }
+
+  function setChatMode(mode) {
+    const m = mode === 'agent' || mode === 'json' ? mode : 'chat';
+    saveSettings({ chatMode: m });
+    modePickEl?.querySelectorAll('[data-mode]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.mode === m);
+    });
+    if (timelineEl) timelineEl.hidden = m !== 'agent';
+    if (m !== 'agent') clearTimeline();
+    input.placeholder = m === 'agent'
+      ? 'Describe a task — Malibu can use tools (⌘↵)'
+      : m === 'json'
+        ? 'Ask for structured JSON output (⌘↵)'
+        : 'Ask anything — ⌘↵ to send';
+  }
+
+  modePickEl?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-mode]');
+    if (!btn) return;
+    setChatMode(btn.dataset.mode);
+  });
+  setChatMode(loadSettings().chatMode || 'chat');
 
   function openReceipt(receipt) {
     if (!receipt) return;
@@ -602,12 +712,17 @@
     starters.className = 'starters';
     starters.innerHTML = `
       <button class="starter" type="button" data-starter="Write me a postcard from Zuma at golden hour."><div class="lbl">Postcard</div><div class="body">Write me a postcard from Zuma at golden hour.</div></button>
-      <button class="starter" type="button" data-starter="Draft a JSON schema for a Malibu restaurant menu with vegan flags and price tiers."><div class="lbl">JSON</div><div class="body">Draft a JSON schema for a Malibu restaurant menu.</div></button>
+      <button class="starter" type="button" data-starter="Draft a JSON schema for a Malibu restaurant menu with vegan flags and price tiers." data-mode="json"><div class="lbl">JSON</div><div class="body">Draft a JSON schema for a Malibu restaurant menu.</div></button>
       <button class="starter" type="button" data-starter="Summarize the case for on-device inference in three bullets a fund analyst would forward."><div class="lbl">Summarize</div><div class="body">Summarize on-device inference in three bullets.</div></button>
       <button class="starter" type="button" data-starter="A three-day PCH itinerary from Santa Monica to Hearst Castle. Stops only — no fluff."><div class="lbl">Itinerary</div><div class="body">A three-day PCH itinerary, stops only.</div></button>`;
     stream.appendChild(starters);
     starters.querySelectorAll('[data-starter]').forEach((b) => {
-      b.addEventListener('click', () => { input.value = b.dataset.starter; grow(); input.focus(); });
+      b.addEventListener('click', () => {
+        input.value = b.dataset.starter;
+        if (b.dataset.mode) setChatMode(b.dataset.mode);
+        grow();
+        input.focus();
+      });
     });
   }
 
@@ -672,6 +787,19 @@
     return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   }
 
+  function finishBill(billEl, usage, meta, latencyMs) {
+    billEl.textContent = formatBillMeta({ usage, meta, latencyMs });
+    if (meta?.receipt) {
+      const link = document.createElement('button');
+      link.type = 'button';
+      link.className = 'receipt-link';
+      link.textContent = 'receipt';
+      link.addEventListener('click', () => openReceipt(meta.receipt));
+      billEl.append(document.createTextNode(' · '));
+      billEl.appendChild(link);
+    }
+  }
+
   let busy = false;
   async function send() {
     if (busy) return;
@@ -696,34 +824,83 @@
     textEl.innerHTML = '<span style="opacity: 0.55;">▍</span>';
     scrollBottom();
 
-    let buf = '';
+    const settings = loadSettings();
+    const mode = settings.chatMode || 'chat';
+    const maxTokens = settings.maxTokens || 1024;
     const started = performance.now();
     let usage = null;
     let meta = {};
-    const maxTokens = loadSettings().maxTokens || 1024;
+
     try {
-      for await (const event of chatStream({ model: modelId, messages: conversation, maxTokens, conversationId: threadId })) {
-        if (event.type === 'delta') {
-          buf += event.text;
-          textEl.innerHTML = escapeHtml(buf) + '<span style="opacity: 0.55;">▍</span>';
-          scrollBottom();
-        } else if (event.type === 'done') {
-          usage = event.usage;
-          meta = event.meta || {};
+      if (mode === 'agent') {
+        if (timelineEl) timelineEl.hidden = false;
+        clearTimeline();
+        const tools = toolsForMode('agent');
+        const result = await runAgentLoop({
+          model: modelId,
+          conversation,
+          maxTokens,
+          conversationId: threadId,
+          tools,
+          autoApprove: !!settings.agentAutoApprove,
+          onTimeline: addTimelineItem,
+          onStreamDelta: (content) => {
+            textEl.innerHTML = escapeHtml(content) + '<span style="opacity: 0.55;">▍</span>';
+            scrollBottom();
+          },
+          onStreamToolDelta: (toolCalls) => {
+            const names = toolCalls.map((tc) => tc.function?.name).filter(Boolean).join(', ');
+            textEl.className = 'text tool-call';
+            textEl.textContent = names ? `Calling ${names}…` : 'Planning tool calls…';
+            scrollBottom();
+          },
+        });
+        usage = result.usage;
+        meta = result.meta || {};
+        textEl.className = 'text';
+        textEl.textContent = result.content || '';
+        if (!result.cancelled && !result.maxSteps) {
+          conversation.push({
+            role: 'assistant',
+            content: result.content,
+            usage,
+            meta,
+            latencyMs: performance.now() - started,
+          });
+        } else if (result.cancelled) {
+          conversation.push({
+            role: 'assistant',
+            content: result.content,
+            usage,
+            meta,
+            latencyMs: performance.now() - started,
+          });
         }
-      }
-      textEl.textContent = buf;
-      const latencyMs = performance.now() - started;
-      conversation.push({ role: 'assistant', content: buf, usage, meta, latencyMs });
-      billEl.textContent = formatBillMeta({ usage, meta, latencyMs });
-      if (meta?.receipt) {
-        const link = document.createElement('button');
-        link.type = 'button';
-        link.className = 'receipt-link';
-        link.textContent = 'receipt';
-        link.addEventListener('click', () => openReceipt(meta.receipt));
-        billEl.append(document.createTextNode(' · '));
-        billEl.appendChild(link);
+        finishBill(billEl, usage, meta, performance.now() - started);
+        if (result.maxSteps) toast('Agent stopped at max tool steps.');
+      } else {
+        let buf = '';
+        const responseFormat = mode === 'json' ? { type: 'json_object' } : undefined;
+        for await (const event of chatStream({
+          model: modelId,
+          messages: conversation.filter((m) => m.role === 'user' || m.role === 'assistant'),
+          maxTokens,
+          conversationId: threadId,
+          responseFormat,
+        })) {
+          if (event.type === 'delta') {
+            buf += event.text;
+            textEl.innerHTML = escapeHtml(buf) + '<span style="opacity: 0.55;">▍</span>';
+            scrollBottom();
+          } else if (event.type === 'done') {
+            usage = event.usage;
+            meta = event.meta || {};
+            if (event.content) buf = event.content;
+          }
+        }
+        textEl.textContent = buf;
+        conversation.push({ role: 'assistant', content: buf, usage, meta, latencyMs: performance.now() - started });
+        finishBill(billEl, usage, meta, performance.now() - started);
       }
       persistThread();
       refreshUsage();
@@ -761,13 +938,19 @@
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
   });
   document.querySelectorAll('[data-starter]').forEach((b) => {
-    b.addEventListener('click', () => { input.value = b.dataset.starter; grow(); input.focus(); });
+    b.addEventListener('click', () => {
+      input.value = b.dataset.starter;
+      if (b.dataset.mode) setChatMode(b.dataset.mode);
+      grow();
+      input.focus();
+    });
   });
   document.querySelector('[data-new-chat]').addEventListener('click', () => {
     if (busy) return;
     threadId = createThreadId();
     conversation = [];
     threadTitle = '';
+    clearTimeline();
     showWelcome();
     input.value = '';
     grow();

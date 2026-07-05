@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malibu · Agent SDK</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../console.css" />
+  <style>
+    pre { background: #0C3A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 10px; padding: 14px; overflow: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.55; color: rgba(255,251,242,0.9); }
+    .hint { font-size: 13px; color: rgba(255,251,242,0.6); line-height: 1.55; }
+    ul { padding-left: 18px; line-height: 1.6; color: rgba(255,251,242,0.82); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/console/">← Back to chat</a>
+    <h1>Agent SDK &amp; IDE setup</h1>
+    <p class="sub">Malibu exposes an OpenAI-compatible API with MacProvider tool calling (SPEC-018). Run the agent loop in your client — the console does this in Agent mode.</p>
+
+    <div class="panel">
+      <h2>OpenAI Python SDK</h2>
+      <p class="hint">Point the official SDK at Malibu. Tool calling uses standard <code>tools=</code> and <code>tool_calls</code> deltas.</p>
+      <pre data-snippet>Loading…</pre>
+      <div class="row">
+        <button class="btn ghost" type="button" data-copy>Copy snippet</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Cline (VS Code)</h2>
+      <p class="hint">Use Malibu as a custom OpenAI-compatible provider.</p>
+      <ul>
+        <li><strong>API Provider:</strong> OpenAI Compatible</li>
+        <li><strong>Base URL:</strong> <code data-base-url></code></li>
+        <li><strong>API Key:</strong> your <code>mp_*</code> key from <a href="/console/keys/">API keys</a></li>
+        <li><strong>Model ID:</strong> e.g. <code>mlx-community/Qwen2.5-7B-Instruct-4bit</code> (pick from pool)</li>
+      </ul>
+      <p class="hint">Optional header for sticky KV cache: <code>X-MacProvider-Conversation: &lt;thread-id&gt;</code></p>
+    </div>
+
+    <div class="panel">
+      <h2>Continue (VS Code / JetBrains)</h2>
+      <ul>
+        <li><strong>Provider:</strong> OpenAI</li>
+        <li><strong>apiBase:</strong> <code data-base-url></code></li>
+        <li><strong>apiKey:</strong> <code>mp_…</code></li>
+        <li>Enable tool use in Continue settings; Malibu returns streaming <code>tool_calls</code> per SPEC-018.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Built-in console tools</h2>
+      <p class="hint">Agent mode in the chat UI runs these client-side after you approve each batch:</p>
+      <ul>
+        <li><code>calculator</code> — safe arithmetic</li>
+        <li><code>json_validate</code> — parse/validate JSON text</li>
+        <li><code>web_fetch</code> — fetch public URLs (browser CORS limits apply)</li>
+      </ul>
+      <p class="hint">MCP server URL can be configured in <a href="/console/settings/">Settings</a> (connector stub — full MCP routing is Phase 3).</p>
+    </div>
+
+    <div class="nav-links">
+      <a href="/console/">Chat</a>
+      <a href="/console/settings/">Settings</a>
+      <a href="/docs">API docs</a>
+    </div>
+  </div>
+  <script type="module">
+    import { buildSdkSnippet } from '../agent.js';
+    import { loadKey } from '../api.js';
+
+    const base = `${location.origin}/api/mp/v1`;
+    document.querySelectorAll('[data-base-url]').forEach((el) => { el.textContent = base; });
+
+    const snippetEl = document.querySelector('[data-snippet]');
+    const snippet = buildSdkSnippet({ model: 'mlx-community/Qwen2.5-7B-Instruct-4bit', apiKey: loadKey() || 'mp_YOUR_KEY' });
+    snippetEl.textContent = snippet;
+
+    document.querySelector('[data-copy]').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(snippet);
+        const btn = document.querySelector('[data-copy]');
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = 'Copy snippet'; }, 2000);
+      } catch {
+        alert('Could not copy — select the snippet manually.');
+      }
+    });
+  </script>
+</body>
+</html>

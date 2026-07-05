@@ -12,6 +12,9 @@ const DEFAULT_SETTINGS = {
   alertThresholds: [50, 80, 100],
   softSpendLimitUsd: null,
   lastAlertPct: 0,
+  chatMode: 'chat',
+  agentAutoApprove: false,
+  mcpServerUrl: '',
 };
 
 export function loadKey() {
@@ -355,10 +358,41 @@ function readResponseMeta(headers) {
   };
 }
 
+function mergeToolDelta(acc, deltaToolCalls) {
+  for (const tc of deltaToolCalls || []) {
+    const i = tc.index ?? 0;
+    if (!acc[i]) acc[i] = { index: i, id: '', type: 'function', function: { name: '', arguments: '' } };
+    if (tc.id) acc[i].id = tc.id;
+    if (tc.type) acc[i].type = tc.type;
+    if (tc.function?.name) acc[i].function.name += tc.function.name;
+    if (tc.function?.arguments != null) acc[i].function.arguments += tc.function.arguments;
+  }
+}
+
+function toolList(acc) {
+  return Object.keys(acc)
+    .sort((a, b) => Number(a) - Number(b))
+    .map((k) => {
+      const { index, ...rest } = acc[k];
+      return rest;
+    });
+}
+
 /**
- * Stream a chat completion. Yields { type: 'delta', text } then { type: 'done', usage, meta }.
+ * Stream a chat completion.
+ * Yields { type: 'delta', text }, { type: 'tool_delta', toolCalls },
+ * then { type: 'done', content, usage, meta, toolCalls, finishReason }.
  */
-export async function* chatStream({ model, messages, maxTokens = 1024, signal, conversationId }) {
+export async function* chatStream({
+  model,
+  messages,
+  maxTokens = 1024,
+  signal,
+  conversationId,
+  tools,
+  toolChoice,
+  responseFormat,
+}) {
   await ensureDemoToken();
 
   const headers = {
@@ -368,11 +402,18 @@ export async function* chatStream({ model, messages, maxTokens = 1024, signal, c
   };
   if (conversationId) headers['X-MacProvider-Conversation'] = conversationId;
 
+  const body = { model, messages, stream: true, max_tokens: maxTokens };
+  if (tools?.length) {
+    body.tools = tools;
+    if (toolChoice) body.tool_choice = toolChoice;
+  }
+  if (responseFormat) body.response_format = responseFormat;
+
   const r = await fetch(`${BASE}/v1/chat/completions`, {
     method: 'POST',
     signal,
     headers,
-    body: JSON.stringify({ model, messages, stream: true, max_tokens: maxTokens }),
+    body: JSON.stringify(body),
   });
 
   const meta = readResponseMeta(r.headers);
@@ -388,6 +429,9 @@ export async function* chatStream({ model, messages, maxTokens = 1024, signal, c
   const decoder = new TextDecoder();
   let buf = '';
   let usage = null;
+  let content = '';
+  let finishReason = '';
+  const toolAcc = {};
 
   while (true) {
     const { value, done } = await reader.read();
@@ -403,15 +447,34 @@ export async function* chatStream({ model, messages, maxTokens = 1024, signal, c
         if (!payload || payload === '[DONE]') continue;
         try {
           const obj = JSON.parse(payload);
-          const delta = obj?.choices?.[0]?.delta?.content;
-          if (delta) yield { type: 'delta', text: delta };
+          const choice = obj?.choices?.[0];
+          const delta = choice?.delta;
+          if (choice?.finish_reason) finishReason = choice.finish_reason;
+          if (delta?.content) {
+            content += delta.content;
+            yield { type: 'delta', text: delta.content };
+          }
+          if (delta?.tool_calls) {
+            mergeToolDelta(toolAcc, delta.tool_calls);
+            yield { type: 'tool_delta', toolCalls: toolList(toolAcc) };
+          }
+          if (choice?.message?.tool_calls) {
+            mergeToolDelta(toolAcc, choice.message.tool_calls.map((tc, i) => ({ ...tc, index: i })));
+          }
           if (obj?.usage) usage = obj.usage;
         } catch {}
       }
     }
   }
 
-  yield { type: 'done', usage, meta };
+  yield {
+    type: 'done',
+    content,
+    usage,
+    meta,
+    finishReason,
+    toolCalls: toolList(toolAcc),
+  };
 }
 
 export function formatTokenCount(n) {
