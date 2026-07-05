@@ -11,7 +11,8 @@
   "favicon": "/favicon.svg",
   "logo": {
     "light": "/favicon.svg",
-    "dark": "/favicon.svg"
+    "dark": "/favicon.svg",
+    "href": "https://malibu.tech"
   },
   "navbar": {
     "links": [
