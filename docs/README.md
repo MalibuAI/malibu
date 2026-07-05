@@ -25,7 +25,7 @@ docs-internal/
 ## Connect Mintlify to this repo
 
 1. In [Mintlify Dashboard](https://dashboard.mintlify.com) → **Git Settings**, connect `MalibuAI/malibu`.
-2. Set **Docs subpath** to `docs` (folder containing `docs.json`).
+2. Enable **Set up as monorepo** and set path to **`/docs`** (leading slash, no trailing slash).
 3. Confirm custom domain / deployment path matches existing `malibu.mintlify.site` project.
 4. Merge this PR; Mintlify rebuilds on push to `main`.
 
