@@ -4,6 +4,7 @@
 .vercel/
 design-import/
 dist/
+.tmp-docs-export.zip
 node_modules/
 public/images/brand/alts/
 public/images/brand/v1-archive/

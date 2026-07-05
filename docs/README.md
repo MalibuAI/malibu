@@ -1,6 +1,6 @@
 # Mintlify docs (malibu.tech/docs)
 
-Source for [malibu.tech/docs](https://malibu.tech/docs), proxied from the marketing site via `vercel.json` to Mintlify hosting.
+Source for [malibu.tech/docs](https://malibu.tech/docs). Docs are **exported at Vercel build time** and served as static files from `dist/docs/` — no Mintlify GitHub org connection required.
 
 ## Local preview
 
@@ -8,7 +8,16 @@ Source for [malibu.tech/docs](https://malibu.tech/docs), proxied from the market
 npm run docs:dev
 ```
 
-Open the URL printed by the CLI (typically `http://localhost:3000`).
+Mintlify dev server for editing. Open the URL printed by the CLI.
+
+## Production build
+
+```bash
+npm run docs:build   # export → dist/docs with /docs path prefix
+npm run build        # vite site + docs export
+```
+
+Vercel runs `npm run build` on deploy. `vercel.json` redirects `/docs` → `/docs/litepaper`.
 
 ## Repository layout
 
@@ -18,32 +27,16 @@ docs/
   litepaper.mdx      # Default opening page (/docs)
   status.mdx         # Live vs planned ledger
   ...
+scripts/build-docs.mjs
 docs-internal/
   ARCHITECTURE.md    # Docs IA spec (not published)
 ```
 
-## Connect Mintlify to this repo
+## Why not Mintlify GitHub deploy?
 
-1. In [Mintlify Dashboard](https://dashboard.mintlify.com) → **Git Settings**, connect `MalibuAI/malibu`.
-2. Enable **Set up as monorepo** and set path to **`/docs`** (leading slash, no trailing slash).
-3. Confirm **deployment branch** is `main`.
-4. Confirm the GitHub App has access to this **private** repo (GitHub → Settings → Integrations → Mintlify).
-5. Push to `main`; Mintlify should rebuild automatically.
+MalibuAI org repos may not appear in Mintlify’s GitHub picker (private org + app install). Self-hosting the Mintlify **export** on Vercel avoids that dependency while keeping MDX source and `docs.json` in this repo.
 
-`vercel.json` rewrites `/docs/*` → `https://malibu.mintlify.site/docs/*` on malibu.tech. No Vercel change required if the Mintlify deployment URL stays the same.
-
-## If production still shows old docs
-
-```bash
-curl -sI https://malibu.mintlify.site/docs/status | grep -i x-served-version
-curl -s https://malibu.tech/docs/litepaper.md | rg "coordinated inference|Network status"
-```
-
-New build includes `/docs/status` and updated Litepaper (no "live P2P" wording).
-
-**Dashboard:** Git Settings → verify repo, monorepo `/docs`, branch `main` → check build logs or click **Deploy**.
-
-**Optional API trigger:** add repo secrets `MINTLIFY_API_KEY` + `MINTLIFY_PROJECT_ID`, then run **Actions → Trigger Mintlify docs deploy**.
+Optional: a maintainer can still use Mintlify dashboard editing on a personal account; production on malibu.tech comes from this repo’s build.
 
 ## Editing rules
 

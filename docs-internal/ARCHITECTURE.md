@@ -2,7 +2,7 @@
 
 **Published site:** [malibu.tech/docs](https://www.malibu.tech/docs)  
 **Mintlify source:** [`docs/`](../docs/) (`docs.json` + MDX pages)  
-**Litepaper source (repo):** [`docs/litepaper.mdx`](../docs/litepaper.mdx)  
+**Production:** Vercel static export → `dist/docs/` (see `scripts/build-docs.mjs`)  
 **Last updated:** July 2026
 
 This document defines how Malibu docs are organized, what each lane is for, and how to keep the Litepaper ambitious without letting it impersonate the shipped-features ledger.
