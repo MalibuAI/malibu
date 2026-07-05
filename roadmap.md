@@ -75,17 +75,17 @@
 
 ---
 
-### Phase 1 — Buyer account & monetization (4–6 weeks)
+### Phase 1 — Buyer account & monetization (shipped)
 
-| # | Initiative |
-|---|------------|
-| 1.1 | Usage dashboard — 7d/30d tokens, requests, models, cached savings |
-| 1.2 | API key CRUD via `/auth/api-keys` |
-| 1.3 | Rate card in model picker |
-| 1.4 | Credits / USDC top-up with spend limits |
-| 1.5 | Plans: Free → Pro → Team |
-| 1.6 | Receipt viewer + verify CLI link |
-| 1.7 | Settings: alerts at 50/80/100%, default model |
+| # | Initiative | Status |
+|---|------------|--------|
+| 1.1 | Usage dashboard — today + 7d/30d local analytics | Done |
+| 1.2 | API key CRUD via `/auth/api-keys` | Done |
+| 1.3 | Rate card in model picker | Done |
+| 1.4 | Credits / USDC top-up | Coming soon (UI placeholder) |
+| 1.5 | Plans display (Free / capacity tier) | Done |
+| 1.6 | Receipt viewer + verify CLI link | Done |
+| 1.7 | Settings: alerts, default model, spend limit | Done |
 
 ---
 
@@ -164,8 +164,8 @@
 
 ```
 Week 1–2:  Phase 0 — alive product ✓
-Week 3–4:  Phase 1 dashboard depth + API key CRUD
-Week 5–6:  Billing/credits + rate card + receipt viewer
+Week 3–4:  Phase 1 dashboard, keys, settings, rate card ✓
+Week 5–6:  Billing/credits + rate card + receipt viewer (credits pending gateway)
 Week 7–10: Phase 2 agent mode v1
 Week 11+:  MCP, teams, $MALIBU, server history
 ```

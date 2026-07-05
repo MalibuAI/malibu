@@ -4,6 +4,7 @@
     { "source": "/account", "destination": "https://api.streamvc.live/account" },
     { "source": "/account/:path*", "destination": "https://api.streamvc.live/account/:path*" },
     { "source": "/api/mp/:path*", "destination": "https://api.streamvc.live/:path*" },
+    { "source": "/v1/rate-card", "destination": "https://coordinator.streamvc.live/v1/rate-card" },
     { "source": "/v1/pool/check", "destination": "https://coordinator.streamvc.live/v1/pool/check" },
     { "source": "/providers/:provider_id/earnings", "destination": "https://coordinator.streamvc.live/providers/:provider_id/earnings" },
     { "source": "/docs", "destination": "https://malibu.mintlify.site/docs" },

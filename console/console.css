@@ -1,0 +1,42 @@
+html, body { margin: 0; background: #0F1B26; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; min-height: 100vh; }
+a { color: #FFC629; text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; cursor: pointer; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 32px 24px 48px; }
+.back { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,251,242,0.55); }
+h1 { margin: 14px 0 6px; font-weight: 500; font-size: 32px; letter-spacing: -0.02em; }
+.sub { color: rgba(255,251,242,0.65); margin-bottom: 24px; line-height: 1.5; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.card { background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
+.card .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,251,242,0.45); margin-bottom: 8px; }
+.card .val { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; }
+.card .hint { margin-top: 6px; font-size: 13px; color: rgba(255,251,242,0.55); }
+.panel { margin-top: 20px; background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
+.panel h2 { margin: 0 0 12px; font-size: 16px; font-weight: 500; }
+.bar-track { height: 8px; background: rgba(255,251,242,0.08); border-radius: 4px; overflow: hidden; margin: 12px 0; }
+.bar-fill { height: 100%; background: #FFC629; border-radius: 4px; transition: width 300ms ease; }
+.bar-fill.warn { background: #FF6E5B; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tab { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,251,242,0.12); background: transparent; color: rgba(255,251,242,0.75); font-size: 13px; }
+.tab.active { background: rgba(255,110,91,0.18); border-color: rgba(255,110,91,0.45); color: #FFFBF2; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; background: #FF6E5B; color: #FFFBF2; border-radius: 9px; font-size: 13px; font-weight: 500; border: 0; }
+.btn:hover { background: #C2543A; }
+.btn.ghost { background: rgba(255,251,242,0.08); border: 1px solid rgba(255,251,242,0.12); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.danger { background: transparent; color: rgba(255,251,242,0.65); border: 1px solid rgba(255,110,91,0.35); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th, .table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255,251,242,0.08); }
+.table th { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,251,242,0.45); }
+.empty { padding: 28px; text-align: center; color: rgba(255,251,242,0.6); }
+.err { color: #FFC0B0; }
+.badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(255,198,41,0.15); color: #FFC629; }
+.badge.pro { background: rgba(91,191,122,0.15); color: #5BBF7A; }
+.badge.soon { background: rgba(255,251,242,0.08); color: rgba(255,251,242,0.55); }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,251,242,0.45); margin-bottom: 6px; }
+.field input, .field select { width: 100%; max-width: 360px; padding: 10px 12px; background: #0C3A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 8px; color: #FFFBF2; font-family: inherit; font-size: 14px; }
+.key-box { background: #0C3A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.key-box code { font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all; }
+.nav-links { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; font-size: 13px; }
+.receipt-pre { background: #0C3A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 8px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; word-break: break-all; max-height: 200px; overflow: auto; }

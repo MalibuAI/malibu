@@ -6,79 +6,124 @@
   <title>Malibu · Dashboard</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    html, body { margin: 0; background: #0F1B26; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; min-height: 100vh; }
-    a { color: #FFC629; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .wrap { max-width: 880px; margin: 0 auto; padding: 32px 24px 48px; }
-    .back { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,251,242,0.55); }
-    h1 { margin: 14px 0 6px; font-weight: 500; font-size: 32px; letter-spacing: -0.02em; }
-    .sub { color: rgba(255,251,242,0.65); margin-bottom: 28px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-    .card { background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
-    .card .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,251,242,0.45); margin-bottom: 8px; }
-    .card .val { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; }
-    .card .hint { margin-top: 6px; font-size: 13px; color: rgba(255,251,242,0.55); }
-    .bar { margin-top: 24px; background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
-    .bar-track { height: 8px; background: rgba(255,251,242,0.08); border-radius: 4px; overflow: hidden; margin: 12px 0; }
-    .bar-fill { height: 100%; background: #FFC629; border-radius: 4px; transition: width 300ms ease; }
-    .cta { display: inline-flex; margin-top: 20px; padding: 10px 14px; background: #FF6E5B; color: #FFFBF2; border-radius: 9px; font-size: 13px; font-weight: 500; border: 0; cursor: pointer; }
-    .cta:hover { background: #C2543A; }
-    .empty { padding: 28px; text-align: center; color: rgba(255,251,242,0.6); }
-    .err { color: #FFC0B0; }
-  </style>
+  <link rel="stylesheet" href="../console.css" />
 </head>
 <body>
   <div class="wrap">
     <a class="back" href="/console/">← Back to chat</a>
     <h1>Usage dashboard</h1>
-    <p class="sub">Daily token quota and account status from MacProvider gateway.</p>
-    <div data-content class="empty">Loading usage…</div>
+    <p class="sub">Gateway quota for today plus local chat analytics from this browser.</p>
+    <div data-content class="empty">Loading…</div>
   </div>
   <script type="module">
-    import { getUsage, getStatus, loadKey, formatTokenCount, authMode } from '../api.js';
+    import {
+      getUsage, getStatus, getRateCard, authMode, formatTokenCount, formatUsd,
+      aggregateLocalUsage, estimateLocalSpendUsd, inferPlan, quotaPct,
+    } from '../api.js';
 
     const el = document.querySelector('[data-content]');
+    let period = 'today';
 
-    function pct(used, reserved, limit) {
-      if (!limit) return 0;
-      return Math.min(100, ((used + reserved) / limit) * 100);
+    function esc(s) {
+      return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    }
+
+    function modelRows(byModel) {
+      const entries = Object.entries(byModel || {}).sort((a, b) => b[1].tokens - a[1].tokens);
+      if (!entries.length) return '<p class="hint">No local chat usage in this period.</p>';
+      return `<table class="table"><thead><tr><th>Model</th><th>Requests</th><th>Tokens</th><th>Cached</th></tr></thead><tbody>${
+        entries.map(([m, s]) => `<tr><td>${esc(m.split('/').pop() || m)}</td><td>${s.requests}</td><td>${formatTokenCount(s.tokens)}</td><td>${formatTokenCount(s.cached)}</td></tr>`).join('')
+      }</tbody></table>`;
     }
 
     async function render() {
       if (authMode() !== 'key') {
         el.className = 'empty';
         el.innerHTML = `
-          <p>Connect an API key to see usage.</p>
-          <p><a href="/console/">Open chat settings</a> to sign in with GitHub and paste your <code>mp_</code> key.</p>
-          <p>Demo sessions use a separate 1k token/IP limit and are not shown here.</p>`;
+          <p>Connect an API key to see account usage.</p>
+          <p><a href="/console/">Open chat settings</a> or <a href="/console/keys/">API keys</a>.</p>
+          <p>Demo sessions (1k tokens/IP) are tracked separately.</p>`;
         return;
       }
       try {
-        const [usage, status] = await Promise.all([getUsage(), getStatus().catch(() => null)]);
+        const [usage, status, rateCard] = await Promise.all([
+          getUsage(),
+          getStatus().catch(() => null),
+          getRateCard().catch(() => null),
+        ]);
+        const plan = inferPlan(usage);
         const q = usage?.quota || {};
         const used = Number(q.daily_tokens_used) || 0;
         const reserved = Number(q.daily_tokens_reserved) || 0;
         const limit = Number(q.daily_tokens_limit) || 100000;
         const remaining = Math.max(0, limit - used - reserved);
+        const pct = quotaPct(usage);
+        const days = period === '7d' ? 7 : period === '30d' ? 30 : 1;
+        const local = period === 'today' ? aggregateLocalUsage(1) : aggregateLocalUsage(days);
+        const spend = rateCard ? estimateLocalSpendUsd(days, rateCard) : 0;
         const ready = status?.pool?.ready ?? '—';
+
         el.className = '';
         el.innerHTML = `
+          <div class="row" style="margin-top:0;">
+            <span class="badge ${plan.id === 'pro' ? 'pro' : ''}">${esc(plan.label)}</span>
+            <span class="hint">${esc(plan.hint)}</span>
+          </div>
+          <div class="tabs" style="margin-top:18px;">
+            <button class="tab ${period === 'today' ? 'active' : ''}" type="button" data-period="today">Today</button>
+            <button class="tab ${period === '7d' ? 'active' : ''}" type="button" data-period="7d">7 days</button>
+            <button class="tab ${period === '30d' ? 'active' : ''}" type="button" data-period="30d">30 days</button>
+          </div>
           <div class="grid">
-            <div class="card"><div class="lbl">Tokens remaining</div><div class="val">${formatTokenCount(remaining)}</div><div class="hint">of ${formatTokenCount(limit)} daily</div></div>
-            <div class="card"><div class="lbl">Tokens used</div><div class="val">${formatTokenCount(used)}</div><div class="hint">${formatTokenCount(reserved)} reserved</div></div>
-            <div class="card"><div class="lbl">Window</div><div class="val" style="font-size:18px;">${q.window_date || 'today'}</div><div class="hint">UTC reset</div></div>
-            <div class="card"><div class="lbl">Pool ready</div><div class="val">${ready}</div><div class="hint">live nodes</div></div>
+            <div class="card">
+              <div class="lbl">${period === 'today' ? 'Tokens remaining' : 'Local requests'}</div>
+              <div class="val">${period === 'today' ? formatTokenCount(remaining) : local.requests}</div>
+              <div class="hint">${period === 'today' ? `of ${formatTokenCount(limit)} daily` : `${formatTokenCount(local.tokens)} tokens in chat`}</div>
+            </div>
+            <div class="card">
+              <div class="lbl">${period === 'today' ? 'Used today' : 'Cached savings'}</div>
+              <div class="val">${period === 'today' ? formatTokenCount(used) : formatTokenCount(local.cached)}</div>
+              <div class="hint">${period === 'today' ? `${formatTokenCount(reserved)} reserved` : 'sticky KV cache tokens'}</div>
+            </div>
+            <div class="card">
+              <div class="lbl">Est. spend</div>
+              <div class="val" style="font-size:22px;">${formatUsd(spend)}</div>
+              <div class="hint">from local chat · rate card</div>
+            </div>
+            <div class="card">
+              <div class="lbl">Pool</div>
+              <div class="val">${ready}</div>
+              <div class="hint">nodes ready</div>
+            </div>
           </div>
-          <div class="bar">
-            <div class="lbl" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,251,242,0.45);">Daily quota</div>
-            <div class="bar-track"><div class="bar-fill" style="width:${pct(used, reserved, limit).toFixed(1)}%"></div></div>
-            <div class="hint">${formatTokenCount(used + reserved)} used · ${formatTokenCount(remaining)} left</div>
-          </div>
-          <p class="sub" style="margin-top:20px;">API keys: <a href="/console/keys/">manage keys</a> · Docs: <a href="/docs">API reference</a></p>`;
+          ${period === 'today' ? `
+          <div class="panel">
+            <h2>Daily quota · ${esc(q.window_date || 'UTC')}</h2>
+            <div class="bar-track"><div class="bar-fill ${pct >= 80 ? 'warn' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
+            <div class="hint">${formatTokenCount(used + reserved)} used · ${formatTokenCount(remaining)} left (${pct.toFixed(0)}%)</div>
+          </div>` : `
+          <div class="panel">
+            <h2>By model (${period})</h2>
+            ${modelRows(local.byModel)}
+          </div>`}
+          <div class="panel">
+            <h2>Credits &amp; billing</h2>
+            <p class="hint" style="margin:0 0 10px;">USDC top-up and prepaid credits are on the roadmap. Today you use the free daily quota (100k tokens) or your API key allocation.</p>
+            <span class="badge soon">Top-up coming soon</span>
+            <div class="nav-links">
+              <a href="/console/keys/">API keys</a>
+              <a href="/console/settings/">Settings &amp; alerts</a>
+              <a href="/docs">API docs</a>
+              <a href="/#token">$MALIBU</a>
+            </div>
+          </div>`;
+
+        el.querySelectorAll('[data-period]').forEach((btn) => {
+          btn.addEventListener('click', () => { period = btn.dataset.period; render(); });
+        });
       } catch (e) {
         el.className = 'empty err';
-        el.textContent = e?.message || 'Could not load usage.';
+        el.textContent = e?.message || 'Could not load dashboard.';
       }
     }
 

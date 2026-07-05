@@ -17,6 +17,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/mp/, ''),
       },
+      '/v1/rate-card': {
+        target: 'https://coordinator.streamvc.live',
+        changeOrigin: true,
+      },
       '/v1/pool/check': {
         target: 'https://coordinator.streamvc.live',
         changeOrigin: true,
@@ -34,6 +38,7 @@ export default defineConfig({
         console: resolve(__dirname, 'console/index.html'),
         consoleDashboard: resolve(__dirname, 'console/dashboard/index.html'),
         consoleKeys: resolve(__dirname, 'console/keys/index.html'),
+        consoleSettings: resolve(__dirname, 'console/settings/index.html'),
         host: resolve(__dirname, 'host/index.html'),
         network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),

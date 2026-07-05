@@ -105,7 +105,11 @@
     .settings-btn.signed-in .auth-dot { background: #5BBF7A; box-shadow: 0 0 6px rgba(91,191,122,0.6); }
 
     .modal-backdrop { position: fixed; inset: 0; background: rgba(15,27,38,0.72); display: none; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px); }
-    .modal-backdrop.open { display: flex; }
+    .model-pick .price { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,198,41,0.75); margin-left: 6px; }
+    .receipt-link { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: #FFC629; }
+    .receipt-link:hover { color: #FFFBF2; }
+    .receipt-pre { background: #0C3A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 8px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; word-break: break-all; max-height: 200px; overflow: auto; color: rgba(255,251,242,0.88); }
+    .modal-backdrop.receipt .modal { width: min(560px, 92vw); }
     .modal { width: min(440px, 92vw); background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 14px; padding: 22px; }
     .modal h2 { margin: 0 0 6px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: -0.01em; }
     .modal p { margin: 0 0 14px; font-size: 13.5px; color: rgba(255,251,242,0.7); line-height: 1.5; }
@@ -165,7 +169,8 @@
         <h3>Workspace</h3>
         <a class="item" href="/console/dashboard/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="1.4"/><path d="M2 6 H12"/></svg> Dashboard</a>
         <a class="item" href="/console/keys/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</a>
-        <button class="item" type="button" data-open-settings style="width:100%;border:0;text-align:left;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Settings</button>
+        <button class="item" type="button" data-open-settings style="width:100%;border:0;text-align:left;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Account</button>
+        <a class="item" href="/console/settings/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5"/><path d="M7 4 V7 L9 9"/></svg> Settings</a>
         <a class="item" href="/#token"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3 V11 M5 5 H9 M5 9 H9"/></svg> $MALIBU</a>
       </div>
     </div>
@@ -258,11 +263,24 @@
 
 <div class="toast" data-toast></div>
 
+<div class="modal-backdrop receipt" data-receipt-modal>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="receipt-title">
+    <h2 id="receipt-title">Inference receipt</h2>
+    <p>Ed25519-signed receipt from MacProvider. Verify offline with <a href="https://github.com/Augustas11/macprovider/tree/main/phase7-verify" target="_blank" rel="noopener">macprovider-verify</a>.</p>
+    <div class="receipt-pre" data-receipt-body></div>
+    <div class="actions" style="margin-top:14px;">
+      <button class="btn ghost" type="button" data-copy-receipt>Copy receipt</button>
+      <button class="btn ghost" type="button" data-close-receipt>Close</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import {
-    getStatus, getUsage, chatStream, loadKey, saveKey, authMode,
+    getStatus, getUsage, getRateCard, chatStream, loadKey, saveKey, authMode,
     ensureDemoToken, createThreadId, loadThreads, upsertThread, getThread,
-    formatBillMeta, formatTokenCount,
+    formatBillMeta, formatTokenCount, formatModelPrice, loadSettings,
+    checkQuotaAlert, estimateLocalSpendUsd, quotaPct,
   } from './api.js';
 
   const stream = document.querySelector('[data-stream] .stream-inner');
@@ -288,6 +306,14 @@
   const quotaBarEl = document.querySelector('[data-quota-bar]');
   const quotaFillEl = document.querySelector('[data-quota-fill]');
   const quotaLabelEl = document.querySelector('[data-quota-label]');
+  const receiptModal = document.querySelector('[data-receipt-modal]');
+  const receiptBody = document.querySelector('[data-receipt-body]');
+  const modelPriceEl = document.createElement('span');
+  modelPriceEl.className = 'price';
+  document.querySelector('.model-pick')?.appendChild(modelPriceEl);
+
+  let rateCard = null;
+  let currentReceipt = '';
 
   let threadId = createThreadId();
   let conversation = [];
@@ -307,6 +333,29 @@
     if (mode === 'key') authLabelEl.textContent = 'Connected';
     else if (mode === 'demo') authLabelEl.textContent = 'Demo';
     else authLabelEl.textContent = 'Guest';
+  }
+
+  document.querySelector('[data-close-receipt]')?.addEventListener('click', () => receiptModal.classList.remove('open'));
+  receiptModal?.addEventListener('click', (e) => { if (e.target === receiptModal) receiptModal.classList.remove('open'); });
+  document.querySelector('[data-copy-receipt]')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(currentReceipt);
+      toast('Receipt copied.');
+    } catch {
+      toast('Could not copy.', 'error');
+    }
+  });
+
+  function openReceipt(receipt) {
+    if (!receipt) return;
+    currentReceipt = receipt;
+    receiptBody.textContent = receipt;
+    receiptModal.classList.add('open');
+  }
+
+  function updateModelPrice() {
+    if (!rateCard || !modelEl.value) { modelPriceEl.textContent = ''; return; }
+    modelPriceEl.textContent = formatModelPrice(modelEl.value, rateCard);
   }
 
   function openSettings() {
@@ -420,9 +469,15 @@
     }
     if (prev && [...modelEl.options].some((o) => o.value === prev && !o.disabled)) modelEl.value = prev;
     else {
-      const first = [...modelEl.options].find((o) => !o.disabled);
-      if (first) modelEl.value = first.value;
+      const settings = loadSettings();
+      const preferred = settings.defaultModel;
+      if (preferred && [...modelEl.options].some((o) => o.value === preferred && !o.disabled)) modelEl.value = preferred;
+      else {
+        const first = [...modelEl.options].find((o) => !o.disabled);
+        if (first) modelEl.value = first.value;
+      }
     }
+    updateModelPrice();
   }
 
   async function refreshUsage() {
@@ -437,10 +492,19 @@
       const reserved = Number(q.daily_tokens_reserved) || 0;
       const limit = Number(q.daily_tokens_limit) || 100000;
       const remaining = Math.max(0, limit - used - reserved);
-      const pct = limit > 0 ? Math.min(100, ((used + reserved) / limit) * 100) : 0;
+      const pct = quotaPct(u);
       if (quotaBarEl) quotaBarEl.hidden = false;
       if (quotaFillEl) quotaFillEl.style.width = pct.toFixed(1) + '%';
       if (quotaLabelEl) quotaLabelEl.textContent = `${formatTokenCount(remaining)} left`;
+      const alert = checkQuotaAlert(u);
+      if (alert != null) toast(`Daily quota at ${alert}%`, alert >= 100 ? 'error' : undefined);
+      const settings = loadSettings();
+      if (settings.softSpendLimitUsd && rateCard) {
+        const spend = estimateLocalSpendUsd(30, rateCard);
+        if (spend >= settings.softSpendLimitUsd) {
+          toast(`Soft spend limit reached (~${spend.toFixed(2)} USD est.)`, 'error');
+        }
+      }
     } catch {
       if (quotaBarEl) quotaBarEl.hidden = true;
     }
@@ -549,6 +613,8 @@
 
   refreshStatus();
   refreshUsage();
+  getRateCard().then((rc) => { rateCard = rc; updateModelPrice(); }).catch(() => {});
+  modelEl.addEventListener('change', updateModelPrice);
   setInterval(refreshStatus, 30_000);
   setInterval(refreshUsage, 60_000);
   renderRecent();
@@ -634,8 +700,9 @@
     const started = performance.now();
     let usage = null;
     let meta = {};
+    const maxTokens = loadSettings().maxTokens || 1024;
     try {
-      for await (const event of chatStream({ model: modelId, messages: conversation, maxTokens: 1024, conversationId: threadId })) {
+      for await (const event of chatStream({ model: modelId, messages: conversation, maxTokens, conversationId: threadId })) {
         if (event.type === 'delta') {
           buf += event.text;
           textEl.innerHTML = escapeHtml(buf) + '<span style="opacity: 0.55;">▍</span>';
@@ -649,6 +716,15 @@
       const latencyMs = performance.now() - started;
       conversation.push({ role: 'assistant', content: buf, usage, meta, latencyMs });
       billEl.textContent = formatBillMeta({ usage, meta, latencyMs });
+      if (meta?.receipt) {
+        const link = document.createElement('button');
+        link.type = 'button';
+        link.className = 'receipt-link';
+        link.textContent = 'receipt';
+        link.addEventListener('click', () => openReceipt(meta.receipt));
+        billEl.append(document.createTextNode(' · '));
+        billEl.appendChild(link);
+      }
       persistThread();
       refreshUsage();
     } catch (e) {
