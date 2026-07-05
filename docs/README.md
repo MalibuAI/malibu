@@ -26,10 +26,24 @@ docs-internal/
 
 1. In [Mintlify Dashboard](https://dashboard.mintlify.com) → **Git Settings**, connect `MalibuAI/malibu`.
 2. Enable **Set up as monorepo** and set path to **`/docs`** (leading slash, no trailing slash).
-3. Confirm custom domain / deployment path matches existing `malibu.mintlify.site` project.
-4. Merge this PR; Mintlify rebuilds on push to `main`.
+3. Confirm **deployment branch** is `main`.
+4. Confirm the GitHub App has access to this **private** repo (GitHub → Settings → Integrations → Mintlify).
+5. Push to `main`; Mintlify should rebuild automatically.
 
 `vercel.json` rewrites `/docs/*` → `https://malibu.mintlify.site/docs/*` on malibu.tech. No Vercel change required if the Mintlify deployment URL stays the same.
+
+## If production still shows old docs
+
+```bash
+curl -sI https://malibu.mintlify.site/docs/status | grep -i x-served-version
+curl -s https://malibu.tech/docs/litepaper.md | rg "coordinated inference|Network status"
+```
+
+New build includes `/docs/status` and updated Litepaper (no "live P2P" wording).
+
+**Dashboard:** Git Settings → verify repo, monorepo `/docs`, branch `main` → check build logs or click **Deploy**.
+
+**Optional API trigger:** add repo secrets `MINTLIFY_API_KEY` + `MINTLIFY_PROJECT_ID`, then run **Actions → Trigger Mintlify docs deploy**.
 
 ## Editing rules
 
