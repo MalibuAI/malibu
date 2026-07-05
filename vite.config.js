@@ -41,6 +41,7 @@ export default defineConfig({
         consoleSettings: resolve(__dirname, 'console/settings/index.html'),
         consoleAgentDocs: resolve(__dirname, 'console/agent-docs/index.html'),
         consoleTeam: resolve(__dirname, 'console/team/index.html'),
+        consoleAuthCallback: resolve(__dirname, 'console/auth/callback.html'),
         widget: resolve(__dirname, 'widget/index.html'),
         host: resolve(__dirname, 'host/index.html'),
         network: resolve(__dirname, 'network/index.html'),
