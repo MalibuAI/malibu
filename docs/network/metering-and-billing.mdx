@@ -1,0 +1,88 @@
+---
+title: Metering & billing
+description: How requests turn into credits and how credits turn into USDC on Base.
+---
+
+# Metering & billing
+
+> How requests turn into credits and how credits turn into USDC on Base.
+
+Every billed request produces two credit rows: `providerCredits` (paid out) and `operatorCredits` (network revenue). Credits accumulate through the week; each Monday 00:00 UTC the coordinator sweeps and marks payout-ready.
+
+## Credit formula
+
+```
+grossCredits    = ((promptTokens × promptRate) + (completionTokens × completionRate))
+                  × globalMultiplier
+                  ÷ (1M × 1M)
+
+providerCredits = grossCredits × providerShareBps ÷ 10,000
+operatorCredits = grossCredits − providerCredits
+```
+
+Both values use banker's rounding — ties round to the nearest even quotient, eliminating systematic bias across large volumes of small requests.
+
+Constants:
+
+| Symbol                  | Default    | Meaning                  |
+| ----------------------- | ---------- | ------------------------ |
+| `tokensPerMillion`      | 1,000,000  | Rate card denominator    |
+| `globalMultiplierDenom` | 1,000,000  | PPM denominator          |
+| `providerShareDenom`    | 10,000     | Basis-points denominator |
+| `maxBillableTokens`     | 10,000,000 | Per-field overflow guard |
+
+Default rate card:
+
+| Token type | Rate                            |
+| ---------- | ------------------------------- |
+| Prompt     | 500,000 credits per 1M tokens   |
+| Completion | 1,000,000 credits per 1M tokens |
+
+Default provider share: **90%**. Default global multiplier: **1.0**. The operator can override rates per model or add model-specific entries.
+
+Faulted requests (`breaker_qualifying` or `null_usage_error`) produce **zero credits**.
+
+## Prefix-cache billing
+
+For sticky-routed requests where the provider reuses its warm KV-cache, `usage.cached_prompt_tokens` reports the count of prefix-cache tokens. These are billed at the per-model `prompt_cache_hit_rate_per_mtok` rate instead of the full `promptRate`.
+
+The OpenAI `usage` object is extended with one field:
+
+```json theme={null}
+{
+  "prompt_tokens": 1500,
+  "completion_tokens": 300,
+  "total_tokens": 1800,
+  "cached_prompt_tokens": 1200
+}
+```
+
+`cached_prompt_tokens` is always present; `0` when there was no cache reuse.
+
+## Verified model settlement
+
+For settlement-capable traffic (v0.3+ receipts), the coordinator receipt verdict drives the gateway's buyer debit/refund decision on the money path.
+
+* **Valid receipt** → buyer debited, provider credited, settlement proceeds.
+* **Missing / malformed / unverifiable receipt** → settled as `FaultBreakerQualifying` with **zero** provider credits. Buyer is not debited.
+* **Late receipt.** For settlement-capable traffic a provider receipt must arrive before the coordinator's `pending_deadline_seconds` window closes. Receipts arriving after the deadline are non-settling and non-recoverable.
+
+Full detail: [Operations → Verified model settlement](/operations/verified-model-settlement).
+
+## Settlement cadence
+
+* **Cadence:** every 7 days at Monday 00:00 UTC.
+* **Minimum payout threshold:** 500,000 credits per provider. Below the threshold, credits roll to the next window.
+* **Rail:** USDC on Base.
+
+`StartWeeklySettlement` schedules the sweep to fire at the next Monday 00:00 UTC and repeat weekly. `settlement.job_enabled` must be `true` (default) for the job to execute.
+
+## Endpoints
+
+| Endpoint                                | Purpose                                                          |
+| --------------------------------------- | ---------------------------------------------------------------- |
+| `GET /v1/rate-card`                     | Live per-model rate card, priced against the OpenRouter frontier |
+| `GET /v1/usage`                         | Buyer's usage aggregated by day / model                          |
+| `GET /providers/{provider_id}/earnings` | Provider balance, current window, last payout ready              |
+
+Provider guide: [Payments & payouts](/guides/payments).

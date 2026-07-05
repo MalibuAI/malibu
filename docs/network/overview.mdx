@@ -1,0 +1,53 @@
+---
+title: Overview
+description: How the Malibu network is put together.
+---
+
+# Overview
+
+> How the Malibu network is put together.
+
+Malibu is three moving parts: **providers** (Apple Silicon Macs running MLX), a **coordinator** (routing and billing), and a **gateway** (OpenAI-compatible API surface for buyers).
+
+```
+Provider Mac (MLX)
+  └── outbound WS ──▶ Malibu
+                      (pool · routing · billing)
+                             │
+               ┌─────────────┴─────────────┐
+               │                           │
+    api.malibu.tech/v1            console.malibu.tech
+    (OpenAI-compatible)               (web front end)
+```
+
+## Data path
+
+1. Buyer sends `POST /v1/chat/completions` to `api.malibu.tech` with an OpenAI-shape request.
+2. Gateway authenticates the buyer, reserves quota, and forwards to the coordinator.
+3. Coordinator picks a provider from the pool based on routing weights (see [Discovery & routing](/network/discovery-and-routing)).
+4. Coordinator forwards the request over the provider's outbound WebSocket.
+5. Provider Mac runs MLX inference and streams tokens back.
+6. Coordinator records the billed request and returns the OpenAI-shape response to the gateway.
+7. Gateway attaches `X-Malibu-Provider`, `X-Malibu-Receipt`, and returns to the buyer.
+
+## Components
+
+| Component     | Host                      | Purpose                                                               |
+| ------------- | ------------------------- | --------------------------------------------------------------------- |
+| Coordinator   | `coordinator.malibu.tech` | Provider admission, request routing, billing ledger, epoch settlement |
+| Gateway       | `api.malibu.tech`         | Buyer auth, OpenAI-compatible surface, receipt forwarding             |
+| Console       | `console.malibu.tech`     | Buyer-facing chat + pool dashboard                                    |
+| Provider Macs | anywhere                  | MLX inference, outbound WebSocket to coordinator                      |
+
+## Trust posture
+
+* **Provider Macs** hold their own model weights and signing keys. They never expose an inbound port.
+* **Coordinator** sees prompts and responses (needed for routing and billing) but does not hold model weights.
+* **Gateway** sees the same, plus buyer identity.
+* **Buyers** verify receipts offline against the provider's public key resolved through `/v1/receipt-keys/{provider_id}`.
+
+Full trust boundary: [Security & trust model](/network/security).
+
+## Provider onboarding
+
+New public installs join as **provisional providers** — lower routing weight, capped pool size. The operator promotes them to **pinned** after observed pool stability and uptime. No inbound port-forwarding is required on the provider Mac. See [Payments & payouts](/guides/payments) for the tier semantics.

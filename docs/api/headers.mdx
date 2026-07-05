@@ -1,0 +1,64 @@
+---
+title: Headers
+description: Malibu-specific request and response headers.
+---
+
+# Headers
+
+> Malibu-specific request and response headers.
+
+All headers are OpenAI-compatible plus a small set of Malibu-specific `X-Malibu-*` headers for routing and receipt handling.
+
+## Request headers
+
+| Header                                   | Purpose                                                                                                      | Reference                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| `Authorization: Bearer <MALIBU_API_KEY>` | Required. Buyer API key from [api.malibu.tech/auth/github/start](https://api.malibu.tech/auth/github/start). | [Get an API key](/getting-started/api-key)           |
+| `X-Malibu-Conversation`                  | Sticky-affinity tag for prefix-cache reuse. Opaque string, HMACed with `account_id` server-side.             | [Sticky conversations](/guides/sticky-conversations) |
+| `X-Malibu-Pin-Provider`                  | Strict pin to a specific provider ID. Returns 503 if the provider is offline.                                | [Pinning](/guides/pinning)                           |
+
+Additional headers OpenAI clients set (`OpenAI-Version`, `User-Agent`, etc.) are accepted but not required.
+
+## Response headers
+
+| Header                          | Purpose                                                                                       | Reference                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `X-Malibu-Provider`             | Provider ID that served this request. Use it for logging or to feed a subsequent pin.         | [Discovery & routing](/network/discovery-and-routing) |
+| `X-Malibu-Receipt`              | Ed25519-signed v0.3 receipt tuple. Verify offline with [`malibu-verify`](/cli/malibu-verify). | [Signed receipts](/guides/receipts)                   |
+| `X-Malibu-Rate-Limit-Remaining` | Requests remaining in the current window for this API key.                                    | —                                                     |
+| `X-Malibu-Request-Id`           | Opaque request identifier. Include when reporting bugs.                                       | —                                                     |
+
+## Reading response headers from openai-python
+
+The high-level client hides response headers. Use `with_raw_response` to get them:
+
+```python theme={null}
+raw = client.chat.completions.with_raw_response.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "Hello"}],
+)
+resp = raw.parse()
+
+provider  = raw.headers.get("X-Malibu-Provider")
+receipt   = raw.headers.get("X-Malibu-Receipt")
+```
+
+TypeScript:
+
+```typescript theme={null}
+const { data, response } = await client.chat.completions.create({...}).withResponse();
+const provider = response.headers.get("X-Malibu-Provider");
+const receipt  = response.headers.get("X-Malibu-Receipt");
+```
+
+## Streaming
+
+For SSE responses, `X-Malibu-Provider` is on the initial HTTP response. `X-Malibu-Receipt` is emitted on the final trailing chunk or via HTTP trailers, depending on client support. Most SDKs surface it as `raw.headers` after the stream completes.
+
+## HMAC of `X-Malibu-Conversation`
+
+The gateway HMACs the raw `X-Malibu-Conversation` value with the buyer's `account_id` before forwarding to the coordinator. This means:
+
+* `thread-42` from account A and `thread-42` from account B route to different sticky partitions.
+* The coordinator never sees the raw buyer value.
+* Sticky affinity is deterministic per account — the same tag from the same account always maps to the same partition.

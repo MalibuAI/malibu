@@ -1,0 +1,103 @@
+---
+title: Payments & payouts
+description: How providers earn credits and get paid in USDC on Base.
+---
+
+# Payments & payouts
+
+> How providers earn credits and get paid in USDC on Base.
+
+Every request that reaches your Mac produces credits. Credits accumulate through the week; each Monday 00:00 UTC the coordinator sweeps unsettled credits and marks providers over the payout threshold `ready`. Payouts settle in USDC on Base.
+
+## What you earn per request
+
+For every billed request the coordinator computes:
+
+```
+grossCredits    = ((promptTokens × promptRate) + (completionTokens × completionRate))
+                  × globalMultiplier
+                  ÷ (1M × 1M)
+
+providerCredits = grossCredits × providerShareBps ÷ 10,000
+
+operatorCredits = grossCredits − providerCredits
+```
+
+**Default rate card:**
+
+| Token type | Rate                            |
+| ---------- | ------------------------------- |
+| Prompt     | 500,000 credits per 1M tokens   |
+| Completion | 1,000,000 credits per 1M tokens |
+
+**Default provider share: 0.90 (90%).** The operator can override this globally or per-model.
+
+Both `grossCredits` and `providerCredits` use banker's rounding — ties round to the nearest even quotient, eliminating systematic bias across large volumes of small requests.
+
+### Worked example
+
+1,000 prompt tokens + 500 completion tokens at default rates and 90% provider share:
+
+```
+promptNumerator     = 1000 × 500,000   = 500,000,000
+completionNumerator = 500 × 1,000,000  = 500,000,000
+baseNumerator       = 1,000,000,000
+grossCredits        = 1,000 credits (exact)
+providerCredits     = 1,000 × 9,000 ÷ 10,000 = 900 credits (exact)
+```
+
+## When you get paid
+
+* **Settlement cadence:** every 7 days, at Monday 00:00 UTC.
+* **Minimum payout threshold:** 500,000 credits accumulated. Below the threshold, credits roll to the next window.
+* **Payout rail:** USDC on Base. See [Network overview → Metering & billing](/network/metering-and-billing) for the settlement path.
+
+Credits accumulate all week; at Monday 00:00 UTC the coordinator sweeps unsettled credits for every provider over the threshold and marks them `ready` for payout.
+
+## Settlement-capable traffic and the receipt deadline
+
+For settlement-capable traffic (v0.3+ signed receipts), a provider receipt must arrive before the coordinator's `pending_deadline_seconds` window closes. Receipts arriving after the deadline are non-settling and non-recoverable — they cannot create provider credit, payout readiness, or a new buyer debit.
+
+Missing, malformed, or unverifiable receipts settle as `FaultBreakerQualifying` with zero provider credits. Details: [Operations → Verified model settlement](/operations/verified-model-settlement).
+
+## Checking your balance
+
+Balance, per-model breakdown, and last payout are visible in the Malibu app. The underlying endpoint:
+
+```
+GET /providers/{provider_id}/earnings
+Authorization: Bearer <provider_token>
+```
+
+Response shape:
+
+```json theme={null}
+{
+  "provider_id":            "<string>",
+  "total_credits":          <int64>,
+  "current_window_credits": <int64>,
+  "last_payout_ready": {
+    "window_start_utc": "<RFC3339>",
+    "window_end_utc":   "<RFC3339>",
+    "provider_credits": <int64>,
+    "status":           "<string>"
+  },
+  "provider_share_bps":  <int64>,
+  "models_served":       ["<string>", ...],
+  "fault_count":         <int64>
+}
+```
+
+Rate limit: 60 requests per minute per provider. Optional day-range filter: `?from=YYYY-MM-DD&to=YYYY-MM-DD` (max 31 days).
+
+## Provisional vs pinned
+
+Newly installed providers join at the **provisional** tier — lower routing weight, capped pool size. The operator promotes providers to **pinned** after observed pool stability, uptime, and review. Pinned providers get higher routing priority. Self-serve promotion is on the roadmap.
+
+## Why your Mac might drop mid-window
+
+* **Lid-close sleep** drops the WebSocket. `caffeinate` prevents display and user-idle sleep during a run but not lid-close sleep. The binary reconnects automatically on wake; in-flight requests during the sleep are lost.
+* **Heartbeat reaping.** If no frame arrives within 90 seconds (default `pool.heartbeat_miss_threshold_s`) the coordinator closes the connection. Streaming inference chunks count as heartbeat activity.
+* **Warmup gate.** After reconnect the coordinator holds the provider in a warmup state for up to 90 seconds while verifying it can handle requests. Requests during warmup route to other pool members.
+
+Buyer-facing docs state this plainly: *"provider availability can change as Macs sleep, wake, or disconnect from the network."* Availability is best-effort — the mechanisms above are what that sentence describes.

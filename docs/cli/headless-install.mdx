@@ -1,0 +1,92 @@
+---
+title: Headless install
+description: Install the malibu-cli binary directly without the app.
+---
+
+# Headless install
+
+> Install the malibu-cli binary directly without the app.
+
+<Note>
+  Most providers should use the [Malibu app](/getting-started/download-malibu). This page documents the headless installer for CI environments, remote Macs without a display, and power users.
+</Note>
+
+## Install
+
+Run on any Apple Silicon Mac (M1 or newer, macOS 14+):
+
+```bash theme={null}
+curl -fsSL https://get.malibu.tech/install.sh | bash
+```
+
+The installer:
+
+* Picks a recommended MLX model by running the `autotune recommend` flow against a signed static feed of demand rank + candidate models, filtered by your Mac's RAM tier, sustained TPS, and 4K-prompt TTFT (you can override).
+* Asks for a stable provider handle used as your pool identity.
+* Downloads and verifies the latest `malibu-cli` release against a signed checksum manifest.
+* Installs under `~/.malibu` and sets up a user-level `launchd` service.
+* Runs a local `/v1/models` check and a coordinator pool visibility check.
+* Enrolls the provider in [autoupdate](/operations/provider-autoupdate): once the coordinator advertises a newer `recommended_binary_version`, the provider validates the signed release, drains in-flight traffic, and swaps itself in place.
+
+## Inspect before running
+
+`curl | bash` gives the downloaded script control of your user account. Inspect first if you prefer:
+
+```bash theme={null}
+curl -fsSL https://get.malibu.tech/install.sh -o install.sh
+less install.sh
+bash install.sh
+```
+
+The binary is checksum-verified against a signed release manifest. macOS quarantine (`xattr`) is cleared with your approval during install. Developer ID signing and notarization are planned for a future release.
+
+## Non-interactive install
+
+For CI or automated provisioning, pass flags to skip prompts:
+
+```bash theme={null}
+curl -fsSL https://get.malibu.tech/install.sh | bash -s -- \
+  --provider-id ci-runner-01 \
+  --model mlx-community/Qwen2.5-7B-Instruct-4bit \
+  --no-launchd \
+  --yes
+```
+
+Flags:
+
+| Flag                 | Purpose                                                             |
+| -------------------- | ------------------------------------------------------------------- |
+| `--provider-id <id>` | Skip the identity prompt                                            |
+| `--model <id>`       | Skip autotune, use this model                                       |
+| `--no-launchd`       | Skip user-level launchd setup (you run `malibu-cli serve` yourself) |
+| `--data-dir <path>`  | Override `~/.malibu`                                                |
+| `--yes`              | Assume yes to all prompts                                           |
+
+## Manual install
+
+If you need full control, skip the installer entirely:
+
+```bash theme={null}
+VERSION=$(gh release view --repo MalibuAI/malibu --json tagName -q .tagName)
+gh release download "$VERSION" --repo MalibuAI/malibu \
+  --pattern "malibu-cli-*-darwin-arm64" \
+  --pattern "malibu-cli-*-darwin-arm64.sha256"
+shasum -a 256 -c malibu-cli-*-darwin-arm64.sha256
+chmod +x malibu-cli-*-darwin-arm64
+mv malibu-cli-*-darwin-arm64 /usr/local/bin/malibu-cli
+malibu-cli serve --config ~/.malibu/config.yaml
+```
+
+## Uninstall
+
+```bash theme={null}
+launchctl unload ~/Library/LaunchAgents/tech.malibu.malibu-cli.plist
+rm ~/Library/LaunchAgents/tech.malibu.malibu-cli.plist
+rm -rf ~/.malibu
+```
+
+## Related
+
+* [malibu-cli](/cli/malibu-cli) — command reference
+* [Flags & config](/cli/flags-and-config) — every flag and env variable
+* [Provider autoupdate](/operations/provider-autoupdate) — how in-place binary swaps work

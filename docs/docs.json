@@ -1,0 +1,126 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Malibu",
+  "description": "Distributed Apple Silicon inference network — verifiable, OpenAI-compatible, USDC-settled.",
+  "colors": {
+    "primary": "#143A45",
+    "light": "#FF6E5B",
+    "dark": "#143A45"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/favicon.svg",
+    "dark": "/favicon.svg"
+  },
+  "navbar": {
+    "links": [
+      { "label": "Console", "href": "https://malibu.tech/console" },
+      { "label": "Host", "href": "https://malibu.tech/host" }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Download",
+      "href": "https://malibu.tech/host"
+    }
+  },
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/MalibuAI/malibu"
+    },
+    {
+      "name": "Network",
+      "icon": "chart-line",
+      "url": "https://malibu.tech/network"
+    }
+  ],
+  "redirects": [
+    { "source": "/", "destination": "/litepaper" }
+  ],
+  "navigation": {
+    "groups": [
+      {
+        "group": "Litepaper",
+        "pages": ["litepaper"]
+      },
+      {
+        "group": "Getting started",
+        "pages": [
+          "getting-started/introduction",
+          "getting-started/download-malibu",
+          "getting-started/api-key"
+        ]
+      },
+      {
+        "group": "API reference",
+        "pages": [
+          "api/chat-completions",
+          "api/models",
+          "api/headers",
+          "api/usage-object",
+          "api/network-stats"
+        ]
+      },
+      {
+        "group": "Network & trust",
+        "pages": [
+          "network/overview",
+          "network/security",
+          "network/receipts",
+          "network/metering-and-billing",
+          "network/discovery-and-routing",
+          "network/transport",
+          "network/reputation"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "guides/openai-sdk",
+          "guides/receipts",
+          "guides/sticky-conversations",
+          "guides/pinning",
+          "guides/payments",
+          "guides/tool-calling-and-structured-output"
+        ]
+      },
+      {
+        "group": "Agentic tooling",
+        "pages": [
+          "agentic/tool-calling",
+          "agentic/structured-output",
+          "agentic/buyer-side-validation"
+        ]
+      },
+      {
+        "group": "CLI reference",
+        "pages": [
+          "cli/malibu-cli",
+          "cli/malibu-verify",
+          "cli/headless-install",
+          "cli/flags-and-config"
+        ]
+      },
+      {
+        "group": "Operations",
+        "pages": [
+          "operations/model-catalog",
+          "operations/network-stats",
+          "operations/verified-model-settlement",
+          "operations/provider-autoupdate"
+        ]
+      },
+      {
+        "group": "Ledger",
+        "pages": ["status", "roadmap", "changelog"]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/MalibuAI/malibu"
+    }
+  }
+}

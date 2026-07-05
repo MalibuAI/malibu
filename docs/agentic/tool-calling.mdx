@@ -1,0 +1,111 @@
+---
+title: Tool calling
+description: Multi-turn OpenAI-shape tool loops. Cline drop-in.
+---
+
+# Tool calling
+
+> Multi-turn OpenAI-shape tool loops. Cline drop-in.
+
+Malibu ships a multi-turn OpenAI-compatible tool-calling surface for Qwen 2.5 and Llama 3.3 chat templates. First-turn emission, second-turn `role: "tool"` acceptance, and assistant-history rendering all work. Anchor framework: [Cline](https://github.com/cline/cline) — Malibu is a drop-in target with no configuration beyond the OpenAI base URL.
+
+## Single-turn: emitting a tool call
+
+```python theme={null}
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
+    tools=[
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather for a city",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"city": {"type": "string"}},
+                    "required": ["city"],
+                },
+            },
+        }
+    ],
+)
+
+for call in resp.choices[0].message.tool_calls or []:
+    print(call.function.name, call.function.arguments)  # JSON-encoded string
+```
+
+`function.arguments` is a JSON-encoded string per OpenAI's wire shape — `json.loads(call.function.arguments)` to get a dict.
+
+## Multi-turn: feeding the result back
+
+After you execute the tool locally, feed the result back with `role: "tool"` and the matching `tool_call_id`:
+
+```python theme={null}
+first = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
+    tools=[...],
+)
+call = first.choices[0].message.tool_calls[0]
+
+# Execute the tool locally — with your own validation!
+result = my_get_weather(city=json.loads(call.function.arguments)["city"])
+
+# Continue the conversation
+second = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "user", "content": "What's the weather in Vilnius?"},
+        first.choices[0].message.model_dump(),
+        {
+            "role": "tool",
+            "tool_call_id": call.id,
+            "content": json.dumps(result),
+        },
+    ],
+    tools=[...],
+)
+
+print(second.choices[0].message.content)
+```
+
+## Streaming tool-call deltas
+
+Set `stream=True` and reassemble `tool_calls` from the deltas the same way you would with OpenAI:
+
+```python theme={null}
+stream = client.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[{"role": "user", "content": "..."}],
+    tools=[...],
+    stream=True,
+)
+for chunk in stream:
+    delta = chunk.choices[0].delta
+    if delta.tool_calls:
+        for tc in delta.tool_calls:
+            # Reassemble into the final tool_calls[] shape
+            ...
+```
+
+## Limits
+
+| Field                      | Cap     |
+| -------------------------- | ------- |
+| Per `function.arguments`   | 1 MiB   |
+| Per response               | 2 MiB   |
+| Per `role: "tool"` message | 256 KiB |
+
+Requests that exceed a cap return a 400 with the field named.
+
+## Supported models
+
+* **Qwen 2.5** family
+* **Llama 3.3** family
+
+Other models still accept `tools` in the request but fall back to normal assistant text — no `tool_calls[]` will be emitted.
+
+## Buyer-side validation
+
+Emitted `tool_calls[]` reflect model output, not provider-verified intent. See [Buyer-side validation](/agentic/buyer-side-validation).

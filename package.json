@@ -6,7 +6,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "check": "npm run build"
+    "check": "npm run build",
+    "docs:dev": "cd docs && npx --yes mintlify@latest dev",
+    "docs:install": "npm i -g mintlify@latest"
   },
   "keywords": [],
   "author": "",

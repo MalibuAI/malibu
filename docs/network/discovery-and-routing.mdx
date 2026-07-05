@@ -1,0 +1,45 @@
+---
+title: Discovery & routing
+description: How the coordinator picks which provider serves a request.
+---
+
+# Discovery & routing
+
+> How the coordinator picks which provider serves a request.
+
+The coordinator maintains a pool of connected provider Macs. Every buyer request is routed to one provider based on model availability, tier weight, warmup status, and any buyer-supplied routing hints.
+
+## Route selection
+
+For each incoming request the smart router evaluates:
+
+1. **Model availability.** The request specifies a `model` — only providers with that model loaded (warm) are eligible. Providers can hold multiple models but usually serve one at a time.
+2. **Tier weight.** Pinned providers get higher priority than provisional. Provisional providers cap the pool at a configurable size to protect quality.
+3. **Buyer routing hints.**
+   * `X-Malibu-Pin-Provider` → strict pin, 503 if offline.
+   * `X-Malibu-Conversation` → sticky affinity for prefix-cache reuse.
+4. **Health signals.** In-warmup, breaker-open, or thermally throttled providers are excluded.
+5. **Load.** Among eligible providers, requests are spread by inflight count and observed TPS.
+
+## Sticky affinity
+
+A buyer-supplied `X-Malibu-Conversation` tag routes multi-turn requests back to the same provider. The gateway HMACs the tag with the buyer's `account_id` before forwarding, so tags never collide across buyers. If the sticky provider is unavailable, the request falls through to normal routing.
+
+Sticky affinity enables **prefix-cache reuse**: the sticky provider's warm KV-cache is reused for the shared prefix, and `cached_prompt_tokens` in the OpenAI `usage` object reports the cache hit.
+
+Full buyer-side guide: [Sticky conversations](/guides/sticky-conversations).
+
+## Pinning
+
+`X-Malibu-Pin-Provider` is strict. If the pinned provider is offline the request returns `503 no_provider_available` — the coordinator will not substitute. Useful for reproducibility, benchmarking, or contract routing. Pinning trumps sticky.
+
+## Response headers
+
+* `X-Malibu-Provider` — the provider ID that actually served this request. Use it to feed a subsequent pin or for logging.
+
+## What gets excluded
+
+* Providers in warmup after reconnect (up to 90 s).
+* Providers that missed their heartbeat window (90 s default `pool.heartbeat_miss_threshold_s`).
+* Providers with an open circuit breaker (repeated fault-qualifying responses).
+* Provisional providers when the provisional pool cap is reached and pinned providers can absorb load.

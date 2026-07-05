@@ -1,0 +1,68 @@
+---
+title: Network status
+description: What runs today vs what is planned — the shipped-features ledger for Malibu docs.
+---
+
+# Network status
+
+> What runs today vs what is planned.
+
+This page is the factual ledger behind the [Litepaper](/litepaper). Narrative copy may mix live and planned features in one arc; this page does not.
+
+**Last reviewed:** July 2026
+
+## Inference marketplace
+
+| Component | Status | Notes |
+| --- | --- | --- |
+| Coordinator (routing, billing ledger) | **Live** | `coordinator.malibu.tech` |
+| Gateway (OpenAI-compatible API) | **Live** | `api.malibu.tech/v1` |
+| Console (buyer web UI) | **Live** | `console.malibu.tech` |
+| Provider onboarding (signed installer) | **Live** | Memory-tier model match at install |
+| Signed inference receipts v0.3 | **Live** | `X-Malibu-Receipt`; verify with `malibu-verify` |
+| Verified model settlement | **Live** | Receipt verdict drives debit/refund |
+| Multi-turn tool calling | **Live** | Qwen + Llama-3.3 templates |
+| Structured output (`json_schema`) | **Live** | OpenAI strict-mode subset |
+| Sticky conversations + prefix-cache metering | **Live** | `cached_prompt_tokens` in usage |
+| Weekly USDC payout rail | **Live** | Monday 00:00 UTC sweep |
+| Provider credit share (today) | **Live** | **90%** provider / 10% operator — see [Metering & billing](/network/metering-and-billing) |
+
+## Token protocol (planned)
+
+| Component | Status | Target milestone |
+| --- | --- | --- |
+| On-chain $MALIBU emission | **Planned v0** | Mining launch |
+| PoMW mining in provider runtime | **Planned v0** | Prototype public; integration pending |
+| Burn-and-mint fee split (70/12/18) | **Planned v0** | Replaces 90/10 marketplace split at token launch |
+| Protocol-owned USDC reserves floor | **Planned v0** | On-chain |
+| TOPLOC per-request verification | **Planned v1** | Lineage: Prime Intellect, 2025 |
+| DAO / coordinator sunset | **Planned v2** | Measurable decentralization criteria |
+
+## Economics — today vs launch
+
+**Today (marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits settle weekly in USDC on Base. Details: [Payments & payouts](/guides/payments).
+
+**At token launch (planned):** buyer USDC splits **70%** provider / **12%** reserves / **18%** market-buy-and-burn. Described in the Litepaper flywheel section; not active in production billing yet.
+
+## Verification primitives
+
+| Primitive | Status | Proves | Does not prove |
+| --- | --- | --- | --- |
+| Signed receipts | **Live** | Provider key signed `(prompt, output, model_hash, timestamp)` | Forward-pass fidelity, hardware attestation |
+| PoMW (memory-hard walk) | **Prototype** | Model residency + memory-substrate rate | Inference equivalence, routing honesty |
+| TOPLOC | **Planned v1** | Served completion on attested weights | Pre-buyer readiness |
+
+Full trust boundaries: [Security & trust model](/network/security).
+
+## Public observability
+
+| Endpoint | Status |
+| --- | --- |
+| `GET /v1/network-stats` | Live when coordinator healthy |
+| Pool dashboard | `console.malibu.tech` |
+
+## Related
+
+- [Roadmap](/roadmap) — milestone timeline
+- [Changelog](/changelog) — API and docs changes
+- [Documentation architecture](https://github.com/MalibuAI/malibu/blob/main/docs-internal/ARCHITECTURE.md) — how docs lanes are organized (repo)

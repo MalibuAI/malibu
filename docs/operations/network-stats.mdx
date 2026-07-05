@@ -1,0 +1,65 @@
+---
+title: Network stats
+description: Operator observability on the network — pool health, throughput, receipt validity.
+---
+
+# Network stats
+
+> Operator observability on the network — pool health, throughput, receipt validity.
+
+The network stats surface is the same one that powers the public snapshot at `/v1/network-stats` and the pool dashboard at [console.malibu.tech](https://console.malibu.tech). This page describes what it tracks and how the numbers are computed.
+
+For the public API, see [API → Network stats](/api/network-stats).
+
+## What's tracked
+
+### Pool
+
+| Signal        | How it's counted                                    |
+| ------------- | --------------------------------------------------- |
+| `total`       | Providers with an active WebSocket at snapshot time |
+| `pinned`      | Providers at `TierPinned`                           |
+| `provisional` | Providers at `TierProvisional`                      |
+| `warming`     | Providers still in the post-reconnect warmup gate   |
+
+Snapshot cadence: every 30 seconds. The `/v1/network-stats` endpoint is edge-cached for 30 s.
+
+### Models warm
+
+Per-model:
+
+* `provider_count` — count of connected providers advertising this model warm.
+* `requests_last_hour` — billed request count in the last full hour.
+
+A model drops out of the list when the last provider serving it disconnects.
+
+### Throughput
+
+* `requests_last_hour` — sum across all models. Counts only billed requests (fault-qualifying responses excluded).
+* `tokens_out_last_hour` — completion tokens delivered in the last hour. Prompt tokens are not counted here; use per-buyer `/v1/usage` for prompt-token totals.
+
+### Receipts
+
+* `valid_rate_last_24h` — fraction of receipts that verified `valid` in the last 24 hours. `inconclusive` results do not count as valid.
+* `receipt_version` — the current tuple version (`0.3` today).
+
+Denominators use billed requests only. Faulted requests don't emit settlement-capable receipts and are excluded.
+
+## Provider-level breakdown
+
+Not exposed publicly. Operator dashboards can drill from pool-level aggregates to per-provider views showing:
+
+* Uptime last 24 h / 7 d
+* Requests served, faults, receipt validity
+* Current model, RAM tier, autoupdate status
+* Last-heartbeat delta
+
+## Changelog
+
+Fields on `/v1/network-stats` are versioned. Additions are backwards-compatible. Removals or semantic changes are announced via a `Deprecation` header on responses and a note in the [network-stats API changelog](https://github.com/MalibuAI/malibu/blob/main/docs/network-stats-api/CHANGELOG.md).
+
+## Related
+
+* [Reputation](/network/reputation) — how per-provider signals surface publicly
+* [Metering & billing](/network/metering-and-billing) — how "billed request" is defined
+* [Verified model settlement](/operations/verified-model-settlement) — how receipt validity affects settlement

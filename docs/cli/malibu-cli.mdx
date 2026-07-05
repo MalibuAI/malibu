@@ -1,0 +1,114 @@
+---
+title: malibu-cli
+description: The provider binary. Runs MLX inference, connects outbound to the coordinator.
+---
+
+# malibu-cli
+
+> The provider binary. Runs MLX inference, connects outbound to the coordinator.
+
+`malibu-cli` is the underlying provider binary. The [Malibu app](/getting-started/download-malibu) wraps it for interactive use; use `malibu-cli` directly for headless installs, CI, or custom orchestration.
+
+## What it does
+
+* Loads an MLX model into unified memory.
+* Opens an outbound WebSocket to `coordinator.malibu.tech`.
+* Advertises the loaded model, RAM tier, and identity.
+* Streams inference results back to the coordinator on request.
+* Emits signed v0.3 receipts for every response.
+* Holds a `caffeinate` sleep assertion for the duration of the run.
+
+## Commands
+
+### `malibu-cli serve`
+
+Start serving. Loads the configured model, connects to the coordinator, holds the WebSocket open.
+
+```bash theme={null}
+malibu-cli serve --config ~/.malibu/config.yaml
+```
+
+Or with flags:
+
+```bash theme={null}
+malibu-cli serve \
+  --model mlx-community/Qwen2.5-7B-Instruct-4bit \
+  --provider-id my-mac-01 \
+  --coordinator wss://coordinator.malibu.tech/ws/provider
+```
+
+### `malibu-cli models`
+
+Manage local model weights.
+
+```bash theme={null}
+malibu-cli models list         # what's downloaded locally
+malibu-cli models pull <id>    # download a model by id
+malibu-cli models remove <id>  # free disk space
+malibu-cli models browse       # discover models available to serve
+```
+
+### `malibu-cli autotune`
+
+Recommend a model based on this Mac's RAM, sustained TPS, and 4K-prompt TTFT, filtered by the signed catalog feed.
+
+```bash theme={null}
+malibu-cli autotune recommend
+```
+
+Output: a ranked list of eligible models with expected TPS. The Malibu app runs this on first launch.
+
+### `malibu-cli identity`
+
+View provider identity and receipt keys.
+
+```bash theme={null}
+malibu-cli identity show     # provider_id, provider_pubkey, active receipt key
+malibu-cli identity rotate   # rotate receipt key (grace window applies)
+```
+
+### `malibu-cli earnings`
+
+Query the earnings endpoint from the CLI.
+
+```bash theme={null}
+malibu-cli earnings                          # current window
+malibu-cli earnings --from 2026-06-01 --to 2026-06-30
+```
+
+Same data as the Malibu app's earnings view.
+
+### `malibu-cli version`
+
+```bash theme={null}
+malibu-cli --version
+malibu-cli version --check   # check for a newer release
+```
+
+## Config file
+
+Default location: `~/.malibu/config.yaml`. Example:
+
+```yaml theme={null}
+provider_id: my-mac-01
+coordinator: wss://coordinator.malibu.tech/ws/provider
+model:
+  id: mlx-community/Qwen2.5-7B-Instruct-4bit
+runtime:
+  max_context: 8192
+  max_batch: 1
+autoupdate:
+  enabled: true
+```
+
+Full flag reference: [Flags & config](/cli/flags-and-config).
+
+## Logs
+
+Default log location: `~/Library/Logs/malibu/malibu-cli.log` (macOS). Rotates daily, keeps 7 days.
+
+## Related
+
+* [malibu-verify](/cli/malibu-verify) — buyer-side receipt verifier
+* [Headless install](/cli/headless-install) — non-app install path
+* [Provider autoupdate](/operations/provider-autoupdate) — how the binary swaps itself in place

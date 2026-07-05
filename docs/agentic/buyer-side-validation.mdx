@@ -1,0 +1,41 @@
+---
+title: Buyer-side validation
+description: Emitted tool_calls[] reflect model output, not provider-verified intent.
+---
+
+# Buyer-side validation
+
+> Emitted tool_calls[] reflect model output, not provider-verified intent.
+
+For tool-calling responses, emitted `tool_calls[]` reflect **model output**, not provider-verified intent. Buyer-side agent frameworks **MUST** validate before execution. Malibu transports the parsed OpenAI-compatible shape; it does not decide whether a requested tool name or argument payload is safe for your agent policy.
+
+Treat emitted tool calls with the same trust posture you would apply to a model running on local hardware: **parsed output, not provider-verified intent.**
+
+## What Malibu guarantees about a `tool_calls[]` payload
+
+* The signed receipt binds `(prompt, output, model, provider)`. The response — including any `tool_calls[]` — is what the claimed model produced on the claimed provider.
+* The wire shape matches OpenAI's — your existing OpenAI-based validation code works unchanged.
+* Field-level caps enforced: 1 MiB per `function.arguments`, 2 MiB per response, 256 KiB per `role: "tool"` message.
+
+## What Malibu does NOT do
+
+* **Judge whether the tool name is on your allowlist.**
+* **Judge whether the arguments are safe** — e.g. is `path` inside your sandbox, is `sql` read-only, is `command` on your executable allowlist.
+* **Confirm the model "meant" to call this tool.** A model can hallucinate a tool name; the receipt still verifies that it did.
+* **Rate-limit tool calls per user or session.** That's your app's policy.
+
+## Minimum validation checklist
+
+Before executing any emitted tool call:
+
+1. **Name allowlist.** Is `call.function.name` in the set of tools you registered for this request?
+2. **Schema check.** Does `json.loads(call.function.arguments)` match the JSON schema you declared for that tool?
+3. **Argument-level policy.** For each argument that references a resource (path, URL, SQL, shell), does it satisfy your agent's isolation policy?
+4. **Rate limits.** Have you exceeded per-user or per-session tool-call budget?
+5. **Confirmation for destructive actions.** For state-mutating tools, require user confirmation or dry-run first.
+
+## Framework support
+
+Agent frameworks that already validate tool calls before execution — Cline, LangChain, LlamaIndex, Instructor — do this correctly out of the box when pointed at Malibu. The obligation applies equally whether the model is running on OpenAI, a local Ollama, or a Malibu provider.
+
+If you are writing custom agent code, put the validator between the model response and the tool executor. Do not skip this step because the receipt verified.

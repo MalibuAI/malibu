@@ -1,0 +1,39 @@
+---
+title: Reputation
+description: Public provider stats derived from receipts and serving history.
+---
+
+# Reputation
+
+> Public provider stats derived from receipts and serving history.
+
+Malibu maintains a public view of provider activity — uptime, receipt validity rate, models served, tier — surfaced through the pool dashboard and the network stats API.
+
+## What's tracked
+
+| Signal                    | Source                                             |
+| ------------------------- | -------------------------------------------------- |
+| **Uptime**                | Coordinator liveness monitor, aggregated per epoch |
+| **Requests served**       | Billing ledger                                     |
+| **Receipt validity rate** | Coordinator receipt verifier verdicts              |
+| **Fault rate**            | `breaker_qualifying` count over recent window      |
+| **Models served**         | Live model advertisement from provider             |
+| **Tier**                  | `provisional` or `pinned`                          |
+| **First seen**            | Initial admission timestamp                        |
+
+## Where to see it
+
+* **Pool dashboard.** [console.malibu.tech](https://console.malibu.tech) shows the live pool: which Macs are online, what models they hold warm, per-provider request rate.
+* **Network stats API.** Machine-readable snapshot at `/v1/network-stats`. See [API → Network stats](/api/network-stats).
+
+## How reputation affects routing
+
+* **Tier weight.** Pinned providers get higher routing priority than provisional. Promotion from provisional to pinned is operator-discretionary today, based on observed pool stability, uptime, and receipt validity.
+* **Circuit breaker.** Providers accumulating fault-qualifying responses trip a per-provider breaker and are excluded from routing until recovery.
+* **Warmup gate.** Providers reconnecting after a drop are held in warmup for up to 90 s before receiving new requests.
+
+Self-serve promotion, buyer-side reputation queries, and on-chain reputation attestations are on the roadmap.
+
+## Privacy
+
+Reputation is provider-side only. Buyer request payloads are never surfaced through the reputation view. Buyer identity is only visible to the buyer (via `/v1/usage`) and to the operator (for billing).

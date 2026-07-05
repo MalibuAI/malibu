@@ -1,0 +1,69 @@
+---
+title: Sticky conversations
+description: Route multi-turn conversations back to the same provider and reuse the warm KV-cache.
+---
+
+# Sticky conversations
+
+> Route multi-turn conversations back to the same provider and reuse the warm KV-cache.
+
+Multi-turn conversations get routed to the same provider via a buyer-supplied opaque tag on the `X-Malibu-Conversation` header. When the sticky provider serves turn N+1, its warm KV-cache is reused for the shared prefix and the request is billed at a discounted rate for the cached tokens.
+
+```python theme={null}
+from openai import OpenAI
+
+conversation_id = "thread-42"  # any opaque string stable across turns
+
+client_sticky = OpenAI(
+    base_url="https://api.malibu.tech/v1",
+    api_key="<your-malibu-api-key>",
+    default_headers={"X-Malibu-Conversation": conversation_id},
+)
+
+# Turn 1: cold prefix, provider caches it
+resp1 = client_sticky.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "You are a code review assistant."},
+        {"role": "user", "content": "Explain the SOLID principles."},
+    ],
+)
+
+# Turn 2: same conversation_id -> same provider, warm KV-cache reused
+resp2 = client_sticky.chat.completions.create(
+    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    messages=[
+        {"role": "system", "content": "You are a code review assistant."},
+        {"role": "user", "content": "Explain the SOLID principles."},
+        {"role": "assistant", "content": resp1.choices[0].message.content},
+        {"role": "user", "content": "Which one is most often violated in practice?"},
+    ],
+)
+
+# Observe the cache hit
+print(resp2.usage.model_dump())
+# {"prompt_tokens": 1500, "completion_tokens": 300, "total_tokens": 1800, "cached_prompt_tokens": 1200}
+```
+
+## How it works
+
+* The tag is **opaque and buyer-chosen**. Use a stable per-thread identifier — a UUID, a thread ID from your app, whatever's convenient.
+* The gateway **HMACs the tag with your `account_id`** before forwarding, so one buyer's `thread-42` never collides with another buyer's `thread-42`.
+* If the sticky provider is **unavailable** (disconnected, thermally throttled, admission-full), the request falls through to normal routing and `cached_prompt_tokens` will be `0`.
+* Legacy providers that don't report cache hits emit `cached_prompt_tokens: 0` — safe to consume unconditionally.
+
+## Billing
+
+Cached tokens are metered separately from fresh prompt tokens. See [API → Usage object](/api/usage-object) for the `cached_prompt_tokens` field and [Network overview → Metering & billing](/network/metering-and-billing) for the prefix-cache formula.
+
+## Composition
+
+`X-Malibu-Conversation` and `X-Malibu-Pin-Provider` compose: **pinning trumps sticky**. If you pin, sticky becomes redundant — the request will always go to the pinned Mac (or fail).
+
+## When to use sticky
+
+* **Chat UIs.** One conversation\_id per thread — repeated system prompts and message history get cached.
+* **Agent loops.** Same reasoning trace across many tool-call turns — massive prefix reuse.
+* **Long-context RAG.** Retrieved documents in the system prompt stay warm across follow-ups.
+
+Not useful when every request has a fresh prompt with no shared prefix.

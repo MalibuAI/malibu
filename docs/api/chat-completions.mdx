@@ -1,0 +1,140 @@
+---
+title: Chat completions
+description: POST /v1/chat/completions — OpenAI-compatible chat inference.
+---
+
+# Chat completions
+
+> POST /v1/chat/completions — OpenAI-compatible chat inference.
+
+The primary buyer-facing endpoint. Wire-shape identical to OpenAI's chat completions API, with a handful of Malibu-specific headers for routing and receipt handling.
+
+## Endpoint
+
+```
+POST https://api.malibu.tech/v1/chat/completions
+Authorization: Bearer <MALIBU_API_KEY>
+Content-Type: application/json
+```
+
+## Request body
+
+Standard OpenAI shape:
+
+```json theme={null}
+{
+  "model": "mlx-community/Qwen2.5-7B-Instruct-4bit",
+  "messages": [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": "Hello"}
+  ],
+  "temperature": 0.7,
+  "max_tokens": 512,
+  "stream": false,
+  "tools": [...],
+  "tool_choice": "auto",
+  "response_format": { "type": "json_schema", "json_schema": {...} }
+}
+```
+
+Supported fields:
+
+| Field                       | Notes                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| `model`                     | Required. Any model listed by `/v1/models`.                                          |
+| `messages`                  | Required. OpenAI shape including `role: "tool"` for tool responses.                  |
+| `temperature`               | 0.0–2.0.                                                                             |
+| `top_p`                     | 0.0–1.0.                                                                             |
+| `max_tokens`                | Per-request cap. Provider-side cap also applies.                                     |
+| `stream`                    | `true` for SSE.                                                                      |
+| `tools` / `tool_choice`     | See [Tool calling](/agentic/tool-calling).                                           |
+| `response_format`           | `json_schema` or `json_object`. See [Structured output](/agentic/structured-output). |
+| `stop`                      | Up to 4 stop sequences.                                                              |
+| `seed`                      | Best-effort determinism; not guaranteed across providers.                            |
+| `logprobs` / `top_logprobs` | Emitted when the underlying provider supports them.                                  |
+
+## Request headers
+
+| Header                                   | Purpose                                                                        |
+| ---------------------------------------- | ------------------------------------------------------------------------------ |
+| `Authorization: Bearer <MALIBU_API_KEY>` | Required                                                                       |
+| `X-Malibu-Conversation`                  | Sticky-affinity tag. See [Sticky conversations](/guides/sticky-conversations). |
+| `X-Malibu-Pin-Provider`                  | Strict pin. See [Pinning](/guides/pinning).                                    |
+
+## Response body
+
+Standard OpenAI shape:
+
+```json theme={null}
+{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "created": 1720123456,
+  "model": "mlx-community/Qwen2.5-7B-Instruct-4bit",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello! How can I help?",
+        "tool_calls": null
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 7,
+    "total_tokens": 19,
+    "cached_prompt_tokens": 0
+  }
+}
+```
+
+See [Usage object](/api/usage-object) for `cached_prompt_tokens`.
+
+## Response headers
+
+| Header              | Purpose                              |
+| ------------------- | ------------------------------------ |
+| `X-Malibu-Provider` | Provider ID that served this request |
+| `X-Malibu-Receipt`  | Ed25519-signed v0.3 receipt          |
+
+Full reference: [Headers](/api/headers).
+
+## Streaming
+
+Set `stream: true` and consume Server-Sent Events. Each `data:` line is a JSON chunk with a partial `delta`:
+
+```
+data: {"id":"chatcmpl-...","choices":[{"index":0,"delta":{"content":"Hello"}}]}
+data: {"id":"chatcmpl-...","choices":[{"index":0,"delta":{"content":"!"}}]}
+data: {"id":"chatcmpl-...","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+data: [DONE]
+```
+
+The receipt is delivered on the final trailing chunk (or the response trailers) — same signed tuple as non-streaming.
+
+## Errors
+
+| Status | Meaning                                                                         |
+| ------ | ------------------------------------------------------------------------------- |
+| 400    | Malformed request, unsupported schema feature, cap exceeded                     |
+| 401    | Missing / invalid API key                                                       |
+| 402    | Insufficient quota reserved                                                     |
+| 403    | API key valid but not allowed for this model                                    |
+| 404    | Model not available in the pool right now                                       |
+| 429    | Rate limited                                                                    |
+| 503    | `no_provider_available` — pool empty for this model, or pinned provider offline |
+
+Errors follow OpenAI's error shape:
+
+```json theme={null}
+{
+  "error": {
+    "message": "no provider available for model 'mlx-community/…'",
+    "type": "no_provider_available",
+    "code": "no_provider_available"
+  }
+}
+```

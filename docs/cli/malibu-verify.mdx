@@ -1,0 +1,126 @@
+---
+title: malibu-verify
+description: Buyer-side verification for signed inference receipts. Pure Go, no runtime deps.
+---
+
+# malibu-verify
+
+> Buyer-side verification for signed inference receipts. Pure Go, no runtime deps.
+
+`malibu-verify` checks an `X-Malibu-Receipt` value against the buyer's recorded request and response, resolves the provider receipt key, and returns a deterministic `valid`, `invalid`, or `inconclusive` result.
+
+## Install
+
+Release artifacts are published on tags named `verify-v<version>`, for example `verify-v1.1.0`.
+
+### macOS Apple Silicon
+
+```sh theme={null}
+VERSION=1.1.0
+gh release download "verify-v${VERSION}" --repo MalibuAI/malibu \
+  --pattern "malibu-verify-${VERSION}-darwin-arm64" \
+  --pattern "malibu-verify-${VERSION}-darwin-arm64.sha256"
+shasum -a 256 -c "malibu-verify-${VERSION}-darwin-arm64.sha256"
+chmod +x "malibu-verify-${VERSION}-darwin-arm64"
+sudo install -m 0755 "malibu-verify-${VERSION}-darwin-arm64" /usr/local/bin/malibu-verify
+```
+
+### macOS Intel
+
+```sh theme={null}
+VERSION=1.1.0
+gh release download "verify-v${VERSION}" --repo MalibuAI/malibu \
+  --pattern "malibu-verify-${VERSION}-darwin-amd64" \
+  --pattern "malibu-verify-${VERSION}-darwin-amd64.sha256"
+shasum -a 256 -c "malibu-verify-${VERSION}-darwin-amd64.sha256"
+chmod +x "malibu-verify-${VERSION}-darwin-amd64"
+sudo install -m 0755 "malibu-verify-${VERSION}-darwin-amd64" /usr/local/bin/malibu-verify
+```
+
+### Linux amd64
+
+```sh theme={null}
+VERSION=1.1.0
+gh release download "verify-v${VERSION}" --repo MalibuAI/malibu \
+  --pattern "malibu-verify-${VERSION}-linux-amd64" \
+  --pattern "malibu-verify-${VERSION}-linux-amd64.sha256"
+sha256sum -c "malibu-verify-${VERSION}-linux-amd64.sha256"
+chmod +x "malibu-verify-${VERSION}-linux-amd64"
+sudo install -m 0755 "malibu-verify-${VERSION}-linux-amd64" /usr/local/bin/malibu-verify
+```
+
+## Quickstart
+
+Verify a captured receipt header when you already have the canonical prompt and output hashes:
+
+```sh theme={null}
+malibu-verify \
+  --receipt "$X_MALIBU_RECEIPT" \
+  --prompt-hash "$PROMPT_SHA256_HEX" \
+  --output-hash "$OUTPUT_SHA256_HEX" \
+  --provider-id m1-anon \
+  --json
+```
+
+Verify raw buyer captures instead — place the receipt, OpenAI request body, OpenAI response body, and `provider_id` in a bundle JSON file and run:
+
+```sh theme={null}
+malibu-verify --bundle receipt-bundle.json --json
+```
+
+## CLI Reference
+
+| Flag                   | Semantics                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `--version`            | Print `malibu-verify <binary-version> (verifies up to SPEC-015 v<max-spec-version>)` and exit 0.                                |
+| `--help`               | Print usage and all supported flags, then exit 0.                                                                               |
+| `--bundle <path\|->`   | Verify a bundle JSON file. Use `-` to read from stdin. Mutually exclusive with `--receipt`.                                     |
+| `--receipt <value>`    | Verify a raw `X-Malibu-Receipt` header value. Requires `--prompt-hash` and `--output-hash`. Mutually exclusive with `--bundle`. |
+| `--prompt-hash <hex>`  | Expected canonical prompt SHA-256 hex. Required with `--receipt`.                                                               |
+| `--output-hash <hex>`  | Expected canonical output SHA-256 hex. Required with `--receipt`.                                                               |
+| `--pubkey <base64>`    | Explicit base64 Ed25519 public key. Trust root for offline / air-gapped verification.                                           |
+| `--provider-id <id>`   | Provider identifier used to address `/v1/receipt-keys/<provider_id>`. Required for online mode unless `--pubkey` is supplied.   |
+| `--json`               | Emit exactly one line of JSON.                                                                                                  |
+| `--offline`            | Disable live coordinator fetches. Needs `--pubkey` to reach `valid`.                                                            |
+| `--quiet`              | Suppress stderr diagnostics. Does not change the exit code.                                                                     |
+| `--coordinator <host>` | Coordinator host. Defaults to `coordinator.malibu.tech` or `MALIBU_COORDINATOR` if set.                                         |
+| `--explain`            | After a `valid` result, print the trust-boundary text to stderr.                                                                |
+
+### Running against a private coordinator
+
+By default, `--coordinator` rejects literal loopback, RFC1918, link-local, and unspecified IP hosts. This prevents accidental verification against a private endpoint when a buyer expected the public coordinator.
+
+For local development or an explicitly private deployment, set `MALIBU_VERIFY_ALLOW_PRIVATE_COORDINATOR=1` before using a private coordinator URL. Hostnames are not blocked by this literal-IP guard; operators remain responsible for choosing trusted DNS names.
+
+## Input modes
+
+| Mode            | Required flags                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Header + hashes | `--receipt`, `--prompt-hash`, `--output-hash`, and `--provider-id` unless `--pubkey` is supplied.                       |
+| Bundle file     | `--bundle <path>` where the JSON contains `bundle_version`, `receipt`, `request`, `response`, optionally `provider_id`. |
+| Stdin bundle    | `--bundle -` with the same JSON shape as bundle mode.                                                                   |
+
+`--bundle` and `--receipt` are mutually exclusive; `--offline` prevents live fetches; `--pubkey` prevents resolver failures from downgrading an otherwise valid explicit-key verification.
+
+## Exit codes
+
+| Code | Meaning                                                                                                    |
+| ---- | ---------------------------------------------------------------------------------------------------------- |
+| 0    | `valid`                                                                                                    |
+| 1    | `invalid` (signature, canonicalization, coordinator-rejected pubkey, or previous-key-outside-grace-window) |
+| 2    | `inconclusive` (pubkey unresolvable, `/v1/receipt-keys` 404, cache stale + live unreachable)               |
+| 64   | Usage error                                                                                                |
+| 65   | Input format error                                                                                         |
+
+## Version compatibility
+
+| malibu-verify | Receipt versions verified                        |
+| ------------- | ------------------------------------------------ |
+| 1.0.x         | 0.2.0 – 0.2.4                                    |
+| 1.1.x         | 0.2.0 – 0.3.3 (catalog-based model-hash binding) |
+
+Locked 1.0.x verifiers report v0.3 receipts as `invalid`. Roll out v1.1.x to buyers **before** v0.3-emitting providers reach them.
+
+## Trust boundary
+
+A `valid` result proves the signer of the tuple was a holder of the provider's receipt key and that the verifier resolved that key through the configured trust source. It does not prove model honesty, timestamp honesty, response uniqueness, privacy, or replay resistance. See [Security & trust model](/network/security).
