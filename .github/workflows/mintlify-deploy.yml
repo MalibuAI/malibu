@@ -1,0 +1,27 @@
+name: Trigger Mintlify docs deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Mintlify deployment
+        env:
+          MINTLIFY_API_KEY: ${{ secrets.MINTLIFY_API_KEY }}
+          MINTLIFY_PROJECT_ID: ${{ secrets.MINTLIFY_PROJECT_ID }}
+        run: |
+          if [ -z "$MINTLIFY_API_KEY" ] || [ -z "$MINTLIFY_PROJECT_ID" ]; then
+            echo "Skipping: add MINTLIFY_API_KEY and MINTLIFY_PROJECT_ID repo secrets to enable API deploy triggers."
+            echo "Until then, confirm Mintlify GitHub App deploys from main with monorepo path /docs."
+            exit 0
+          fi
+          curl -fsS -X POST "https://api.mintlify.com/v1/project/update/${MINTLIFY_PROJECT_ID}" \
+            -H "Authorization: Bearer ${MINTLIFY_API_KEY}" \
+            -H "Content-Type: application/json"
+          echo "Mintlify deploy queued."
