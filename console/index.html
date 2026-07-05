@@ -41,6 +41,16 @@
     .model-pick select::-ms-expand { display: none; }
     .status { margin-left: auto; display: inline-flex; align-items: center; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.62); }
     .status .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #5BBF7A; box-shadow: 0 0 8px rgba(91,191,122,0.7); animation: dotPulse 2.4s ease-in-out infinite; }
+    .status .dot.warn { background: #FFC629; box-shadow: 0 0 8px rgba(255,198,41,0.5); }
+    .status .dot.bad { background: #FF6E5B; box-shadow: 0 0 8px rgba(255,110,91,0.5); animation: none; opacity: 1; }
+    .quota-bar { display: inline-flex; align-items: center; gap: 8px; min-width: 140px; }
+    .quota-bar .track { flex: 1; height: 4px; width: 72px; background: rgba(255,251,242,0.10); border-radius: 2px; overflow: hidden; }
+    .quota-bar .fill { height: 100%; background: #FFC629; border-radius: 2px; transition: width 300ms ease; }
+    .quota-bar .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: rgba(255,251,242,0.55); white-space: nowrap; }
+    .rail .item.skeleton { opacity: 0.45; pointer-events: none; }
+    .rail .item.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+    @keyframes skeletonPulse { 0%,100% { opacity: 0.45; } 50% { opacity: 0.75; } }
+    .skeleton-pulse { animation: skeletonPulse 1.6s ease-in-out infinite; }
     @keyframes dotPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
 
     .stream { overflow-y: auto; padding: 28px 32px 14px; min-height: 0; }
@@ -153,9 +163,9 @@
 
       <div class="rail-section">
         <h3>Workspace</h3>
-        <a class="item" href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="1.4"/><path d="M2 6 H12"/></svg> Dashboard</a>
-        <a class="item" href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</a>
-        <a class="item" href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Settings</a>
+        <a class="item" href="/console/dashboard/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="1.4"/><path d="M2 6 H12"/></svg> Dashboard</a>
+        <a class="item" href="/console/keys/"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V11 H2 Z M2 6 H12"/></svg> API keys</a>
+        <button class="item" type="button" data-open-settings style="width:100%;border:0;text-align:left;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="2"/><path d="M7 1.5 V3 M7 11 V12.5 M12.5 7 H11 M3 7 H1.5"/></svg> Settings</button>
         <a class="item" href="/#token"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5.5"/><path d="M7 3 V11 M5 5 H9 M5 9 H9"/></svg> $MALIBU</a>
       </div>
     </div>
@@ -170,7 +180,11 @@
         <svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1.2 L4.5 4.5 L8 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       </div>
       <div class="status">
-        <span><span class="dot"></span> <span data-live-nodes>checking…</span></span>
+        <span><span class="dot" data-pool-dot></span> <span data-live-nodes class="skeleton-pulse">checking pool…</span></span>
+        <div class="quota-bar" data-quota-bar hidden>
+          <div class="track"><div class="fill" data-quota-fill style="width:0%"></div></div>
+          <span class="label" data-quota-label>—</span>
+        </div>
       </div>
       <button class="settings-btn" data-open-settings type="button" title="Account">
         <span class="auth-dot"></span>
@@ -223,7 +237,7 @@
 <div class="modal-backdrop" data-modal>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h2 id="modal-title">Unlock full quota</h2>
-    <p>You're on the free beta tier — chat away. When you hit the daily cap, sign in with GitHub to keep going.</p>
+    <p>Start chatting instantly with a demo session. For full quota (100k tokens/day), sign in with GitHub and paste your API key from the account page.</p>
     <div class="actions">
       <button class="btn primary" type="button" data-github-signin>
         Sign in with GitHub
@@ -245,7 +259,11 @@
 <div class="toast" data-toast></div>
 
 <script type="module">
-  import { getStatus, chatStream, loadKey, saveKey } from './api.js';
+  import {
+    getStatus, getUsage, chatStream, loadKey, saveKey, authMode,
+    ensureDemoToken, createThreadId, loadThreads, upsertThread, getThread,
+    formatBillMeta, formatTokenCount,
+  } from './api.js';
 
   const stream = document.querySelector('[data-stream] .stream-inner');
   const composer = document.querySelector('[data-composer]');
@@ -254,6 +272,7 @@
   const modelEl = document.querySelector('[data-model]');
   const railModelsEl = document.querySelector('[data-rail-models]');
   const liveNodesEls = document.querySelectorAll('[data-live-nodes]');
+  const poolDotEl = document.querySelector('[data-pool-dot]');
   const authLabelEl = document.querySelector('[data-auth-label]');
   const settingsBtn = document.querySelector('[data-open-settings]');
   const modalEl = document.querySelector('[data-modal]');
@@ -264,9 +283,15 @@
   const toggleAdvancedBtn = document.querySelector('[data-toggle-advanced]');
   const advancedEl = document.querySelector('[data-advanced]');
   const toastEl = document.querySelector('[data-toast]');
+  const recentSection = document.querySelector('[data-recent-section]');
+  const recentEl = document.querySelector('[data-recent]');
+  const quotaBarEl = document.querySelector('[data-quota-bar]');
+  const quotaFillEl = document.querySelector('[data-quota-fill]');
+  const quotaLabelEl = document.querySelector('[data-quota-label]');
 
-  const OAUTH_STATE_STORAGE = 'malibu.oauth.state';
-  const conversation = [];
+  let threadId = createThreadId();
+  let conversation = [];
+  let threadTitle = '';
 
   function toast(message, kind) {
     toastEl.textContent = message;
@@ -277,9 +302,11 @@
   }
 
   function refreshAuthBadge() {
-    const has = !!loadKey();
-    settingsBtn.classList.toggle('signed-in', has);
-    authLabelEl.textContent = has ? 'Connected' : 'Free tier';
+    const mode = authMode();
+    settingsBtn.classList.toggle('signed-in', mode === 'key');
+    if (mode === 'key') authLabelEl.textContent = 'Connected';
+    else if (mode === 'demo') authLabelEl.textContent = 'Demo';
+    else authLabelEl.textContent = 'Guest';
   }
 
   function openSettings() {
@@ -289,42 +316,15 @@
   }
   function closeSettings() { modalEl.classList.remove('open'); }
 
-  function createOAuthStateToken() {
-    if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
-    if (!globalThis.crypto?.getRandomValues) return '';
-    const bytes = new Uint8Array(16);
-    crypto.getRandomValues(bytes);
-    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  function getOAuthState() {
-    try { return sessionStorage.getItem(OAUTH_STATE_STORAGE); } catch { return null; }
-  }
-
-  function saveOAuthState(token) {
-    try {
-      sessionStorage.setItem(OAUTH_STATE_STORAGE, token);
-      return sessionStorage.getItem(OAUTH_STATE_STORAGE) === token;
-    } catch {
-      return false;
-    }
-  }
-
-  function clearOAuthState() {
-    try { sessionStorage.removeItem(OAUTH_STATE_STORAGE); } catch {}
-  }
-
-  settingsBtn.addEventListener('click', openSettings);
+  document.querySelectorAll('[data-open-settings]').forEach((btn) => {
+    btn.addEventListener('click', openSettings);
+  });
   githubSignInBtn.addEventListener('click', () => {
-    const token = createOAuthStateToken();
-    if (!token || !saveOAuthState(token)) {
-      toast('GitHub sign-in needs browser storage. Paste an API key instead.', 'error');
-      return;
-    }
-    const ret = location.origin + location.pathname;
-    location.href = '/auth/github/start'
-      + '?return=' + encodeURIComponent(ret)
-      + '&state=' + encodeURIComponent(token);
+    window.open('https://api.streamvc.live/auth/github/start', '_blank', 'noopener');
+    advancedEl.removeAttribute('hidden');
+    toggleAdvancedBtn.textContent = 'Hide API key field';
+    toast('Sign in on the account page, copy your API key, then paste it here.');
+    setTimeout(() => keyInput.focus(), 80);
   });
   modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeSettings(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
@@ -346,6 +346,7 @@
     closeSettings();
     toast(k ? 'API key saved.' : 'API key cleared.');
     refreshStatus();
+    refreshUsage();
   });
   clearKeyBtn.addEventListener('click', () => {
     if (!saveKey('')) {
@@ -357,55 +358,14 @@
     refreshAuthBadge();
     toast('Signed out.');
     refreshStatus();
+    refreshUsage();
   });
 
-  function scrubHash() {
-    history.replaceState({}, '', location.pathname + location.search);
-  }
-
-  function handleOAuthReturn() {
-    const hash = location.hash.replace(/^#/, '');
-    const keyMatch = hash.match(/(?:^|&)mp_key=([^&]+)/);
-    const stateMatch = hash.match(/(?:^|&)state=([^&]+)/);
-    if (!keyMatch || !stateMatch) {
-      if (keyMatch || stateMatch) {
-        clearOAuthState();
-        toast('GitHub sign-in failed. Please try again.', 'error');
-        scrubHash();
-      }
-      return;
-    }
-
-    const params = new URLSearchParams(hash);
-    const storedState = getOAuthState();
-    const returnedState = params.get('state');
-    if (storedState !== returnedState) {
-      clearOAuthState();
-      toast('GitHub sign-in failed. Please try again.', 'error');
-      scrubHash();
-      return;
-    }
-
-    const key = params.get('mp_key');
-    if (!key || !saveKey(key)) {
-      clearOAuthState();
-      toast('GitHub sign-in failed. Please try again.', 'error');
-      scrubHash();
-      return;
-    }
-
-    clearOAuthState();
-    scrubHash();
-    toast('Signed in with GitHub.');
-    refreshAuthBadge();
-    refreshStatus();
-  }
-
-  handleOAuthReturn();
   refreshAuthBadge();
 
   const params = new URLSearchParams(location.search);
   const q = params.get('q');
+  const threadParam = params.get('thread');
   if (q) input.value = q;
 
   function grow() {
@@ -419,48 +379,182 @@
     return tail.replace(/-Instruct-4bit$/i, '').replace(/-/g, ' ');
   }
 
+  function setPoolDot(kind) {
+    if (!poolDotEl) return;
+    poolDotEl.classList.remove('warn', 'bad');
+    if (kind === 'warn') poolDotEl.classList.add('warn');
+    if (kind === 'bad') poolDotEl.classList.add('bad');
+  }
+
   function populateModels(models) {
-    const available = models.filter(m => m.available !== false);
-    if (!available.length) return;
+    const list = Array.isArray(models) ? models : [];
+    const available = list.filter((m) => m.available !== false);
+    const pick = available.length ? available : list;
+    if (!pick.length) {
+      railModelsEl.innerHTML = '<div class="item skeleton">No models in pool</div>';
+      return;
+    }
     const prev = modelEl.value;
     modelEl.innerHTML = '';
     railModelsEl.innerHTML = '';
-    for (const m of available) {
+    for (const m of pick) {
       const opt = document.createElement('option');
       opt.value = m.id;
       opt.textContent = modelLabel(m.id);
+      if (m.available === false) opt.disabled = true;
       modelEl.appendChild(opt);
 
       const item = document.createElement('div');
       item.className = 'item';
       const free = m.slots_free ?? 0;
-      const total = m.total_slots ?? 0;
-      const dotColor = m.degraded ? '#C2543A' : (free > 0 ? '#FFC629' : '#FF6E5B');
+      const total = m.total_slots ?? m.provider_count ?? 0;
+      const dotColor = m.degraded || m.available === false ? '#C2543A' : (free > 0 ? '#5BBF7A' : '#FFC629');
       const dot = document.createElement('span');
       dot.style.cssText = `display:inline-block;width:8px;height:8px;border-radius:50%;background:${dotColor};`;
       const meta = document.createElement('span');
       meta.className = 'meta';
-      meta.textContent = `${free}/${total}`;
+      meta.textContent = total ? `${free}/${total}` : '—';
       item.append(dot, document.createTextNode(` ${modelLabel(m.id)}`), meta);
       item.addEventListener('click', () => { modelEl.value = m.id; });
       railModelsEl.appendChild(item);
     }
-    if (prev && [...modelEl.options].some(o => o.value === prev)) modelEl.value = prev;
+    if (prev && [...modelEl.options].some((o) => o.value === prev && !o.disabled)) modelEl.value = prev;
+    else {
+      const first = [...modelEl.options].find((o) => !o.disabled);
+      if (first) modelEl.value = first.value;
+    }
+  }
+
+  async function refreshUsage() {
+    if (authMode() !== 'key') {
+      if (quotaBarEl) quotaBarEl.hidden = true;
+      return;
+    }
+    try {
+      const u = await getUsage();
+      const q = u?.quota || {};
+      const used = Number(q.daily_tokens_used) || 0;
+      const reserved = Number(q.daily_tokens_reserved) || 0;
+      const limit = Number(q.daily_tokens_limit) || 100000;
+      const remaining = Math.max(0, limit - used - reserved);
+      const pct = limit > 0 ? Math.min(100, ((used + reserved) / limit) * 100) : 0;
+      if (quotaBarEl) quotaBarEl.hidden = false;
+      if (quotaFillEl) quotaFillEl.style.width = pct.toFixed(1) + '%';
+      if (quotaLabelEl) quotaLabelEl.textContent = `${formatTokenCount(remaining)} left`;
+    } catch {
+      if (quotaBarEl) quotaBarEl.hidden = true;
+    }
   }
 
   async function refreshStatus() {
     try {
       const s = await getStatus();
       const ready = s?.pool?.ready ?? 0;
-      const label = s?.degraded ? 'degraded' : (ready ? `${ready} node${ready === 1 ? '' : 's'} live` : 'no nodes ready');
-      liveNodesEls.forEach(el => { el.textContent = label; });
+      const total = s?.pool?.total_providers ?? 0;
+      const modelCount = Array.isArray(s?.models) ? s.models.length : 0;
+      let label;
+      if (s?.status === 'idle' && total > 0) label = `${total} provider${total === 1 ? '' : 's'} · warming up`;
+      else if (s?.degraded) label = `${ready} live · degraded`;
+      else if (ready > 0) label = `${ready} node${ready === 1 ? '' : 's'} · ${modelCount} model${modelCount === 1 ? '' : 's'}`;
+      else if (total > 0) label = `${total} provider${total === 1 ? '' : 's'} · none ready`;
+      else label = 'pool idle';
+      liveNodesEls.forEach((el) => {
+        el.textContent = label;
+        el.classList.remove('skeleton-pulse');
+      });
+      setPoolDot(ready > 0 ? 'ok' : (total > 0 ? 'warn' : 'bad'));
       if (Array.isArray(s?.models)) populateModels(s.models);
     } catch {
-      liveNodesEls.forEach(el => { el.textContent = 'offline'; });
+      liveNodesEls.forEach((el) => {
+        el.textContent = 'pool offline';
+        el.classList.remove('skeleton-pulse');
+      });
+      setPoolDot('bad');
     }
   }
+
+  function renderRecent() {
+    const threads = loadThreads();
+    if (!threads.length) {
+      recentSection.hidden = true;
+      return;
+    }
+    recentSection.hidden = false;
+    recentEl.innerHTML = '';
+    for (const t of threads.slice(0, 12)) {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'item truncate' + (t.id === threadId ? ' active' : '');
+      item.textContent = t.title || 'New chat';
+      item.addEventListener('click', () => loadThread(t.id));
+      recentEl.appendChild(item);
+    }
+  }
+
+  function persistThread() {
+    if (!conversation.length) return;
+    const title = threadTitle || conversation.find((m) => m.role === 'user')?.content?.slice(0, 48) || 'New chat';
+    upsertThread({
+      id: threadId,
+      title,
+      messages: conversation,
+      model: modelEl.value,
+      updatedAt: Date.now(),
+    });
+    renderRecent();
+  }
+
+  function loadThread(id) {
+    if (busy) return;
+    const t = getThread(id);
+    if (!t) return;
+    threadId = t.id;
+    conversation = Array.isArray(t.messages) ? [...t.messages] : [];
+    threadTitle = t.title || '';
+    if (t.model && [...modelEl.options].some((o) => o.value === t.model)) modelEl.value = t.model;
+    stream.innerHTML = '';
+    for (const m of conversation) {
+      if (m.role === 'user') addUserMsg(m.content);
+      else if (m.role === 'assistant') {
+        const ai = addAiMsg(modelEl.options[modelEl.selectedIndex]?.text || t.model || 'Malibu');
+        ai.querySelector('.text').textContent = m.content;
+        const billEl = ai.querySelector('[data-bill]');
+        if (billEl && m.meta) billEl.textContent = formatBillMeta({ usage: m.usage, meta: m.meta, latencyMs: m.latencyMs });
+        else if (billEl) billEl.textContent = 'saved';
+      }
+    }
+    if (!conversation.length) showWelcome();
+    renderRecent();
+    history.replaceState({}, '', location.pathname + (threadId ? `?thread=${threadId}` : ''));
+  }
+
+  function showWelcome() {
+    stream.innerHTML = '';
+    const w = document.createElement('div');
+    w.className = 'welcome';
+    w.innerHTML = '<h1>Inference, <em>from the coast.</em></h1>';
+    stream.appendChild(w);
+    const starters = document.createElement('div');
+    starters.className = 'starters';
+    starters.innerHTML = `
+      <button class="starter" type="button" data-starter="Write me a postcard from Zuma at golden hour."><div class="lbl">Postcard</div><div class="body">Write me a postcard from Zuma at golden hour.</div></button>
+      <button class="starter" type="button" data-starter="Draft a JSON schema for a Malibu restaurant menu with vegan flags and price tiers."><div class="lbl">JSON</div><div class="body">Draft a JSON schema for a Malibu restaurant menu.</div></button>
+      <button class="starter" type="button" data-starter="Summarize the case for on-device inference in three bullets a fund analyst would forward."><div class="lbl">Summarize</div><div class="body">Summarize on-device inference in three bullets.</div></button>
+      <button class="starter" type="button" data-starter="A three-day PCH itinerary from Santa Monica to Hearst Castle. Stops only — no fluff."><div class="lbl">Itinerary</div><div class="body">A three-day PCH itinerary, stops only.</div></button>`;
+    stream.appendChild(starters);
+    starters.querySelectorAll('[data-starter]').forEach((b) => {
+      b.addEventListener('click', () => { input.value = b.dataset.starter; grow(); input.focus(); });
+    });
+  }
+
   refreshStatus();
+  refreshUsage();
   setInterval(refreshStatus, 30_000);
+  setInterval(refreshUsage, 60_000);
+  renderRecent();
+
+  if (threadParam) loadThread(threadParam);
+  else ensureDemoToken().catch(() => {});
 
   function dismissWelcome() {
     const w = stream.querySelector('.welcome');
@@ -472,7 +566,7 @@
   function addUserMsg(text) {
     const el = document.createElement('div');
     el.className = 'msg user';
-    el.innerHTML = `<div class="avatar">YOU</div><div class="body"><div class="name">You</div><div class="text"></div></div>`;
+    el.innerHTML = '<div class="avatar">YOU</div><div class="body"><div class="name">You</div><div class="text"></div></div>';
     el.querySelector('.text').textContent = text;
     stream.appendChild(el);
     return el;
@@ -509,7 +603,7 @@
   }
 
   function escapeHtml(s) {
-    return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   }
 
   let busy = false;
@@ -521,6 +615,7 @@
     busy = true;
     submit.disabled = true;
     dismissWelcome();
+    if (!threadTitle) threadTitle = val.slice(0, 48);
     addUserMsg(val);
     conversation.push({ role: 'user', content: val });
     input.value = '';
@@ -536,25 +631,31 @@
     scrollBottom();
 
     let buf = '';
-    let chunkCount = 0;
     const started = performance.now();
+    let usage = null;
+    let meta = {};
     try {
-      for await (const delta of chatStream({ model: modelId, messages: conversation, maxTokens: 1024 })) {
-        buf += delta;
-        chunkCount += 1;
-        textEl.innerHTML = escapeHtml(buf) + '<span style="opacity: 0.55;">▍</span>';
-        scrollBottom();
+      for await (const event of chatStream({ model: modelId, messages: conversation, maxTokens: 1024, conversationId: threadId })) {
+        if (event.type === 'delta') {
+          buf += event.text;
+          textEl.innerHTML = escapeHtml(buf) + '<span style="opacity: 0.55;">▍</span>';
+          scrollBottom();
+        } else if (event.type === 'done') {
+          usage = event.usage;
+          meta = event.meta || {};
+        }
       }
       textEl.textContent = buf;
-      conversation.push({ role: 'assistant', content: buf });
-      const dt = (performance.now() - started) / 1000;
-      const cps = chunkCount > 0 && dt > 0 ? (chunkCount / dt).toFixed(1) : '—';
-      billEl.textContent = `${cps} chunks/s · ${chunkCount} chunks`;
+      const latencyMs = performance.now() - started;
+      conversation.push({ role: 'assistant', content: buf, usage, meta, latencyMs });
+      billEl.textContent = formatBillMeta({ usage, meta, latencyMs });
+      persistThread();
+      refreshUsage();
     } catch (e) {
       const status = e?.status;
       const quotaHit = status === 401 || status === 429;
       let msg;
-      if (quotaHit) msg = 'Free tier quota used. Sign in with GitHub to keep going →';
+      if (quotaHit) msg = 'Quota used. Sign in with GitHub and paste your API key to continue.';
       else if (status === 404) msg = 'Model not in current pool. Pick another.';
       else msg = e?.message || 'Request failed.';
       textEl.innerHTML = '';
@@ -563,9 +664,9 @@
         upsell.type = 'button';
         upsell.className = 'btn primary';
         upsell.style.cssText = 'margin-top:4px;padding:8px 12px;background:#FF6E5B;color:#FFFBF2;border-radius:8px;font-size:12.5px;';
-        upsell.textContent = 'Sign in with GitHub to continue →';
+        upsell.textContent = 'Unlock full quota →';
         upsell.addEventListener('click', openSettings);
-        textEl.appendChild(document.createTextNode('Free tier quota used. '));
+        textEl.appendChild(document.createTextNode('Quota used. '));
         textEl.appendChild(upsell);
       } else {
         textEl.textContent = msg;
@@ -583,18 +684,20 @@
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
   });
-  document.querySelectorAll('[data-starter]').forEach(b => {
+  document.querySelectorAll('[data-starter]').forEach((b) => {
     b.addEventListener('click', () => { input.value = b.dataset.starter; grow(); input.focus(); });
   });
   document.querySelector('[data-new-chat]').addEventListener('click', () => {
     if (busy) return;
-    conversation.length = 0;
-    stream.innerHTML = '';
-    const w = document.createElement('div');
-    w.className = 'welcome';
-    w.innerHTML = '<h1>Inference, <em>from the coast.</em></h1>';
-    stream.appendChild(w);
-    input.value = ''; grow(); input.focus();
+    threadId = createThreadId();
+    conversation = [];
+    threadTitle = '';
+    showWelcome();
+    input.value = '';
+    grow();
+    input.focus();
+    renderRecent();
+    history.replaceState({}, '', location.pathname);
   });
 </script>
 </body>

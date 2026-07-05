@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malibu · Dashboard</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0F1B26; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; min-height: 100vh; }
+    a { color: #FFC629; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 32px 24px 48px; }
+    .back { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,251,242,0.55); }
+    h1 { margin: 14px 0 6px; font-weight: 500; font-size: 32px; letter-spacing: -0.02em; }
+    .sub { color: rgba(255,251,242,0.65); margin-bottom: 28px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+    .card { background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
+    .card .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,251,242,0.45); margin-bottom: 8px; }
+    .card .val { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; }
+    .card .hint { margin-top: 6px; font-size: 13px; color: rgba(255,251,242,0.55); }
+    .bar { margin-top: 24px; background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 18px; }
+    .bar-track { height: 8px; background: rgba(255,251,242,0.08); border-radius: 4px; overflow: hidden; margin: 12px 0; }
+    .bar-fill { height: 100%; background: #FFC629; border-radius: 4px; transition: width 300ms ease; }
+    .cta { display: inline-flex; margin-top: 20px; padding: 10px 14px; background: #FF6E5B; color: #FFFBF2; border-radius: 9px; font-size: 13px; font-weight: 500; border: 0; cursor: pointer; }
+    .cta:hover { background: #C2543A; }
+    .empty { padding: 28px; text-align: center; color: rgba(255,251,242,0.6); }
+    .err { color: #FFC0B0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/console/">← Back to chat</a>
+    <h1>Usage dashboard</h1>
+    <p class="sub">Daily token quota and account status from MacProvider gateway.</p>
+    <div data-content class="empty">Loading usage…</div>
+  </div>
+  <script type="module">
+    import { getUsage, getStatus, loadKey, formatTokenCount, authMode } from '../api.js';
+
+    const el = document.querySelector('[data-content]');
+
+    function pct(used, reserved, limit) {
+      if (!limit) return 0;
+      return Math.min(100, ((used + reserved) / limit) * 100);
+    }
+
+    async function render() {
+      if (authMode() !== 'key') {
+        el.className = 'empty';
+        el.innerHTML = `
+          <p>Connect an API key to see usage.</p>
+          <p><a href="/console/">Open chat settings</a> to sign in with GitHub and paste your <code>mp_</code> key.</p>
+          <p>Demo sessions use a separate 1k token/IP limit and are not shown here.</p>`;
+        return;
+      }
+      try {
+        const [usage, status] = await Promise.all([getUsage(), getStatus().catch(() => null)]);
+        const q = usage?.quota || {};
+        const used = Number(q.daily_tokens_used) || 0;
+        const reserved = Number(q.daily_tokens_reserved) || 0;
+        const limit = Number(q.daily_tokens_limit) || 100000;
+        const remaining = Math.max(0, limit - used - reserved);
+        const ready = status?.pool?.ready ?? '—';
+        el.className = '';
+        el.innerHTML = `
+          <div class="grid">
+            <div class="card"><div class="lbl">Tokens remaining</div><div class="val">${formatTokenCount(remaining)}</div><div class="hint">of ${formatTokenCount(limit)} daily</div></div>
+            <div class="card"><div class="lbl">Tokens used</div><div class="val">${formatTokenCount(used)}</div><div class="hint">${formatTokenCount(reserved)} reserved</div></div>
+            <div class="card"><div class="lbl">Window</div><div class="val" style="font-size:18px;">${q.window_date || 'today'}</div><div class="hint">UTC reset</div></div>
+            <div class="card"><div class="lbl">Pool ready</div><div class="val">${ready}</div><div class="hint">live nodes</div></div>
+          </div>
+          <div class="bar">
+            <div class="lbl" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,251,242,0.45);">Daily quota</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct(used, reserved, limit).toFixed(1)}%"></div></div>
+            <div class="hint">${formatTokenCount(used + reserved)} used · ${formatTokenCount(remaining)} left</div>
+          </div>
+          <p class="sub" style="margin-top:20px;">API keys: <a href="/console/keys/">manage keys</a> · Docs: <a href="/docs">API reference</a></p>`;
+      } catch (e) {
+        el.className = 'empty err';
+        el.textContent = e?.message || 'Could not load usage.';
+      }
+    }
+
+    render();
+    setInterval(render, 60_000);
+  </script>
+</body>
+</html>

@@ -4,6 +4,14 @@ import { resolve } from 'node:path';
 export default defineConfig({
   server: {
     proxy: {
+      '/auth': {
+        target: 'https://api.streamvc.live',
+        changeOrigin: true,
+      },
+      '/account': {
+        target: 'https://api.streamvc.live',
+        changeOrigin: true,
+      },
       '/api/mp': {
         target: 'https://api.streamvc.live',
         changeOrigin: true,
@@ -24,6 +32,8 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         console: resolve(__dirname, 'console/index.html'),
+        consoleDashboard: resolve(__dirname, 'console/dashboard/index.html'),
+        consoleKeys: resolve(__dirname, 'console/keys/index.html'),
         host: resolve(__dirname, 'host/index.html'),
         network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),

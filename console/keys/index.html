@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malibu · API keys</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; background: #0F1B26; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; min-height: 100vh; }
+    a { color: #FFC629; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 32px 24px 48px; }
+    .back { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,251,242,0.55); }
+    h1 { margin: 14px 0 6px; font-weight: 500; font-size: 32px; }
+    .sub { color: rgba(255,251,242,0.65); margin-bottom: 24px; line-height: 1.5; }
+    .key-box { background: #143A45; border: 1px solid rgba(255,251,242,0.10); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .key-box code { font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all; color: rgba(255,251,242,0.85); }
+    .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,251,242,0.45); margin-bottom: 8px; }
+    .btn { display: inline-flex; padding: 10px 14px; background: #FF6E5B; color: #FFFBF2; border-radius: 9px; font-size: 13px; font-weight: 500; border: 0; cursor: pointer; margin-right: 8px; margin-top: 8px; }
+    .btn.ghost { background: rgba(255,251,242,0.08); border: 1px solid rgba(255,251,242,0.12); }
+    .empty { padding: 24px; color: rgba(255,251,242,0.6); }
+    .err { color: #FFC0B0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/console/">← Back to chat</a>
+    <h1>API keys</h1>
+    <p class="sub">Keys are issued once via GitHub sign-in. Paste your active key in chat settings to use Malibu on this device.</p>
+    <div data-content class="empty">Loading…</div>
+  </div>
+  <script type="module">
+    import { getUsage, loadKey, authMode } from '../api.js';
+
+    const el = document.querySelector('[data-content]');
+    const localKey = loadKey();
+
+    function maskKey(key) {
+      if (!key || key.length < 12) return key || '—';
+      return key.slice(0, 7) + '…' + key.slice(-4);
+    }
+
+    async function render() {
+      if (authMode() !== 'key') {
+        el.className = 'empty';
+        el.innerHTML = `
+          <p>No API key on this device.</p>
+          <button class="btn" type="button" data-signin>Sign in with GitHub</button>
+          <p style="margin-top:16px;"><a href="/console/">Return to chat</a> and paste your key after signing in.</p>`;
+        el.querySelector('[data-signin]')?.addEventListener('click', () => {
+          window.open('https://api.streamvc.live/auth/github/start', '_blank', 'noopener');
+        });
+        return;
+      }
+      try {
+        const usage = await getUsage();
+        const keys = Array.isArray(usage?.keys) ? usage.keys : [];
+        let html = `<div class="key-box"><div class="meta">Active on this device</div><code>${maskKey(localKey)}</code></div>`;
+        if (keys.length) {
+          html += '<div class="meta" style="margin-top:20px;">Account keys</div>';
+          for (const k of keys) {
+            const prefix = k.key_prefix || k.prefix || 'mp_…';
+            const status = k.status || k.revoked_at ? 'revoked' : 'active';
+            html += `<div class="key-box"><div class="meta">${prefix} · ${status}</div><code>${k.key_id || k.id || 'key'}</code></div>`;
+          }
+        }
+        html += `
+          <button class="btn ghost" type="button" data-mint>Mint new key (GitHub)</button>
+          <p class="sub"><a href="/console/dashboard/">Usage dashboard</a> · <a href="/docs">API docs</a></p>`;
+        el.className = '';
+        el.innerHTML = html;
+        el.querySelector('[data-mint]')?.addEventListener('click', () => {
+          window.open('https://api.streamvc.live/auth/github/start?action=mint', '_blank', 'noopener');
+        });
+      } catch (e) {
+        el.className = 'empty';
+        el.innerHTML = `
+          <div class="key-box"><div class="meta">Active on this device</div><code>${maskKey(localKey)}</code></div>
+          <p class="err">${e?.message || 'Could not load key list from gateway.'}</p>
+          <p><a href="/console/">Back to chat</a></p>`;
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

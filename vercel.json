@@ -1,5 +1,8 @@
 {
   "rewrites": [
+    { "source": "/auth/:path*", "destination": "https://api.streamvc.live/auth/:path*" },
+    { "source": "/account", "destination": "https://api.streamvc.live/account" },
+    { "source": "/account/:path*", "destination": "https://api.streamvc.live/account/:path*" },
     { "source": "/api/mp/:path*", "destination": "https://api.streamvc.live/:path*" },
     { "source": "/v1/pool/check", "destination": "https://coordinator.streamvc.live/v1/pool/check" },
     { "source": "/providers/:provider_id/earnings", "destination": "https://coordinator.streamvc.live/providers/:provider_id/earnings" },

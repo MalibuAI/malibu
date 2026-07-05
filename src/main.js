@@ -14,19 +14,58 @@ if (hero && !isTouch && !reduced) {
   }, { passive: true });
 }
 
-// Live network ticks
-if (!reduced) {
-  const tick = () => {
-    const nodes = 1278 + Math.floor(Math.random() * 14);
-    const tps = (60 + Math.random() * 5.5).toFixed(1);
-    document.querySelectorAll('[data-live-nodes]').forEach(el => { el.textContent = nodes.toLocaleString() + ' nodes'; });
-    document.querySelectorAll('[data-live-nodes-count]').forEach(el => { el.textContent = nodes.toLocaleString(); });
-    document.querySelectorAll('[data-live-tps]').forEach(el => {
-      el.textContent = el.dataset.suffix === 'none' ? tps : (el.tagName === 'SPAN' && el.closest('[data-live-pill], p, [data-hero-chat-meta]') ? tps + ' t/s' : tps);
-    });
-  };
-  setInterval(tick, 8000);
+// Live network stats from MacProvider stats API
+const STATS_URL = 'https://stats.streamvc.live/v1/stats/overview';
+const STATUS_URL = '/api/mp/v1/status';
+
+async function refreshLiveStats() {
+  try {
+    const [statsRes, statusRes] = await Promise.all([
+      fetch(STATS_URL).catch(() => null),
+      fetch(STATUS_URL).catch(() => null),
+    ]);
+    let nodes = null;
+    let tps = null;
+    if (statusRes?.ok) {
+      const s = await statusRes.json();
+      const ready = s?.pool?.ready;
+      const total = s?.pool?.total_providers;
+      if (ready > 0) nodes = ready;
+      else if (total > 0) nodes = total;
+    }
+    if (statsRes?.ok) {
+      const stats = await statsRes.json();
+      const n = stats?.network || {};
+      if (nodes == null && n.nodes_online > 0) nodes = n.nodes_online;
+      const rpm = stats?.timeseries?.rpm_30m?.points;
+      if (Array.isArray(rpm)) {
+        const recent = [...rpm].reverse().find((p) => p?.value != null && p.value > 0);
+        if (recent?.value) tps = (recent.value / 60).toFixed(1);
+      }
+      if (!tps && n.avg_tokens_per_request && n.requests_total) {
+        tps = (n.avg_tokens_per_request * 0.15).toFixed(1);
+      }
+    }
+    if (nodes != null) {
+      document.querySelectorAll('[data-live-nodes]').forEach((el) => {
+        el.textContent = Number(nodes).toLocaleString() + ' nodes';
+      });
+      document.querySelectorAll('[data-live-nodes-count]').forEach((el) => {
+        el.textContent = Number(nodes).toLocaleString();
+      });
+    }
+    if (tps != null) {
+      document.querySelectorAll('[data-live-tps]').forEach((el) => {
+        const suffix = el.dataset.suffix === 'none';
+        el.textContent = suffix ? tps : (el.tagName === 'SPAN' && el.closest('[data-live-pill], p, [data-hero-chat-meta]') ? tps + ' t/s' : tps);
+      });
+    }
+  } catch {}
 }
+
+refreshLiveStats();
+if (!reduced) setInterval(refreshLiveStats, 20000);
+
 
 // Hero chatbox: stream a canned response inline; on Enter w/ shift -> /console/
 const chatForm = document.querySelector('[data-hero-chat]');
