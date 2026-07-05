@@ -1,7 +1,6 @@
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isTouch = matchMedia('(hover: none)').matches || matchMedia('(pointer: coarse)').matches;
 
-// Hero pointer-reactive parallax
 const hero = document.querySelector('[data-hero-root]');
 if (hero && !isTouch && !reduced) {
   window.addEventListener('mousemove', (e) => {
@@ -14,9 +13,26 @@ if (hero && !isTouch && !reduced) {
   }, { passive: true });
 }
 
-// Live network stats from MacProvider stats API
 const STATS_URL = 'https://stats.streamvc.live/v1/stats/overview';
 const STATUS_URL = '/api/mp/v1/status';
+const AGENT_DEMO = 'Plan a coastal drive from Malibu to Hearst Castle — distance, time, and stops. Use tools if helpful.';
+
+function fmtCompact(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '—';
+  if (v >= 1_000_000) return (v / 1_000_000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  if (v >= 10_000) return Math.round(v / 1000) + 'K';
+  if (v >= 1000) return (v / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return v.toLocaleString();
+}
+
+function consoleUrl(prompt) {
+  const params = new URLSearchParams({ mode: 'agent' });
+  const text = (prompt || '').trim();
+  if (text) params.set('q', text);
+  else params.set('demo', 'agent');
+  return '/console/?' + params.toString();
+}
 
 async function refreshLiveStats() {
   try {
@@ -26,6 +42,9 @@ async function refreshLiveStats() {
     ]);
     let nodes = null;
     let tps = null;
+    let requestsTotal = null;
+    let tokensTotal = null;
+
     if (statusRes?.ok) {
       const s = await statusRes.json();
       const ready = s?.pool?.ready;
@@ -37,6 +56,8 @@ async function refreshLiveStats() {
       const stats = await statsRes.json();
       const n = stats?.network || {};
       if (nodes == null && n.nodes_online > 0) nodes = n.nodes_online;
+      requestsTotal = n.requests_total;
+      tokensTotal = n.tokens_served_total;
       const rpm = stats?.timeseries?.rpm_30m?.points;
       if (Array.isArray(rpm)) {
         const recent = [...rpm].reverse().find((p) => p?.value != null && p.value > 0);
@@ -46,11 +67,15 @@ async function refreshLiveStats() {
         tps = (n.avg_tokens_per_request * 0.15).toFixed(1);
       }
     }
+
     if (nodes != null) {
       document.querySelectorAll('[data-live-nodes]').forEach((el) => {
         el.textContent = Number(nodes).toLocaleString() + ' nodes';
       });
       document.querySelectorAll('[data-live-nodes-count]').forEach((el) => {
+        el.textContent = Number(nodes).toLocaleString();
+      });
+      document.querySelectorAll('[data-proof-nodes]').forEach((el) => {
         el.textContent = Number(nodes).toLocaleString();
       });
     }
@@ -60,91 +85,37 @@ async function refreshLiveStats() {
         el.textContent = suffix ? tps : (el.tagName === 'SPAN' && el.closest('[data-live-pill], p, [data-hero-chat-meta]') ? tps + ' t/s' : tps);
       });
     }
+    if (requestsTotal != null) {
+      document.querySelectorAll('[data-proof-requests]').forEach((el) => {
+        el.textContent = fmtCompact(requestsTotal);
+      });
+    }
+    if (tokensTotal != null) {
+      document.querySelectorAll('[data-proof-tokens]').forEach((el) => {
+        el.textContent = fmtCompact(tokensTotal);
+      });
+    }
   } catch {}
 }
 
 refreshLiveStats();
 if (!reduced) setInterval(refreshLiveStats, 20000);
 
-
-// Hero chatbox: stream a canned response inline; on Enter w/ shift -> /console/
 const chatForm = document.querySelector('[data-hero-chat]');
 const chatInput = document.querySelector('[data-hero-chat-input]');
 const chatSubmit = document.querySelector('[data-hero-chat-submit]');
 
-const samples = {
-  default: [
-    "Dear friend — the light here is on a timer. ",
-    "The Pacific has flattened to a sheet of orange foil. ",
-    "Your prompt routes through the Malibu pool on Apple Silicon. ",
-    "Settled on-chain when enabled. ",
-    "0.00033 $MALIBU burned. ",
-    "From the coast, with warmth.",
-  ],
-  postcard: [
-    "Pacific Coast Highway, mile 27. ",
-    "Three pelicans, single file. ",
-    "The Porsche at the overlook hasn't moved since Tuesday. ",
-    "Somebody's Mac in a kitchen behind the cliff is doing your inference at 62.4 tokens per second. ",
-    "Charged you $0.00184 USDC. Burned 0.00033 $MALIBU. ",
-    "Wish you were here.",
-  ],
-};
-
-function pickResponse(prompt) {
-  const p = (prompt || '').toLowerCase();
-  if (p.includes('postcard') || p.includes('zuma') || p.includes('pch') || p.includes('beach')) return samples.postcard;
-  return samples.default;
-}
-
-let streamingEl = null;
-let streamingTimer = null;
-
-function ensureStreamingArea() {
-  if (streamingEl) return streamingEl;
-  const wrap = document.createElement('div');
-  wrap.setAttribute('data-hero-chat-stream', '');
-  wrap.style.cssText = 'margin-top: 16px; padding: 18px 20px; background: rgba(12,22,32,0.62); border: 1px solid rgba(251,246,236,0.14); border-radius: 14px; font-family: \'Geist\', sans-serif; font-size: 14.5px; line-height: 1.55; color: rgba(251,246,236,0.92); backdrop-filter: blur(14px); max-width: 720px;';
-  wrap.innerHTML = '<div style="font-family: \'JetBrains Mono\', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(217,164,65,0.78); margin-bottom: 10px;">M2 Ultra · Zuma Beach, CA · 184 ms</div><div data-hero-chat-text></div>';
-  chatForm.parentNode.insertBefore(wrap, chatForm.nextSibling);
-  streamingEl = wrap;
-  return wrap;
-}
-
-function streamResponse(prompt) {
-  if (streamingTimer) clearInterval(streamingTimer);
-  const area = ensureStreamingArea();
-  const target = area.querySelector('[data-hero-chat-text]');
-  target.innerHTML = '<span style="opacity: 0.6;">▍</span>';
-  const chunks = pickResponse(prompt);
-  let i = 0, buf = '';
-  streamingTimer = setInterval(() => {
-    if (i >= chunks.length) {
-      clearInterval(streamingTimer);
-      target.innerHTML = buf + ' <a href="/console/" style="color: #D9A441; border-bottom: 1px solid rgba(217,164,65,0.5);">Open in console →</a>';
-      return;
-    }
-    buf += chunks[i++];
-    target.innerHTML = buf + '<span style="opacity: 0.6; animation: streamCursor 1.1s steps(1) infinite;">▍</span>';
-  }, 380);
-}
-
 function handleSubmit(e) {
   if (e) e.preventDefault();
   const v = (chatInput && chatInput.value) || '';
-  const trimmed = v.trim();
-  if (!trimmed) {
-    window.location.href = '/console/';
-    return;
-  }
-  window.location.href = '/console/?q=' + encodeURIComponent(trimmed);
+  window.location.href = consoleUrl(v || AGENT_DEMO);
 }
 
 chatForm && chatForm.addEventListener('submit', handleSubmit);
 chatSubmit && chatSubmit.addEventListener('click', handleSubmit);
 chatInput && chatInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && (e.metaKey || e.shiftKey)) {
+  if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    window.location.href = '/console/?q=' + encodeURIComponent(chatInput.value || '');
+    handleSubmit();
   }
 });

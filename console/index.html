@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Malibu — open models, streaming inference." />
-  <title>Malibu · Chat</title>
+  <title>Malibu · Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -246,7 +246,7 @@
     </div>
 
     <div class="panel-head workspace-head" data-workspace-head>
-      <button type="button" class="ws-close" data-close-workspace>← Chat</button>
+      <button type="button" class="ws-close" data-close-workspace>← Console</button>
       <span class="ws-title" data-workspace-title>Dashboard</span>
     </div>
 
@@ -491,7 +491,6 @@
     if (!btn) return;
     setChatMode(btn.dataset.mode);
   });
-  setChatMode(loadSettings().chatMode || 'chat');
 
   const workspace = createWorkspace({
     panelEl: document.querySelector('[data-panel]'),
@@ -577,13 +576,19 @@
   const params = new URLSearchParams(location.search);
   const q = params.get('q');
   const threadParam = params.get('thread');
+  const modeParam = params.get('mode');
+  const demoParam = params.get('demo');
   if (params.get('embed') === '1') document.querySelector('.app')?.classList.add('embed');
+  setChatMode(modeParam === 'agent' ? 'agent' : (loadSettings().chatMode || 'chat'));
+  const agentDemoPrompt = 'Driving from Malibu to Hearst Castle at 55 mph — how long is the trip? Use tools if helpful.';
   if (q) input.value = q;
+  else if (demoParam === 'agent') input.value = agentDemoPrompt;
 
   function grow() {
     input.style.height = 'auto';
     input.style.height = Math.min(200, input.scrollHeight) + 'px';
   }
+  if (q || demoParam === 'agent') grow();
   input.addEventListener('input', grow);
 
   function modelLabel(id) {

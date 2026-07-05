@@ -17,7 +17,7 @@
 
 <!-- ============ FLOATING NAV ============ -->
 <nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
-  <a href="/" style="display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12);">
+  <a href="/" style="display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12); flex-shrink: 0;">
     <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #0C3A45;">
       <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
         <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
@@ -26,16 +26,21 @@
     </span>
     <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; line-height: 1;">malibu</span>
   </a>
-  <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72);">
-    <a href="/network/" style="color: #FFFBF2;">Network</a>
-    <a href="/#token">$MALIBU</a>
-    <a href="/docs">Docs</a>
-    <a href="/console/">Chat</a>
+  <button type="button" data-nav-toggle aria-expanded="false" aria-controls="network-nav-menu" aria-label="Menu" class="nav-toggle">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <div data-nav-menu id="network-nav-menu" class="nav-menu">
+    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72);">
+      <a href="/network/" style="color: #FFFBF2;">Network</a>
+      <a href="/#token">$MALIBU</a>
+      <a href="/docs">Docs</a>
+      <a href="/console/">Console</a>
+    </div>
+    <a href="/host/" class="nav-cta">
+      Host a model
+      <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
   </div>
-  <a href="/host/" data-nowrap style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; margin-left: 4px; background: #FF6E5B; color: #FFFBF2; border-radius: 9999px; font-family: 'Hanken Grotesk', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: -0.005em;">
-    Host a model
-    <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </a>
 </nav>
 
 <main id="top" style="background: #143A45; color: #FFFBF2; min-height: 100vh;">
@@ -253,9 +258,9 @@
   <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(96px, 14vh, 160px);">
     <div style="position: relative; max-width: 1240px; margin: 0 auto;">
       <div class="net-cta-grid">
-        <a href="/console/" class="net-cta net-cta-coral">
+        <a href="/console/?mode=agent" class="net-cta net-cta-coral">
           <div class="net-cta-label">Use the network</div>
-          <div class="net-cta-title">Open the chat →</div>
+          <div class="net-cta-title">Open console →</div>
         </a>
         <a href="/host/" class="net-cta net-cta-aqua">
           <div class="net-cta-label">Add capacity</div>
@@ -276,16 +281,17 @@
         <div>
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
           <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
-            <a href="/console/">Chat</a>
+            <a href="/console/">Console</a>
+            <a href="/host/">Host a model</a>
             <a href="/network/">Network</a>
             <a href="/#token">$MALIBU</a>
           </div>
         </div>
         <div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Coast</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Learn</div>
           <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
-            <a href="/docs">About</a>
-            <a href="/host/">Host a model</a>
+            <a href="/docs">Docs</a>
+            <a href="/docs/litepaper">Litepaper</a>
           </div>
         </div>
       </div>
@@ -298,6 +304,7 @@
   </footer>
 </main>
 
+<script type="module" src="/src/nav.js"></script>
 <script type="module" src="/src/network.js"></script>
 </body>
 </html>
