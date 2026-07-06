@@ -46,6 +46,8 @@ export default defineConfig({
         host: resolve(__dirname, 'host/index.html'),
         network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
+        blog: resolve(__dirname, 'blog/index.html'),
+        blogTurningOn: resolve(__dirname, 'blog/turning-on-the-worlds-biggest-ai-cloud/index.html'),
       },
     },
   },

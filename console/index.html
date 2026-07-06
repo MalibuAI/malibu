@@ -421,9 +421,39 @@
     const mode = authMode();
     settingsBtn.classList.toggle('signed-in', mode === 'key');
     settingsBtn.title = mode === 'key' ? 'Account session' : 'Sign in';
-    if (mode === 'key') authLabelEl.textContent = 'Connected';
+    if (mode === 'key') authLabelEl.textContent = 'Signed in';
     else if (mode === 'demo') authLabelEl.textContent = 'Demo';
     else authLabelEl.textContent = 'Guest';
+  }
+
+  function formatChatError(e) {
+    const status = e?.status;
+    const raw = e?.message || '';
+    let code = '';
+    try {
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (match) code = JSON.parse(match[0])?.error?.code || '';
+    } catch { /* ignore malformed body */ }
+
+    if (status === 401 || status === 429) {
+      return { kind: 'quota', msg: 'Quota used. Sign in with GitHub to unlock full quota.' };
+    }
+    if (status === 404) {
+      return { kind: 'model', msg: 'Model not in current pool. Pick another.' };
+    }
+    if (status === 503 || code === 'no_provider_available') {
+      return {
+        kind: 'pool',
+        msg: 'No provider available for this model right now. Try again shortly or pick another model.',
+      };
+    }
+    if (status === 502 || code === 'upstream_provider_error') {
+      return {
+        kind: 'upstream',
+        msg: 'The provider accepted your request but failed to respond — it may be paused or overloaded. Unpause your Mac, or start a New chat to route elsewhere.',
+      };
+    }
+    return { kind: 'generic', msg: raw || 'Request failed.' };
   }
 
   document.querySelector('[data-close-receipt]')?.addEventListener('click', () => receiptModal.classList.remove('open'));
@@ -1009,14 +1039,9 @@
       persistThread();
       refreshUsage();
     } catch (e) {
-      const status = e?.status;
-      const quotaHit = status === 401 || status === 429;
-      let msg;
-      if (quotaHit) msg = 'Quota used. Sign in with GitHub to unlock full quota.';
-      else if (status === 404) msg = 'Model not in current pool. Pick another.';
-      else msg = e?.message || 'Request failed.';
+      const { kind, msg } = formatChatError(e);
       textEl.innerHTML = '';
-      if (quotaHit) {
+      if (kind === 'quota') {
         const upsell = document.createElement('button');
         upsell.type = 'button';
         upsell.className = 'btn primary';
@@ -1025,10 +1050,19 @@
         upsell.addEventListener('click', startGitHubSignIn);
         textEl.appendChild(document.createTextNode('Quota used. '));
         textEl.appendChild(upsell);
+      } else if (kind === 'upstream') {
+        textEl.textContent = msg;
+        const newChat = document.createElement('button');
+        newChat.type = 'button';
+        newChat.className = 'btn primary';
+        newChat.style.cssText = 'display:block;margin-top:10px;padding:8px 12px;background:#FF6E5B;color:#FFFBF2;border-radius:8px;font-size:12.5px;';
+        newChat.textContent = 'New chat →';
+        newChat.addEventListener('click', () => document.querySelector('[data-new-chat]')?.click());
+        textEl.appendChild(newChat);
       } else {
         textEl.textContent = msg;
       }
-      billEl.textContent = quotaHit ? 'quota' : 'error';
+      billEl.textContent = kind === 'quota' ? 'quota' : 'error';
       toast(msg, 'error');
     } finally {
       busy = false;
