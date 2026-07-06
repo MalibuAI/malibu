@@ -1,6 +1,7 @@
 import {
   getUsage, loadKey, saveKey, authMode, createApiKey, revokeApiKey,
 } from '../api.js';
+import { startGitHubSignIn } from '../auth.js';
 
 export const title = 'API keys';
 
@@ -40,9 +41,9 @@ export function mount(root, { navigate, esc, toast }) {
       el.innerHTML = `
         <p>No API key on this device.</p>
         <button class="btn" type="button" data-signin>Sign in with GitHub</button>
-        <p style="margin-top:16px;"><button type="button" class="linkish" data-action="chat">Return to chat</button> and paste your key.</p>`;
+        <p style="margin-top:16px;"><button type="button" class="linkish" data-action="chat">Return to chat</button> or paste a key manually in Account settings.</p>`;
       el.querySelector('[data-signin]')?.addEventListener('click', () => {
-        window.open('https://api.streamvc.live/auth/github/start', '_blank', 'noopener');
+        startGitHubSignIn();
       });
       el.querySelector('[data-action="chat"]')?.addEventListener('click', () => navigate('chat'));
       return;
@@ -74,7 +75,7 @@ export function mount(root, { navigate, esc, toast }) {
       el.innerHTML = html;
 
       el.querySelector('[data-mint]')?.addEventListener('click', () => {
-        window.open('https://api.streamvc.live/auth/github/start?action=mint', '_blank', 'noopener');
+        startGitHubSignIn();
       });
       el.querySelector('[data-rotate]')?.addEventListener('click', async () => {
         if (!confirm('Rotate your API key? The current key will stop working.')) return;

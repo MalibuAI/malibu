@@ -121,6 +121,17 @@ export async function getRateCard() {
   return r.json();
 }
 
+export async function exchangeHandoff(handoff) {
+  const r = await fetch(`${BASE}/auth/handoff/exchange`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ handoff }),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j?.error?.message || `handoff ${r.status}`);
+  return j;
+}
+
 export async function createApiKey() {
   const r = await fetch(`${BASE}/auth/api-keys`, {
     method: 'POST',

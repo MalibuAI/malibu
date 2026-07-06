@@ -308,7 +308,7 @@
 <div class="modal-backdrop" data-modal>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h2 id="modal-title">Unlock full quota</h2>
-    <p>Start chatting instantly with a demo session. For full quota (100k tokens/day), sign in with GitHub and paste your API key from the account page.</p>
+    <p>Start chatting instantly with a demo session. For full quota (100k tokens/day), sign in with GitHub — you'll return here automatically.</p>
     <div class="actions">
       <button class="btn primary" type="button" data-github-signin>
         Sign in with GitHub
@@ -361,6 +361,7 @@
     checkQuotaAlert, estimateLocalSpendUsd, quotaPct, filterPoolModels, isModelAllowed,
   } from './api.js';
   import { runAgentLoop } from './agent.js';
+  import { startGitHubSignIn } from './auth.js';
   import { toolsForMode } from './tools.js';
   import { createWorkspace } from './workspace.js';
 
@@ -530,11 +531,7 @@
     btn.addEventListener('click', openSettings);
   });
   githubSignInBtn.addEventListener('click', () => {
-    window.open('https://api.streamvc.live/auth/github/start', '_blank', 'noopener');
-    advancedEl.removeAttribute('hidden');
-    toggleAdvancedBtn.textContent = 'Hide API key field';
-    toast('Sign in on the account page, copy your API key, then paste it here.');
-    setTimeout(() => keyInput.focus(), 80);
+    startGitHubSignIn();
   });
   modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeSettings(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSettings(); });
@@ -578,6 +575,7 @@
   const threadParam = params.get('thread');
   const modeParam = params.get('mode');
   const demoParam = params.get('demo');
+  const authParam = params.get('auth');
   if (params.get('embed') === '1') document.querySelector('.app')?.classList.add('embed');
   setChatMode(modeParam === 'agent' ? 'agent' : (loadSettings().chatMode || 'chat'));
   const agentDemoPrompt = 'Driving from Malibu to Hearst Castle at 55 mph — how long is the trip? Use tools if helpful.';
@@ -983,7 +981,7 @@
       const status = e?.status;
       const quotaHit = status === 401 || status === 429;
       let msg;
-      if (quotaHit) msg = 'Quota used. Sign in with GitHub and paste your API key to continue.';
+      if (quotaHit) msg = 'Quota used. Sign in with GitHub to unlock full quota.';
       else if (status === 404) msg = 'Model not in current pool. Pick another.';
       else msg = e?.message || 'Request failed.';
       textEl.innerHTML = '';
@@ -993,7 +991,7 @@
         upsell.className = 'btn primary';
         upsell.style.cssText = 'margin-top:4px;padding:8px 12px;background:#FF6E5B;color:#FFFBF2;border-radius:8px;font-size:12.5px;';
         upsell.textContent = 'Unlock full quota →';
-        upsell.addEventListener('click', openSettings);
+        upsell.addEventListener('click', startGitHubSignIn);
         textEl.appendChild(document.createTextNode('Quota used. '));
         textEl.appendChild(upsell);
       } else {
@@ -1034,6 +1032,18 @@
     renderRecent();
     history.replaceState({}, '', location.pathname);
   });
+
+  if (authParam === 'connected') {
+    refreshAuthBadge();
+    closeSettings();
+    toast('Signed in with GitHub. Full quota unlocked.');
+    refreshStatus();
+    refreshUsage();
+    history.replaceState({}, '', location.pathname);
+  } else if (authParam === 'retry') {
+    openSettings();
+    history.replaceState({}, '', location.pathname);
+  }
 </script>
 </body>
 </html>
