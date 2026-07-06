@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Malibu — Mac owners host open models and earn USDC. Developers use one OpenAI-compatible API. $MALIBU is the network." />
+  <meta name="description" content="Malibu — Mac owners host open models and earn USDC + $MALIBU. Developers use one OpenAI-compatible API. $MALIBU is the network." />
   <meta property="og:title" content="Malibu · Open AI on real Macs" />
-  <meta property="og:description" content="Open-model inference on Apple Silicon. OpenAI-compatible API, tool calling, signed receipts. Host and earn USDC." />
+  <meta property="og:description" content="Open-model inference on Apple Silicon. OpenAI-compatible API, tool calling, signed receipts. Host and earn USDC + $MALIBU." />
   <title>Malibu · Open AI on real Macs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -93,7 +93,7 @@
         Open-model inference on real Macs. Private, verifiable, cheaper.
       </p>
       <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.55; letter-spacing: -0.005em; color: #FFFBF2; margin: 0 0 28px; max-width: 72ch; text-wrap: balance; text-shadow: 0 2px 14px rgba(12, 58, 69,0.95), 0 1px 6px rgba(12, 58, 69,0.85);">
-        Mac owners host open models on idle Apple Silicon and earn USDC. Developers point Cursor, Cline, or Aider at one API endpoint. $MALIBU is the network — every prompt pays providers, burns supply, and grows the floor.
+        Mac owners host open models on idle Apple Silicon and earn USDC + $MALIBU. Developers point Cursor, Cline, or Aider at one API endpoint. $MALIBU is the network — every prompt pays providers, burns supply, and grows the floor.
       </p>
 
       <form data-hero-chat onsubmit="return false;" style="position: relative; max-width: 720px; background: rgba(20, 58, 69,0.62); border: 1px solid rgba(255, 251, 242,0.18); border-radius: 18px; padding: 6px 6px 6px 18px; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(14px); box-shadow: 0 24px 60px -22px rgba(20, 58, 69,0.7);">
@@ -209,14 +209,19 @@
       <div class="home-compat" aria-label="Compatible tools">
         <span>Cursor</span>
         <span>Cline</span>
+        <span>Codex</span>
         <span>Continue</span>
         <span>Aider</span>
+        <span>Roo Code</span>
         <span>LangChain</span>
       </div>
-      <div class="home-strip-grid" style="margin-top: 28px;">
-        <div class="home-strip-card"><h3>Tool calling</h3><p>Multi-turn agent loops with standardized tool_calls — the primitive coding agents need.</p></div>
+      <div class="home-strip-grid home-strip-grid--3col" style="margin-top: 28px;">
+        <div class="home-strip-card"><h3>Cheaper by design</h3><p>Distributed Apple Silicon undercuts hyperscaler GPU pricing on open models. Pay per token, not per H100-hour.</p></div>
+        <div class="home-strip-card"><h3>Private by architecture</h3><p>No central prompt collector. Requests route to individual providers, not a data-hoarding platform.</p></div>
         <div class="home-strip-card"><h3>Signed receipts</h3><p>Every response carries an Ed25519 receipt you can verify offline with malibu-verify.</p></div>
-        <div class="home-strip-card"><h3>Pay in USDC</h3><p>Credit-based metering. No wallet required to start — GitHub OAuth for API keys.</p></div>
+        <div class="home-strip-card"><h3>Open model catalog</h3><p>Llama, Qwen, DeepSeek, GPT-OSS, and more — one endpoint, no per-provider onboarding.</p></div>
+        <div class="home-strip-card"><h3>Drop-in OpenAI SDK</h3><p>Change base_url, keep your code. Streaming, tool calling, structured output all work.</p></div>
+        <div class="home-strip-card"><h3>Prepaid credits</h3><p>Top up once, no subscription. GitHub OAuth for the API key; no wallet required to start.</p></div>
       </div>
       <div class="home-strip-actions">
         <a href="https://malibu.tech/docs/guides/openai-sdk" class="home-btn home-btn-primary">OpenAI SDK guide →</a>
@@ -230,11 +235,14 @@
     <div class="home-strip-inner">
       <div class="home-strip-eyebrow">For Mac owners</div>
       <h2>Your Mac already has the hardware.</h2>
-      <p class="home-strip-lead">Download Malibu for macOS, click Launch Provider, and your Apple Silicon Mac joins the pool. Malibu picks the right open model for your memory tier, serves when you're idle, and pays you in USDC.</p>
-      <div class="home-strip-grid">
-        <div class="home-strip-card"><h3>70¢ of every dollar</h3><p>Goes to the Mac that ran the prompt — settled in USDC on a weekly cadence.</p></div>
+      <p class="home-strip-lead">Download Malibu for macOS, click Launch Provider, and your Apple Silicon Mac joins the pool. Malibu picks the right open model for your memory tier, serves when you're idle, and pays you in USDC + $MALIBU.</p>
+      <div class="home-strip-grid home-strip-grid--3col">
+        <div class="home-strip-card"><h3>Paid in USDC + $MALIBU</h3><p>Every served prompt credits USDC and $MALIBU in real time. Payouts settle to your wallet weekly.</p></div>
+        <div class="home-strip-card"><h3>Runs on pennies</h3><p>Apple Silicon draws 20–40W under inference load. Passive income, not a power bill.</p></div>
         <div class="home-strip-card"><h3>Your Mac stays yours</h3><p>Cooperative scheduling — serving interrupts for milliseconds. No datacenter, no rack.</p></div>
-        <div class="home-strip-card"><h3>One-click install</h3><p>Signed, notarized .pkg for macOS 14+. M1–M4, 16 GB minimum.</p></div>
+        <div class="home-strip-card"><h3>Zero configuration</h3><p>Malibu picks the right open model for your memory tier at install time. No tuning.</p></div>
+        <div class="home-strip-card"><h3>Early providers earn 5×</h3><p>The first 90 days mint 5× more $MALIBU per prompt served. Multiplier tapers over 4 years.</p></div>
+        <div class="home-strip-card"><h3>Pause anytime</h3><p>Toggle serving on when idle, off when you're working. No commitment, no schedule.</p></div>
       </div>
       <div class="home-strip-actions">
         <a href="/host/" class="home-btn home-btn-primary">Download for Mac →</a>
@@ -248,12 +256,14 @@
     <div class="home-strip-inner">
       <div class="home-strip-eyebrow">Models &amp; pricing</div>
       <h2>Frontier open models, <span style="white-space: nowrap;">MLX-native</span>.</h2>
-      <p class="home-strip-lead">Models are matched to provider hardware at install time. Pricing tracks the OpenRouter frontier — typically 20–40% below hyperscaler rates.</p>
-      <div class="home-models-grid">
-        <div class="home-model-chip"><div class="name">Qwen2.5 Coder 7B</div><div class="meta">Agentic coding · 7B</div></div>
-        <div class="home-model-chip"><div class="name">Qwen3.5 35B</div><div class="meta">General · 35B</div></div>
-        <div class="home-model-chip"><div class="name">Llama 3.3 70B</div><div class="meta">General · 70B</div></div>
-        <div class="home-model-chip"><div class="name">Llama 3.2 3B</div><div class="meta">Fast · 3B</div></div>
+      <p class="home-strip-lead">A curated catalog of the strongest open-weight models — quantized for Apple Silicon, matched to provider hardware at install time. Pricing tracks the OpenRouter frontier — typically 20–40% below hyperscaler rates, no subscription, no seat license.</p>
+      <div class="home-models-grid home-models-grid--3col">
+        <div class="home-model-chip"><div class="name">Qwen3-Coder</div><div class="meta">Agentic coding · Frontier</div></div>
+        <div class="home-model-chip"><div class="name">Qwen2.5 Coder 7B</div><div class="meta">Fast local coding · 7B</div></div>
+        <div class="home-model-chip"><div class="name">Llama 3.3 70B</div><div class="meta">Frontier reasoning · 70B</div></div>
+        <div class="home-model-chip"><div class="name">Qwen3.5 35B</div><div class="meta">Balanced general · 35B</div></div>
+        <div class="home-model-chip"><div class="name">Qwen3-Next-80B</div><div class="meta">Long context · 128k+</div></div>
+        <div class="home-model-chip"><div class="name">Llama 3.2 3B</div><div class="meta">Low latency · 3B</div></div>
       </div>
       <div class="home-strip-actions">
         <a href="https://malibu.tech/docs/operations/model-catalog" class="home-btn home-btn-ghost">Full model catalog →</a>
