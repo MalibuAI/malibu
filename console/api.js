@@ -522,10 +522,7 @@ export async function* chatStream({
   let finishReason = '';
   const toolAcc = {};
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
+  const parseSSEBuffer = function* parseSSEBuffer() {
     let idx;
     while ((idx = buf.indexOf('\n\n')) !== -1) {
       const frame = buf.slice(0, idx);
@@ -554,6 +551,18 @@ export async function* chatStream({
         } catch {}
       }
     }
+  };
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (value) buf += decoder.decode(value, { stream: !done });
+    yield* parseSSEBuffer();
+    if (done) {
+      buf += decoder.decode();
+      if (buf.trim()) buf += '\n\n';
+      yield* parseSSEBuffer();
+      break;
+    }
   }
 
   yield {
@@ -575,11 +584,30 @@ export function formatTokenCount(n) {
   return String(Math.round(num));
 }
 
+function normalizedTotalTokens(usage) {
+  if (!usage) return 0;
+  const total = Number(usage.total_tokens);
+  if (Number.isFinite(total) && total > 0) return total;
+  const prompt = Number(usage.prompt_tokens) || 0;
+  const completion = Number(usage.completion_tokens) || 0;
+  return prompt + completion > 0 ? prompt + completion : 0;
+}
+
+function formatLatency(latencyMs) {
+  const ms = Number(latencyMs);
+  if (!Number.isFinite(ms) || ms <= 0) return '';
+  if (ms >= 10_000) return `${(ms / 1000).toFixed(1).replace(/\.0$/, '')}s`;
+  if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.round(ms)}ms`;
+}
+
 export function formatBillMeta({ usage, meta, latencyMs }) {
   const parts = [];
-  if (usage?.total_tokens) parts.push(`${formatTokenCount(usage.total_tokens)} tokens`);
+  const totalTokens = normalizedTotalTokens(usage);
+  if (totalTokens > 0) parts.push(`${formatTokenCount(totalTokens)} tokens`);
   if (usage?.cached_prompt_tokens) parts.push(`${formatTokenCount(usage.cached_prompt_tokens)} cached`);
-  if (latencyMs) parts.push(`${Math.round(latencyMs)}ms`);
+  const latency = formatLatency(latencyMs);
+  if (latency) parts.push(latency);
   if (meta?.settlement) parts.push(meta.settlement);
   else if (meta?.receipt) parts.push('verified');
   if (meta?.provider) parts.push(meta.provider);
