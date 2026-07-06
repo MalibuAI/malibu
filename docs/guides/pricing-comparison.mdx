@@ -1,0 +1,75 @@
+---
+title: Pricing comparison
+description: How to validate Malibu's 20–40% savings claim against the live rate card and your workload.
+---
+
+# Pricing comparison
+
+> Methodology for the buyer savings claim in the [Litepaper](/litepaper). **Last reviewed:** July 2026.
+
+The Litepaper targets **20–40% lower cost** vs hyperscaler pricing on comparable open-source workloads. This page explains how to verify that claim — and where it does not apply.
+
+## Live Malibu pricing
+
+Malibu bills in **credits**; credits convert to USDC at payout/settlement time. The live rate card is authoritative:
+
+```
+GET https://api.malibu.tech/v1/rate-card
+```
+
+Default rates (when no model-specific override applies):
+
+| Token type | Credits per 1M tokens | USD equivalent* |
+| --- | --- | --- |
+| Prompt | 500,000 | $0.50 / M |
+| Completion | 1,000,000 | $1.00 / M |
+
+\*Assumes `usd_per_million_credits = 1` (default in rate card). Confirm on the live endpoint — the operator may change this field.
+
+Provider share (90%) affects **provider payout**, not buyer price. Buyers pay gross credits before the split.
+
+Full formula: [Metering & billing](/network/metering-and-billing).
+
+## How to run a fair comparison
+
+1. **Pick a fixed workload** — same model family, similar context length, same prompt/completion token mix. Malibu serves OSS weights; compare against OSS or equivalent-tier closed API pricing, not flagship-only SKUs.
+2. **Snapshot Malibu rates** — download `/v1/rate-card` and record `effective_at` or capture date.
+3. **Snapshot anchor pricing** — record hyperscaler or aggregator list price with date and region. Malibu does not maintain a third-party price feed; you own the anchor snapshot.
+4. **Include cache effects** — sticky conversations report `cached_prompt_tokens` at the lower cache-hit rate. Hyperscaler prompt-cache discounts differ; compare with and without prefix reuse if your agent replays context.
+5. **Exclude non-comparable SKUs** — frontier closed models without OSS equivalents are out of scope for "same workload" claims.
+
+## Worked example (illustrative)
+
+Assume a workload of **1M prompt + 500K completion tokens** at default Malibu rates and `usd_per_million_credits = 1`:
+
+```
+promptCost      = 1.0 × 500,000 / 1,000,000 = $0.50
+completionCost  = 0.5 × 1,000,000 / 1,000,000 = $0.50
+buyerTotal      = $1.00 gross
+```
+
+Compare `$1.00` to your anchor's all-in price for the same token mix. A **25% savings** vs a `$1.33` anchor falls inside the Litepaper's 20–40% band.
+
+<Warning>
+  This example uses default rates only. Model-specific overrides, global multipliers, and live `usd_per_million_credits` may differ. Always use the live rate card for quotes.
+</Warning>
+
+## When the 20–40% claim may not hold
+
+- **Low-volume or bursty traffic** — minimum payouts and quota mechanics don't affect buyers the same way, but your effective $/token can shift at small scale.
+- **Frontier models without warm pool hardware** — catalog entries for very large models (e.g. 120B+) require matching provider RAM; if the pool is cold, compare availability separately from price.
+- **Latency-sensitive workloads** — consumer Mac routing may trade cost for tail latency vs dedicated GPU clusters.
+- **Private / compliance requirements** — Malibu is cooperative-trust, not confidential compute. The comparison is economic, not security-equivalent.
+
+## Malibu-maintained snapshot policy
+
+Malibu will publish dated rate-card snapshots on this page when a formal comparison table is added. Until then:
+
+- **Buyers:** use live `/v1/rate-card` + your anchor snapshot.
+- **Docs reviewers:** the Litepaper links here instead of asserting a fixed savings percentage without evidence.
+
+## Related
+
+- [Provider economics](/guides/provider-economics) — provider-side earnings (different from buyer price)
+- [Payments & payouts](/guides/payments) — credit → USDC settlement
+- [Network status](/status) — what's live in billing today

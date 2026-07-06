@@ -9,7 +9,7 @@ description: The world's biggest AI cloud already exists. Malibu turns it on.
 
 ## The premise
 
-Two hundred million Apple Silicon Macs have shipped since 2020. Together they represent the world's largest idle AI compute network. Each machine delivers roughly ten times the per-watt efficiency of an RTX 5090 on **Proof-of-Model-Walk memory-hard weight walks** (Phase 1 benchmark, M5 Air, July 2026 — not inference TPS). Almost all of them are idle twenty hours a day.
+Two hundred million Apple Silicon Macs have shipped since 2020 ([methodology](/network/benchmarks-and-methodology#market-sizing-claims)). Together they represent the world's largest idle AI compute network. Each machine delivers roughly ten times the per-watt efficiency of an RTX 5090 on **Proof-of-Model-Walk memory-hard weight walks** ([Phase 1 benchmark, M5 Air, July 2026](/network/benchmarks-and-methodology#pomw-phase-1-benchmark-m5-air) — not inference TPS). Fleet idle-time figures are planning assumptions, not audited telemetry — see [Benchmarks & methodology](/network/benchmarks-and-methodology).
 
 Malibu turns every Apple Silicon Mac into part of the world's largest AI cloud. Every Mac is a potential provider. Every provider earns from day one. Every dollar of buyer revenue is protocol-converted into demand for the network's asset. **Malibu doesn't build new AI infrastructure. It activates the infrastructure already sitting on millions of desks.**
 
@@ -59,7 +59,7 @@ Malibu is a **live coordinated inference network** today — distributed Apple S
 
 ### Token protocol — Planned
 
-- **PoMW mining substrate.** The Metal port of Proof-of-Model-Walk is public and reproducible on any Apple Silicon Mac shipped since 2020. Two hundred verification vectors passed byte-exact against a Rust reference on real Qwen3-1.7B GGUF weights. Phase 1 benchmarks on an M5 Air: 2.14 million walks per second sustained at 4.7 watts on the walk workload.
+- **PoMW mining substrate.** The Metal port of Proof-of-Model-Walk is public and reproducible on any Apple Silicon Mac shipped since 2020. Two hundred verification vectors passed byte-exact against a Rust reference on real Qwen3-1.7B GGUF weights. Phase 1 benchmarks on an M5 Air: [2.14 million walks per second at 4.7 watts](/network/benchmarks-and-methodology#pomw-phase-1-benchmark-m5-air) on the walk workload.
 - **v0 mining launch:** on-chain emission, burn-and-mint fee split, and token-native settlement mechanics.
 - **v1 marketplace:** TOPLOC per-request verification (Prime Intellect lineage) on buyer-paid inference.
 
@@ -73,14 +73,14 @@ Your Mac is no longer just a laptop. It's an income-producing asset — not a ho
 
 A Mac Studio Ultra can serve the largest open-source models in the world — Qwen3-235B, Qwen3-Next-80B, gpt-oss-120b. Apple Silicon's unified-memory architecture is uniquely positioned to run frontier open-source models from consumer hardware.
 
-Under Year-5 base-case assumptions (illustrative — see whitepaper for model inputs):
+Under Year-5 base-case assumptions (**illustrative, not guaranteed** — see [Provider economics](/guides/provider-economics)):
 
 - **Mac Studio Ultra:** roughly **$10,000 to $13,000 per year** at $MALIBU = $2. Around $25,000+ at $5. Hardware payback in **under twelve months**. Even at a bearish $0.50, payback is under twenty-four.
 - **M4 Max:** roughly **$5,100 per year** at $2. Around $12,000 at $5. Payback in **under a year**.
 - **M4 Pro:** roughly **$3,400 per year** at $2.
 - **Air:** roughly **$1,050 per year** at $2.
 
-Everything after payback is compound income on hardware you were going to buy anyway. Fanless Macs throttle under sustained load — apply a duty-cycle discount in real-world planning.
+Everything after payback is compound income on hardware you were going to buy anyway. Fanless Macs throttle under sustained load — apply a duty-cycle discount ([Provider economics](/guides/provider-economics#hardware-reality-checks)).
 
 Cooperative scheduling keeps the Mac yours. Mining runs in the background; serving interrupts for milliseconds at a time. It's just also, quietly, an inference-as-a-service business.
 
@@ -88,16 +88,16 @@ Cooperative scheduling keeps the Mac yours. Mining runs in the background; servi
 
 ## What buyers get
 
-Companies are massively overpaying for AI inference. Malibu targets **20 to 40 percent** savings vs hyperscaler pricing on comparable OSS workloads — verify against the live [rate card](https://api.malibu.tech/v1/rate-card). Every response carries a **signed receipt** you can verify offline.
+Companies are massively overpaying for AI inference. Malibu targets **20 to 40 percent** savings vs hyperscaler pricing on comparable OSS workloads — [methodology and how to verify](/guides/pricing-comparison) against the live [rate card](https://api.malibu.tech/v1/rate-card). Every response carries a **signed receipt** you can verify offline.
 
-The catalog is the OSS frontier: gpt-oss-20b, gpt-oss-120b, Gemma 4 26B A4B, Nemotron, Qwen3 families, Qwen3-Coder — available when pool hardware is warm. Settled in USDC on Base via drop-in OpenAI-compatible endpoints.
+The catalog is the OSS frontier: gpt-oss-20b, gpt-oss-120b, Gemma 4 26B A4B, Nemotron, Qwen3 families, Qwen3-Coder — **available when pool hardware is warm** ([Model catalog](/operations/model-catalog)). Settled in USDC on Base via drop-in OpenAI-compatible endpoints.
 
 Why buyers switch:
 
 - **Cheaper.** Consumer-hardware inference at a fraction of hyperscaler cost.
-- **Receipt-verified.** Signed binding of `(prompt, output, model, provider)`. Per-request forward-pass attestation via TOPLOC ships at v1.
+- **Receipt-verified.** Signed binding of `(prompt, output, model, provider)`. Per-request forward-pass attestation via [TOPLOC](/network/toploc) ships at v1 — not live on buyer traffic today.
 - **OSS-native.** Best model per task. No vendor deprecating your API next quarter.
-- **Cooperative trust.** Not confidential compute — prompts route through providers as plaintext. See [Security & trust model](/network/security).
+- **Cooperative trust.** Not confidential compute — prompts route through providers as plaintext. See [Security & trust model](/network/security) and [Threat model](/network/threat-model).
 - **No lock-in.** Open protocol on Base. Change providers without changing code.
 
 **Malibu is designed to be adopted without changing anything on the buyer side except the endpoint.**

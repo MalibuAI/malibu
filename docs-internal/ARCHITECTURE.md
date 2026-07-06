@@ -226,33 +226,36 @@ API field additions, receipt version bumps, docs semantic changes. Mirror `Depre
 
 ### Phase A — Credibility without demotion (1–2 weeks)
 
-- [ ] Add status chips + Reality check strip to published Litepaper
-- [ ] Fix privacy and verification copy in Litepaper; link Security page
-- [ ] Split 90% vs 70% economics on Litepaper with today vs launch labels
-- [ ] Publish `/docs/status` (minimal ledger)
-- [ ] Align terminology: coordinated network, TOPLOC lineage
+- [x] Add status chips + Reality check strip to published Litepaper
+- [x] Fix privacy and verification copy in Litepaper; link Security page
+- [x] Split 90% vs 70% economics on Litepaper with today vs launch labels
+- [x] Publish `/docs/status` (minimal ledger)
+- [x] Align terminology: coordinated network, TOPLOC lineage
 
 ### Phase B — Evidence supports the story (2–4 weeks)
 
-- [ ] Benchmarks & methodology page (PoMW vs inference, footnoted)
-- [ ] Pricing comparison page (rate card vs anchors, dated)
-- [ ] Provider economics appendix (assumptions, duty cycle, token scenarios)
-- [ ] Threat model page under Network & trust
-- [ ] TOPLOC integration page (`Planned v1` until live)
+- [x] Benchmarks & methodology page (PoMW vs inference, footnoted)
+- [x] Pricing comparison page (rate card vs anchors, dated)
+- [x] Provider economics appendix (assumptions, duty cycle, token scenarios)
+- [x] Threat model page under Network & trust
+- [x] TOPLOC integration page (`Planned v1` until live)
+- [x] Network stats observability note on status page (503 / degraded state)
 
 ### Phase C — IA polish (4–6 weeks)
 
-- [ ] Confirm `/docs` default remains Litepaper
-- [ ] Sidebar restructure per navigation spec above
-- [ ] CI or manual check: repo `whitepaper/litepaper.md` ↔ published litepaper drift
-- [ ] Changelog + roadmap pages
+- [x] Confirm `/docs` default remains Litepaper
+- [x] Sidebar restructure per navigation spec above
+- [ ] CI or manual check: repo `whitepaper/litepaper.md` ↔ published litepaper drift (no separate `whitepaper/litepaper.md`; use `docs/litepaper.mdx` as source + `validate-docs-claims.mjs`)
+- [x] Changelog + roadmap pages
+- [x] Glossary page
 
 ### Phase D — Voice governance (ongoing)
 
-- [ ] No superlative without falsifiable test
-- [ ] No live/planned merge without status chip
-- [ ] Security page wins on trust boundaries
-- [ ] New features: reference page first, then Litepaper bullet with chip
+- [x] CI check: Litepaper links evidence pages (`npm run docs:validate`)
+- [ ] No superlative without falsifiable test (manual review)
+- [x] No live/planned merge without status chip (Litepaper + status)
+- [x] Security page wins on trust boundaries
+- [ ] New features: reference page first, then Litepaper bullet with chip (process)
 
 ---
 
@@ -273,7 +276,7 @@ API field additions, receipt version bumps, docs semantic changes. Mirror `Depre
 
 | Doc | Scope |
 |-----|-------|
-| [`whitepaper/litepaper.md`](../whitepaper/litepaper.md) | Narrative source draft |
+| [`docs/litepaper.mdx`](../docs/litepaper.mdx) | Published narrative (Mintlify source) |
 | [`roadmap.md`](../roadmap.md) | Console product roadmap (buyer UI) |
 | [`mining-prototype-phase1-results.md`](../mining-prototype-phase1-results.md) | PoMW benchmark evidence |
 | [`whitepaper/research/`](../whitepaper/research/) | Research, critiques, threat-model briefs |

@@ -1,0 +1,141 @@
+---
+title: Threat model
+description: Adversary catalog and residual risks for the Malibu coordinated inference network.
+---
+
+# Threat model
+
+> Who can cheat, what breaks, and what cryptography actually bounds. **Last reviewed:** July 2026.
+
+This page complements [Security & trust model](/network/security) with an adversary-oriented view. It is the canonical place for "what could go wrong" — the Litepaper stays narrative; this page stays falsifiable.
+
+## Trust boundaries (summary)
+
+| Participant | Sees | Cryptographic bound |
+| --- | --- | --- |
+| Buyer | Prompts/responses via gateway | Receipt signature over `(prompt, output, model, provider)` |
+| Provider | Plaintext prompts on their Mac | Signs receipts with Ed25519 key |
+| Coordinator | Plaintext for routing/billing | Resolves pubkey; settlement verdicts |
+| Verifier (`malibu-verify`) | Receipt + optional `--pubkey` | Offline signature + catalog `model_hash` check |
+
+**Not in scope today:** confidential compute, hardware attestation, forward-pass honesty (TOPLOC at v1).
+
+## Adversary catalog
+
+### A1 — Lazy or offline provider
+
+**Goal:** Collect routing weight without serving quality responses.
+
+**Mechanism:** Accept requests, return garbage or timeout; omit or delay receipts.
+
+**Mitigations (live):**
+
+- Receipt deadline — late receipts are non-settling ([Verified model settlement](/operations/verified-model-settlement))
+- Fault breaker — missing/invalid receipts → zero provider credits
+- Provisional vs pinned tiers — new providers start with lower weight ([Reputation](/network/reputation))
+
+**Residual risk:** Buyer wastes latency before fault detection; no automatic quality SLA beyond settlement.
+
+### A2 — Receipt log-forger (wrong key)
+
+**Goal:** Forge receipts without holding the provider signing key.
+
+**Mechanism:** Re-sign tuples with attacker key or replay old receipts.
+
+**Mitigations (live):**
+
+- Ed25519 verification against coordinator-resolved or explicit `--pubkey`
+- Catalog-anchored `model_hash` in v0.3 tuple
+
+**Residual risk:** Compromised provider key allows valid-looking receipts until rotation. Coordinator compromise shifts default trust root — use `--pubkey` offline.
+
+### A3 — Model swap (honest hash, dishonest compute)
+
+**Goal:** Serve from different weights or shortcut computation while advertising catalog model.
+
+**Mechanism:** Load catalog weights for hash check but run a cheaper approximation; or serve model A while signing hash for model B if implementation bug.
+
+**Mitigations (live):**
+
+- Receipt binds `model_hash` to catalog entry — swap off-catalog fails verification
+- Settlement faults on hash mismatch
+
+**Mitigations (planned v1):**
+
+- [TOPLOC](/network/toploc) forward-pass attestation on buyer completions
+
+**Residual risk:** **Live receipts do not prove forward-pass fidelity.** A malicious provider with correct weights could still cheat computation until TOPLOC ships.
+
+### A4 — Mine-M, serve-M′ (mining vs serving divergence)
+
+**Goal:** Mine on cheap substrate; serve buyers from different hardware or model.
+
+**Mechanism:** PoMW walk on one weight file; inference from another process or machine.
+
+**Mitigations (planned):**
+
+- PoMW walk hashes same canonical GGUF as inference catalog
+- Cooperative scheduler design: mining state ≈ serving state at v1
+- TOPLOC ties served output to attested forward pass
+
+**Residual risk:** **Prototype PoMW does not enforce runtime equivalence today.** Threat is documented; protocol integration pending v0/v1.
+
+### A5 — Coordinator / gateway compromise
+
+**Goal:** Mis-route traffic, alter billing, substitute pubkeys.
+
+**Mechanism:** Attacker controls `coordinator.malibu.tech` or gateway TLS termination.
+
+**Mitigations:**
+
+- Buyers can verify receipts offline with `--pubkey`, bypassing live key resolution
+- Signed static catalog feed for model hashes
+- Self-hosted coordinator on roadmap for trust-sensitive buyers
+
+**Residual risk:** Online routing and billing remain coordinator-trusted until decentralization milestones (v2).
+
+### A6 — Buyer tool-call injection
+
+**Goal:** Trick agent runtime into executing model-suggested tools.
+
+**Mechanism:** Model emits malicious `tool_calls[]`; buyer executes without validation.
+
+**Mitigations:**
+
+- Documented buyer obligation — [Buyer-side validation](/agentic/buyer-side-validation)
+- Receipt proves model **output**, not safe intent
+
+**Residual risk:** Out of band for Malibu transport — buyer framework must enforce policy.
+
+### A7 — Privacy expectation mismatch
+
+**Goal:** (Buyer mistake) Assume prompts are private.
+
+**Mechanism:** Misread marketing copy; prompts traverse gateway + provider as plaintext.
+
+**Mitigations:**
+
+- Security page + Introduction state cooperative-trust boundary explicitly
+- Litepaper uses "Cooperative trust" not "Private"
+
+**Residual risk:** Enterprise buyers needing confidential compute must not use Malibu as-is.
+
+## Verification primitive matrix
+
+| Primitive | Status | Stops | Does not stop |
+| --- | --- | --- | --- |
+| Signed receipt v0.3 | **Live** | Unsigned/forged tuple without key; off-catalog hash | Dishonest forward pass |
+| Verified settlement | **Live** | Credit for bad/missing receipts | Buyer latency damage |
+| PoMW walk | **Prototype** | Nothing in production path yet | Inference equivalence |
+| TOPLOC | **Planned v1** | Served-output attestation (design target) | Pre-buyer fleet readiness |
+
+## Reporting
+
+Security-sensitive findings: GitHub private vulnerability reporting on the relevant repository. Do not attach private prompts, API keys, or receipt bundles to public issues.
+
+## Related
+
+- [Security & trust model](/network/security) — precise receipt semantics
+- [Benchmarks & methodology](/network/benchmarks-and-methodology) — PoMW scope
+- [TOPLOC integration](/network/toploc) — v1 verification design
+- [Glossary](/network/glossary) — term definitions

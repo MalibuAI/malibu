@@ -1,0 +1,81 @@
+---
+title: Benchmarks & methodology
+description: How Malibu measures PoMW mining performance — and what those numbers do not claim about inference.
+---
+
+# Benchmarks & methodology
+
+> Evidence behind hardware and mining claims in the [Litepaper](/litepaper). **Last reviewed:** July 2026.
+
+Malibu publishes two different performance stories. They must not be conflated:
+
+| Workload | What it measures | Where it is used |
+| --- | --- | --- |
+| **PoMW memory-hard walk** | 256-step walk over canonical GGUF weights on Metal | Mining readiness, token emission (planned v0) |
+| **Inference serving** | Tokens/sec on buyer chat completions | Marketplace economics (live today) |
+
+A strong PoMW walk result does **not** automatically imply the same per-watt advantage on inference TPS. This page scopes the published PoMW numbers.
+
+## PoMW Phase 1 benchmark (M5 Air)
+
+Source: internal Phase 1 Metal port report (`mining-prototype-phase1.md` spec; results captured July 2026 on an **M5 Air**).
+
+| Metric | Result | Notes |
+| --- | --- | --- |
+| Walk throughput | **2.14M walks/s** sustained | 256-step memory-hard walk over Qwen3-1.7B GGUF weights |
+| Power draw | **4.7 W** | Sampled during sustained walk harness |
+| Determinism | **200 vectors** byte-exact | Metal output matched Rust CPU reference |
+| Model | Qwen3-1.7B (GGUF) | Same weight file family used for walk verification |
+
+### What this proves
+
+- The PoMW algorithm runs correctly and efficiently on Apple Silicon Metal.
+- The walk is memory-substrate bound — the workload Malibu targets for mining readiness.
+- Byte-exact determinism against a reference implementation is reproducible.
+
+### What this does **not** prove
+
+- Inference tokens/sec on buyer workloads.
+- That every Mac tier sustains the same thermal profile (fanless Air throttles under long runs).
+- Cross-hardware superiority on workloads other than this specific walk.
+
+## 10× per-watt vs RTX 5090 (scoped claim)
+
+The Litepaper cites roughly **10× better per-watt efficiency vs an RTX 5090** on **PoMW memory-hard weight walks only** — not on inference TPS.
+
+| Dimension | PoMW walk (M5 Air) | RTX 5090 comparison |
+| --- | --- | --- |
+| Workload | 256-step weight walk | Same algorithm class, different substrate |
+| Metric | walks/s ÷ watts | Directional context only |
+| Inference | **Not measured here** | **Not measured here** |
+
+**Methodology note:** GPU numbers use the same walk algorithm ported to the comparison substrate where available. This is a **mining-substrate** comparison, not a buyer inference benchmark. Do not extrapolate to chat-completion pricing or latency.
+
+## Inference benchmarks (not yet published)
+
+Malibu does **not** yet publish a cross-tier inference TPS table on `/docs`. Buyer value claims (latency, throughput, cost) should be validated against:
+
+- Live [`GET /v1/rate-card`](https://api.malibu.tech/v1/rate-card) for current pricing
+- Your workload on `api.malibu.tech/v1` with pinned providers when reproducibility matters
+
+When inference benchmarks ship, they will appear on this page with hardware tier, model, context length, and date.
+
+## Market sizing claims
+
+| Claim | Source | Status |
+| --- | --- | --- |
+| ~200M Apple Silicon Macs shipped since 2020 | Industry shipment estimates (Apple Silicon transition starting M1, Nov 2020) | Directional; exact count varies by analyst |
+| "Idle ~20 hours/day" | Operator planning assumption | **Not independently measured** — illustrative fleet model |
+| "4% utilization" | Operator planning assumption | **Not independently measured** — illustrative fleet model |
+
+Treat fleet-utilization numbers as **planning inputs**, not audited network telemetry.
+
+## Reproduce PoMW results
+
+The Phase 1 spec lives in [`mining-prototype-phase1.md`](https://github.com/MalibuAI/malibu/blob/main/mining-prototype-phase1.md). When the public miner probe repository ships, rerun the benchmark harness on your Mac class and compare against the M5 Air baseline above.
+
+## Related
+
+- [Threat model](/network/threat-model) — adversaries including mine-M, serve-M′
+- [TOPLOC integration](/network/toploc) — planned v1 buyer-response verification
+- [Network status](/status) — PoMW prototype vs integration status

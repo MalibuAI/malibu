@@ -5,12 +5,14 @@ on:
     paths:
       - "docs/**"
       - "scripts/build-docs.mjs"
+      - "scripts/validate-docs-claims.mjs"
       - "package.json"
   push:
     branches: [main]
     paths:
       - "docs/**"
       - "scripts/build-docs.mjs"
+      - "scripts/validate-docs-claims.mjs"
       - "package.json"
 
 jobs:
@@ -24,6 +26,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run docs:build
+      - run: npm run docs:validate
       - run: cd docs && npx --yes mintlify@latest broken-links
       - name: Verify exported status page exists
         run: test -f dist/docs/status/index.html
+      - name: Verify llms.txt includes evidence pages
+        run: rg -q "Benchmarks & methodology" dist/docs/llms.txt

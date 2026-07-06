@@ -69,7 +69,11 @@
         "pages": [
           "network/overview",
           "network/security",
+          "network/threat-model",
           "network/receipts",
+          "network/toploc",
+          "network/benchmarks-and-methodology",
+          "network/glossary",
           "network/metering-and-billing",
           "network/discovery-and-routing",
           "network/transport",
@@ -84,6 +88,8 @@
           "guides/sticky-conversations",
           "guides/pinning",
           "guides/payments",
+          "guides/pricing-comparison",
+          "guides/provider-economics",
           "guides/tool-calling-and-structured-output"
         ]
       },

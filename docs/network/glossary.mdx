@@ -1,0 +1,62 @@
+---
+title: Glossary
+description: Terms used across Malibu docs — PoMW, TOPLOC, receipts, settlement, and pool tiers.
+---
+
+# Glossary
+
+> Shared vocabulary across the [Litepaper](/litepaper), reference docs, and [Network status](/status).
+
+## Protocol & verification
+
+| Term | Definition |
+| --- | --- |
+| **PoMW** (Proof-of-Model-Walk) | Memory-hard 256-step walk over canonical model weights. Mining readiness substrate (planned v0). Not inference TPS. |
+| **TOPLOC** | Per-request forward-pass attestation (Prime Intellect, 2025). **Planned v1** on Malibu buyer traffic. |
+| **Receipt (v0.3)** | Nine-field Ed25519-signed tuple binding `(prompt, output, model, provider, timestamp)`. **Live.** |
+| **`malibu-verify`** | Open-source CLI that verdicts receipts `valid` / `invalid` / `inconclusive`. |
+
+## Network roles
+
+| Term | Definition |
+| --- | --- |
+| **Coordinator** | Routes requests, maintains billing ledger, resolves receipt pubkeys. Centralized today. |
+| **Gateway** | Buyer-facing OpenAI-compatible API (`api.malibu.tech/v1`). |
+| **Provider** | Apple Silicon Mac serving MLX models over outbound WebSocket. |
+| **Coordinated inference network** | Distributed providers + centralized routing/billing. Not buyer↔provider direct P2P. |
+
+## Economics
+
+| Term | Definition |
+| --- | --- |
+| **Credits** | Internal billing unit; convert to USDC via `usd_per_million_credits` on rate card. |
+| **Gross credits** | Buyer-charged credits before provider/operator split. |
+| **Provider share (live)** | Default **90%** of gross credits to provider; 10% operator. |
+| **Flywheel split (planned)** | **70% / 12% / 18%** provider / reserves / buy-and-burn at token launch. |
+| **BME** | Burn-and-mint economics — planned token launch fee routing. |
+
+## Pool & ops
+
+| Term | Definition |
+| --- | --- |
+| **Provisional tier** | New provider; lower routing weight until promoted. |
+| **Pinned tier** | Reviewed provider; higher routing priority. |
+| **Warm model** | Provider has model loaded and advertises ready in pool. |
+| **Sticky conversation** | `conversation_id` routes repeat turns to same provider for prefix-cache reuse. |
+| **Fault breaker** | Settlement path that zeros credits on missing/invalid receipts. |
+
+## Status labels (docs)
+
+| Label | Meaning |
+| --- | --- |
+| **Live** | Running in production today |
+| **Beta** | Shipped but limited / operator-gated |
+| **Planned v0** | Token / mining launch milestone |
+| **Planned v1** | Buyer marketplace / TOPLOC milestone |
+| **Prototype** | Research code public; not production-integrated |
+
+## Related
+
+- [Network status](/status) — live vs planned ledger
+- [Security & trust model](/network/security) — trust boundaries
+- [Documentation architecture](https://github.com/MalibuAI/malibu/blob/main/docs-internal/ARCHITECTURE.md) — docs lane rules (repo)

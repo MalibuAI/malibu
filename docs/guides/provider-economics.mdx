@@ -1,0 +1,76 @@
+---
+title: Provider economics
+description: Assumptions behind provider earnings projections — illustrative, not guaranteed.
+---
+
+# Provider economics
+
+> Assumptions behind earnings tables in the [Litepaper](/litepaper). **Last reviewed:** July 2026.
+
+The Litepaper quotes annual earnings ranges (e.g. Mac Studio Ultra **$10,000–$13,000/year** at $MALIBU = $2). Those numbers are **illustrative scenarios** from tokenomics modeling — not live marketplace payouts and not guarantees.
+
+<Warning>
+  **Illustrative, not guaranteed.** Actual earnings depend on buyer demand, uptime, model tier, thermal limits, token price, and whether you are on marketplace credits (live) vs token emission (planned v0).
+</Warning>
+
+## Two income regimes
+
+| Regime | Status | What providers earn |
+| --- | --- | --- |
+| **Marketplace credits** | **Live** | 90% of gross credits on billed inference; weekly USDC on Base |
+| **Token emission + flywheel** | **Planned v0/v1** | PoMW mining rewards + 70% of buyer USDC at token launch |
+
+Never mix the two in one planning spreadsheet without labeling the regime.
+
+## Live marketplace economics (today)
+
+Source: [Payments & payouts](/guides/payments), [Metering & billing](/network/metering-and-billing).
+
+```
+providerCredits = grossCredits × 90%
+```
+
+Earnings scale with:
+
+- Requests routed to your Mac (pool size, tier, uptime)
+- Model served (rate card per model)
+- Fault rate (invalid/missing receipts → zero credits)
+
+There is **no** public fixed "$X/year per Mac tier" on the live rail — compute from your served volume using `/providers/{id}/earnings`.
+
+## Token-scenario tables (Litepaper)
+
+The Litepaper Year-5 base-case table assumes:
+
+| Input | Assumption |
+| --- | --- |
+| Token price | $0.50 / $2 / $5 scenario columns |
+| Hardware | Mac Studio Ultra, M4 Max, M4 Pro, Air |
+| Utilization | Modeled fleet duty cycle from whitepaper inputs |
+| Demand | Buyer marketplace active at v1 scale |
+
+These projections **require** token launch, emission curve, and buyer demand not guaranteed today.
+
+## Hardware reality checks
+
+From Phase 1 mining research (`mining-prototype-phase1.md`):
+
+- **Fanless Air** may sustain ~**76%** of peak hashrate over 30 minutes — apply a duty-cycle discount for 24/7 planning.
+- **Mining at full throttle** can be hostile to daily interactive use; cooperative scheduling yields to buyer requests (~50 ms at v1 design target).
+- **Unified memory** caps which catalog models a tier can warm; serving Qwen3-235B requires Studio Ultra-class RAM.
+
+## Sensitivity checklist
+
+Before treating any annual number as a forecast, stress-test:
+
+1. **Uptime** — lid-close sleep drops WebSocket; see [Payments → provisional vs pinned](/guides/payments#provisional-vs-pinned).
+2. **Pool competition** — more providers → shared demand unless buyer volume grows proportionally.
+3. **Token price** — emission income is highly sensitive; marketplace USDC income is not (today).
+4. **Thermal / duty cycle** — sustained load ≠ burst benchmark peak.
+5. **Receipt quality** — faults zero credits; see [Verified model settlement](/operations/verified-model-settlement).
+
+## Related
+
+- [Pricing comparison](/guides/pricing-comparison) — buyer-side rates (not the same as provider net)
+- [Benchmarks & methodology](/network/benchmarks-and-methodology) — PoMW vs inference scope
+- [Network status](/status) — live vs planned payout rails

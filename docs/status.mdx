@@ -58,8 +58,23 @@ Full trust boundaries: [Security & trust model](/network/security).
 
 | Endpoint | Status |
 | --- | --- |
-| `GET /v1/network-stats` | Live when coordinator healthy |
+| `GET /v1/network-stats` | Live when coordinator healthy — pool size, throughput, receipt validity |
 | Pool dashboard | `console.malibu.tech` |
+
+When `/v1/network-stats` returns non-200, treat pool-size claims in narrative copy as unverified until the endpoint recovers. Snapshot methodology: [Network stats](/operations/network-stats).
+
+## Evidence pages (claim validation)
+
+Quantitative and trust claims in the Litepaper link to falsifiable reference pages:
+
+| Topic | Page |
+| --- | --- |
+| PoMW / 10× / market sizing | [Benchmarks & methodology](/network/benchmarks-and-methodology) |
+| 20–40% buyer savings | [Pricing comparison](/guides/pricing-comparison) |
+| Provider earnings tables | [Provider economics](/guides/provider-economics) |
+| Adversaries & residual risk | [Threat model](/network/threat-model) |
+| TOPLOC (v1) | [TOPLOC integration](/network/toploc) |
+| Terms | [Glossary](/network/glossary) |
 
 ## Related
 

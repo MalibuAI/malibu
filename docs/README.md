@@ -46,3 +46,4 @@ See [docs-internal/ARCHITECTURE.md](../docs-internal/ARCHITECTURE.md):
 - **Network status** is the shipped-features ledger.
 - Reference pages (API, network, guides) are source of truth for integrators.
 - When narrative and reference disagree, fix the Litepaper or add a status label — do not weaken reference pages.
+- Run `npm run docs:validate` before merging Litepaper changes — ensures evidence cross-links stay wired.

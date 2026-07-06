@@ -64,4 +64,42 @@ function walk(dir) {
 
 console.log('Rewriting exported paths for /docs hosting...');
 walk(distDocs);
+
+const llmsPath = join(distDocs, 'llms.txt');
+const llmsEntries = [
+  '# Malibu Docs',
+  '',
+  '## Narrative',
+  '- [Litepaper](/docs/litepaper): Why Malibu exists — vision with live/planned labels',
+  '',
+  '## Ledger',
+  '- [Network status](/docs/status): Shipped vs planned ledger',
+  '- [Roadmap](/docs/roadmap): Protocol milestones',
+  '- [Changelog](/docs/changelog): API and docs changes',
+  '',
+  '## Evidence (claim validation)',
+  '- [Benchmarks & methodology](/docs/network/benchmarks-and-methodology): PoMW evidence scope',
+  '- [Pricing comparison](/docs/guides/pricing-comparison): Buyer savings methodology',
+  '- [Provider economics](/docs/guides/provider-economics): Earnings assumptions',
+  '- [Threat model](/docs/network/threat-model): Adversary catalog',
+  '- [TOPLOC integration](/docs/network/toploc): Planned v1 verification',
+  '- [Glossary](/docs/network/glossary): Term definitions',
+  '',
+  '## Reference',
+  '- [Getting started](/docs/getting-started/introduction)',
+  '- [Security & trust model](/docs/network/security)',
+  '- [API reference](/docs/api/chat-completions)',
+].join('\n');
+
+if (existsSync(llmsPath)) {
+  const llms = readFileSync(llmsPath, 'utf8');
+  if (!llms.includes('Benchmarks & methodology')) {
+    writeFileSync(llmsPath, llms.trimEnd() + '\n\n' + llmsEntries.split('\n').slice(2).join('\n') + '\n');
+    console.log('Patched llms.txt with ledger and evidence pages');
+  }
+} else {
+  writeFileSync(llmsPath, llmsEntries + '\n');
+  console.log('Generated llms.txt with ledger and evidence pages');
+}
+
 console.log(`Docs built at ${distDocs}`);
