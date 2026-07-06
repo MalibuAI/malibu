@@ -41,7 +41,7 @@ export function mount(root, { navigate, esc, toast }) {
       el.innerHTML = `
         <p>No API key on this device.</p>
         <button class="btn" type="button" data-signin>Sign in with GitHub</button>
-        <p style="margin-top:16px;"><button type="button" class="linkish" data-action="chat">Return to chat</button> or paste a key manually in Account settings.</p>`;
+        <p style="margin-top:16px;"><button type="button" class="linkish" data-action="chat">Return to chat</button> or paste a key via the Connected badge above.</p>`;
       el.querySelector('[data-signin]')?.addEventListener('click', () => {
         startGitHubSignIn();
       });
