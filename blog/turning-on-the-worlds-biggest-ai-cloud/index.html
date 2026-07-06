@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Two hundred million Apple Silicon Macs are already deployed, already paid for, and idle twenty hours a day. Malibu turns them on." />
+  <meta property="og:title" content="Turning on the world's biggest AI cloud" />
+  <meta property="og:description" content="The world's biggest AI cloud already exists. It's sitting on desks. Malibu is the network that turns it on." />
+  <meta property="og:type" content="article" />
+  <title>Turning on the world's biggest AI cloud · Malibu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/src/styles.css" />
+  <style>
+    .post-wrap { max-width: 720px; margin: 0 auto; }
+    .post-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px; display: flex; gap: 18px; }
+    .post-title { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(40px, 6vw, 76px); line-height: 0.98; letter-spacing: -0.03em; color: #FFFBF2; margin: 0 0 24px; }
+    .post-lede { font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(18px, 1.5vw, 22px); line-height: 1.5; color: rgba(255, 251, 242,0.82); margin: 0; }
+    .post-body { font-family: 'Hanken Grotesk', sans-serif; font-size: 18px; line-height: 1.65; color: rgba(255, 251, 242,0.86); }
+    .post-body p { margin: 0 0 22px; }
+    .post-body h2 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(28px, 3vw, 36px); line-height: 1.15; letter-spacing: -0.02em; color: #FFFBF2; margin: 56px 0 20px; }
+    .post-body strong { color: #FFFBF2; font-weight: 600; }
+    .post-body em { font-style: italic; }
+    .post-body ul { margin: 0 0 22px; padding: 0 0 0 22px; }
+    .post-body li { margin: 0 0 12px; }
+    .post-body li strong { color: #FF6E5B; font-weight: 600; }
+    .post-body a { color: #FF6E5B; text-decoration: underline; text-decoration-color: rgba(255, 110, 91,0.35); text-underline-offset: 3px; }
+    .post-body a:hover { text-decoration-color: #FF6E5B; }
+    .post-body pre { margin: 0 0 26px; padding: 22px 24px; background: rgba(12, 58, 69,0.55); border: 1px solid rgba(255, 251, 242,0.08); border-radius: 14px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.55; color: rgba(255, 251, 242,0.9); }
+    .post-body pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+    .post-body code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; padding: 2px 6px; background: rgba(255, 251, 242,0.08); border-radius: 5px; color: #FFC629; }
+    .post-hr { border: 0; height: 1px; background: rgba(255, 251, 242,0.1); margin: 56px 0 40px; }
+    .post-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+    @media (max-width: 640px) { .post-cta-grid { grid-template-columns: 1fr; } }
+    .post-cta { display: block; padding: 24px 26px; border-radius: 18px; border: 1px solid rgba(255, 251, 242,0.12); background: rgba(255, 251, 242,0.04); transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; }
+    .post-cta:hover { border-color: rgba(255, 110, 91,0.5); background: rgba(255, 251, 242,0.06); transform: translateY(-2px); }
+    .post-cta-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 10px; }
+    .post-cta-title { font-family: 'Hanken Grotesk', sans-serif; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; }
+    .post-cta-sub { font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.65); margin-top: 6px; }
+    .post-back { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255, 251, 242,0.6); margin-bottom: 40px; }
+    .post-back:hover { color: #FFFBF2; }
+  </style>
+</head>
+<body>
+
+<!-- ============ FLOATING NAV ============ -->
+<nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
+  <a href="/" style="display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12); flex-shrink: 0;">
+    <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #0C3A45;">
+      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
+        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
+      </svg>
+    </span>
+    <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; line-height: 1;">malibu</span>
+  </a>
+  <button type="button" data-nav-toggle aria-expanded="false" aria-controls="post-nav-menu" aria-label="Menu" class="nav-toggle">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <div data-nav-menu id="post-nav-menu" class="nav-menu">
+    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72);">
+      <a href="/network/">Network</a>
+      <a href="/blog/" style="color: #FFFBF2;">Blog</a>
+      <a href="/docs">Docs</a>
+      <a href="/console/">Console</a>
+    </div>
+    <a href="/host/" class="nav-cta">
+      Host a model
+      <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<main id="top" style="background: #143A45; color: #FFFBF2; min-height: 100vh;">
+
+  <!-- ============ ARTICLE HEADER ============ -->
+  <section style="position: relative; padding: clamp(120px, 18vh, 200px) clamp(20px, 5vw, 80px) clamp(32px, 4vh, 56px);">
+    <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 260px; background: radial-gradient(ellipse at top, rgba(255, 110, 91,0.18), transparent 70%); pointer-events: none;"></div>
+    <div class="post-wrap" style="position: relative;">
+      <a href="/blog/" class="post-back">
+        <svg width="10" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M13 5 H1 M5 1 L1 5 L5 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Blog
+      </a>
+      <div class="post-eyebrow">
+        <span>Manifesto</span>
+      </div>
+      <h1 class="post-title">Turning on the world's biggest AI cloud.</h1>
+      <p class="post-lede">Two hundred million Apple Silicon Macs are already deployed, already paid for, and idle twenty hours a day. Together they hold more consumer AI compute than the top three hyperscalers combined. The only thing missing is a network that turns them on.</p>
+    </div>
+  </section>
+
+  <!-- ============ ARTICLE BODY ============ -->
+  <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(72px, 10vh, 120px);">
+    <div class="post-wrap post-body">
+
+      <p>The world's biggest AI cloud already exists. It's sitting on desks.</p>
+
+      <p>Two hundred million Apple Silicon Macs have shipped since 2020. Each one delivers roughly ten times the per-watt inference efficiency of an RTX 5090 on open-source model workloads. Almost all of them are idle twenty hours a day. Together they represent more consumer AI compute than the top three hyperscalers combined.</p>
+
+      <p>Nobody has to build it. Nobody has to permit it. Nobody has to wait three years for a substation upgrade. It's already there. The only thing missing is a network that turns it on.</p>
+
+      <p><strong>That network is Malibu, and it is live today.</strong></p>
+
+      <h2>The market everyone can see</h2>
+
+      <p>AI inference is a fifty-billion-dollar market growing three-to-five times a year. Three companies own most of it. Open-source models — Llama, Qwen, gpt-oss, Gemma — have caught up on quality. Supply hasn't. Buyers pay four to twenty times what the underlying compute actually costs, because the underlying compute is locked behind hyperscaler pricing and multi-year GPU allocations.</p>
+
+      <p>Meanwhile the datacenter answer is stalling. New capacity takes billions of dollars and years to permit. Grid interconnect queues stretch past 2030 in the US. Water rights, zoning, community pushback — the physical world is refusing to keep up with the software world.</p>
+
+      <p>And while all of that plays out, hundreds of millions of AI-capable Macs sit at four percent utilization, waiting for their owner to come off a Zoom call.</p>
+
+      <p>The mismatch is obvious. Fixing it isn't.</p>
+
+      <h2>Why nobody has fixed it yet</h2>
+
+      <p>Every prior decentralized AI network — Bittensor, Akash, Gensyn, Prime Intellect, io.net, Render — hit the same wall: <strong>buyers won't come without providers; providers won't stay without buyers.</strong> A decade of permanent bootstrap, dressed up as tokenomics.</p>
+
+      <p>The wall isn't a hardware problem or a cryptography problem. It's a sequencing problem. You cannot ask a provider to keep a machine warm for a buyer who hasn't arrived. And you cannot ask a buyer to route production traffic through a network that hasn't proven it can serve.</p>
+
+      <p>Malibu breaks the wall by paying providers to be <em>ready</em> before buyers arrive. Mining pays for the state the network needs anyway — model weights resident, memory substrate warm, provider online. When a buyer request lands, the miner yields in about fifty milliseconds and starts serving. <strong>Mining state is serving state.</strong> That equivalence is the architectural bet everything else is built on.</p>
+
+      <h2>Why this couldn't happen five years ago</h2>
+
+      <p>Four preconditions are simultaneously true for the first time. Miss any one and the network doesn't work.</p>
+
+      <ul>
+        <li><strong>Apple Silicon.</strong> Unified-memory Macs capable of serving 100B+ parameter open-source models are shipping in consumer hardware. No datacenter GPU can match Apple's per-watt inference efficiency on these workloads.</li>
+        <li><strong>Open-source frontier models.</strong> Llama, Qwen, gpt-oss now match closed-model quality on most workloads. Verified inference on open weights is finally worth paying for.</li>
+        <li><strong>Cheap inference verification.</strong> TOPLOC (Prime Intellect, 2025) verifies buyer responses at roughly one percent of serving cost. Cryptographic trust no longer requires trusted hardware.</li>
+        <li><strong>Stablecoin payments.</strong> USDC on Base settles global micropayments in seconds at sub-cent cost. Weekly provider payouts to a hundred countries are a smart-contract call, not a payroll department.</li>
+      </ul>
+
+      <p>Malibu is not early to any of these. It is the network that combines all four.</p>
+
+      <h2>What "live today" actually means</h2>
+
+      <p>This is not a whitepaper for something we intend to build. Every component below is running in production right now, serving real requests to real buyers on real hardware:</p>
+
+      <ul>
+        <li>A coordinator that admits providers, routes requests, meters usage, and settles weekly in USDC on Base.</li>
+        <li>An OpenAI-compatible gateway. Point any OpenAI SDK client at one URL and it works — Cursor, Aider, Claude Code SDK, plain <code>curl</code>. Streaming, tool calling, JSON-schema structured output, sticky conversations, prefix-cache reuse.</li>
+        <li>A signed public installer that turns a stock Apple Silicon Mac into a provider in one command. Auto-detects the memory tier, pulls the right MLX model, registers, and starts serving.</li>
+        <li>A signed inference receipt on every response. Nine fields — model hash, output hash, prompt hash, provider pubkey, token count, latency, timestamp, version — signed with the provider's Ed25519 key. Verifiable in microseconds with our open-source <code>malibu-verify</code> CLI.</li>
+        <li>Weekly automated USDC payouts to providers, 90% default provider share, priced live against the OpenRouter frontier.</li>
+      </ul>
+
+      <p>Here is what pointing a client at Malibu looks like from the buyer side:</p>
+
+<pre><code>curl https://api.malibu.tech/v1/chat/completions \
+  -H "Authorization: Bearer $MALIBU_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen3-235b",
+    "messages": [{"role": "user", "content": "Hello."}]
+  }'</code></pre>
+
+      <p>Every response comes back with an <code>X-Malibu-Receipt</code> header. You can hand that receipt to <code>malibu-verify</code> and prove — cryptographically, without trusting us — that the response ran on the model it claims to have run on, from the provider it claims to have come from. No swap. No silent quantization. No cache substitution.</p>
+
+      <p>This has never been standard in commercial AI inference. On Malibu it is the default.</p>
+
+      <h2>What this means if you own a Mac</h2>
+
+      <p>Imagine opening your laptop in the morning and realizing it earned money while you slept. No fans screaming. No datacenter. No rack space. No electricity bill worth noticing. Just your Mac, quietly serving AI requests to buyers who needed them, all day.</p>
+
+      <p>Your Mac is no longer just a laptop. It's an income-producing asset — not a hobby, not a lottery ticket, an actual asset.</p>
+
+      <p>Cooperative scheduling keeps the machine yours. Mining runs in the background; serving interrupts for milliseconds at a time. You can use your Mac exactly the way you used it yesterday. It's just also, quietly, an inference-as-a-service business.</p>
+
+      <p>Everything after hardware payback is compound income on a machine you were going to buy anyway.</p>
+
+      <h2>What this means if you buy AI inference</h2>
+
+      <p>Companies are massively overpaying. Malibu cuts inference cost by 20 to 40 percent without asking anyone to trust anyone. The catalog is the open-source frontier — gpt-oss-20b and 120b, Gemma families, Qwen3 and Qwen3-Coder, Llama-3.3 70B, Nemotron. Every response is cryptographically verifiable. Every payment settles in USDC on Base.</p>
+
+      <p>There is no vendor to be deprecated by. No closed-model API to be repriced against you next quarter. No lock-in beyond a base URL. When a better open-source model ships, the network serves it — and your integration doesn't change.</p>
+
+      <p>Malibu is designed to be adopted without changing anything on the buyer side except the endpoint.</p>
+
+      <h2>The compounding loop</h2>
+
+      <p>Every new provider increases coverage. Better coverage attracts more buyers. Buyer revenue increases provider earnings. Higher earnings attract more providers. <strong>Every new participant makes the next one more valuable.</strong></p>
+
+      <p>Nobody else has a reason to build this. Apple sells hardware — running a token-incentivized inference marketplace is not their business model. OpenAI sells closed models — open-source inference cannibalizes them. Hyperscalers own datacenters they need to keep utilized. The network that turns consumer Macs into AI infrastructure has to come from outside all three, and it has to be a token network — because only a token network can pay providers to be ready before buyers arrive.</p>
+
+      <p>The edge is hardware Malibu doesn't own, and a mechanism its competitors have no reason to build.</p>
+
+      <h2>Turn it on</h2>
+
+      <p>The world's biggest AI cloud already exists. Malibu turns it on.</p>
+
+      <hr class="post-hr" />
+
+      <div class="post-cta-grid">
+        <a href="/host/" class="post-cta">
+          <div class="post-cta-label">Own a Mac?</div>
+          <div class="post-cta-title">Host a model →</div>
+          <div class="post-cta-sub">One command. Zero configuration. Earning from the first request.</div>
+        </a>
+        <a href="/console/" class="post-cta">
+          <div class="post-cta-label">Buy inference?</div>
+          <div class="post-cta-title">Open the console →</div>
+          <div class="post-cta-sub">Point your OpenAI SDK at Malibu. Nothing else changes.</div>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FFFBF2; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap;">
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+            <a href="/console/">Console</a>
+            <a href="/host/">Host a model</a>
+            <a href="/network/">Network</a>
+            <a href="/#token">$MALIBU</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Learn</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+            <a href="/blog/">Blog</a>
+            <a href="/docs">Docs</a>
+            <a href="/docs/litepaper">Litepaper</a>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5);">
+        <div>© 2026 Malibu AI, Inc.</div>
+        <a href="/">Back to malibu →</a>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<script type="module" src="/src/nav.js"></script>
+</body>
+</html>
