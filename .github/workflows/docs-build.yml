@@ -31,4 +31,4 @@ jobs:
       - name: Verify exported status page exists
         run: test -f dist/docs/status/index.html
       - name: Verify llms.txt includes evidence pages
-        run: rg -q "Benchmarks & methodology" dist/docs/llms.txt
+        run: grep -qF "Benchmarks & methodology" dist/docs/llms.txt
