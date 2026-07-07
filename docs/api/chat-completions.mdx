@@ -1,11 +1,27 @@
 ---
 title: Chat completions
 description: POST /v1/chat/completions — OpenAI-compatible chat inference.
+icon: message-square
 ---
 
 # Chat completions
 
 > POST /v1/chat/completions — OpenAI-compatible chat inference.
+
+<Columns cols={2}>
+  <Card title="Models" icon="boxes" href="/api/models">
+    List available MLX models and memory tiers.
+  </Card>
+  <Card title="Headers" icon="hash" href="/api/headers">
+    Malibu-specific request and response headers.
+  </Card>
+  <Card title="Usage object" icon="bar-chart-3" href="/api/usage-object">
+    Token counts, cached prompt tokens, billing fields.
+  </Card>
+  <Card title="Network stats" icon="activity" href="/api/network-stats">
+    Pool size, routing weights, live network metrics.
+  </Card>
+</Columns>
 
 The primary buyer-facing endpoint. Wire-shape identical to OpenAI's chat completions API, with a handful of Malibu-specific headers for routing and receipt handling.
 

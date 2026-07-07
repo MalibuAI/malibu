@@ -1,6 +1,7 @@
 ---
 title: Malibu Litepaper
 description: The world's biggest AI cloud already exists. Malibu turns it on.
+icon: sparkles
 ---
 
 # Malibu Litepaper
@@ -147,14 +148,25 @@ Provider issuance runs on a deterministic emission curve — front-loaded to boo
 
 Malibu launches with hundreds of providers. It scales to tens of thousands. The economics work best for the ones who show up first: the emission curve pays early miners the most, and mining reputation transfers to serving-revenue priority when v1 activates. Being early isn't a marketing pitch — it's the structural incentive the network is designed around.
 
-| I want to… | Go to |
-| --- | --- |
-| Understand the bet | You're here |
-| Integrate as a buyer or provider | [Getting started](/getting-started/introduction) |
-| Verify what's live today | [Network status](/status) |
+<Columns cols={3}>
+  <Card title="Host a Mac" icon="laptop" href="https://malibu.tech/host" color="#FF6E5B">
+    Turn idle Apple Silicon into paid inference. Download, sign in, start earning.
+  </Card>
+  <Card title="Integrate as a buyer" icon="key" href="/getting-started/api-key" color="#143A45">
+    OpenAI-compatible API. Point your SDK at `api.malibu.tech/v1`.
+  </Card>
+  <Card title="Verify what's live" icon="circle-check" href="/status" color="#143A45">
+    Shipped vs planned ledger. What's running in production today.
+  </Card>
+</Columns>
 
-If you own an Apple Silicon Mac and want to earn from the compute you already have — **[malibu.tech/host](https://malibu.tech/host)**.
-
-If you're a developer, agent runtime, or enterprise integrator looking for verified open-source inference at a fraction of hyperscaler cost — **[malibu.tech/console](https://malibu.tech/console)**.
+<Columns cols={2}>
+  <Card title="Read the integration manual" icon="book-open" href="/getting-started/introduction" horizontal>
+    Architecture, trust model, provider and buyer paths.
+  </Card>
+  <Card title="Browse the API" icon="code" href="/api/chat-completions" horizontal>
+    Chat completions, models, headers, usage object.
+  </Card>
+</Columns>
 
 **Apple built the hardware. Malibu gives it a job.**
