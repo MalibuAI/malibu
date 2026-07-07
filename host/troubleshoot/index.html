@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Troubleshoot Malibu for Mac — Gatekeeper, login items, model downloads, and uninstall." />
+  <title>Malibu · Host troubleshoot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/src/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #143A45; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+    * { box-sizing: border-box; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+    .hero { padding: clamp(120px, 18vh, 160px) clamp(28px, 5vw, 64px) clamp(48px, 8vh, 72px); max-width: 760px; margin: 0 auto; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: rgba(255, 251, 242,0.06); border: 1px solid rgba(255, 198, 41,0.42); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #FFFBF2; margin-bottom: 24px; }
+    .pill .b { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #FF6E5B; color: #FFFBF2; font-size: 12px; }
+    h1 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(40px, 6vw, 64px); line-height: 1; letter-spacing: -0.03em; margin: 0 0 16px; }
+    .sub { font-size: 18px; line-height: 1.55; color: rgba(255, 251, 242,0.78); margin: 0 0 36px; }
+    .back { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 28px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 110, 91,0.9); }
+    .back:hover { color: #FF6E5B; }
+    .topics { display: flex; flex-direction: column; gap: 20px; }
+    .topic { padding: 24px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; }
+    .topic h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 10px; color: #FFFBF2; }
+    .topic p, .topic li { font-size: 15px; line-height: 1.6; color: rgba(255, 251, 242,0.76); margin: 0 0 10px; }
+    .topic ul, .topic ol { margin: 0; padding-left: 20px; }
+    .topic li { margin-bottom: 8px; }
+    .topic code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: rgba(255, 198, 41,0.92); }
+    .topic .note { margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: rgba(255, 251, 242,0.52); }
+  </style>
+</head>
+<body>
+
+<nav data-nav-pill aria-label="Primary navigation">
+  <a href="/" class="mark" aria-label="Malibu home">
+    <span class="dot">
+      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
+        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
+        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
+      </svg>
+    </span>
+    <span class="name">malibu</span>
+  </a>
+  <button type="button" data-nav-toggle aria-expanded="false" aria-controls="host-nav-menu" aria-label="Menu" class="nav-toggle">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <div data-nav-menu id="host-nav-menu" class="nav-menu">
+    <div class="links nav-links">
+      <a href="/network/">Network</a>
+      <a href="/blog/">Blog</a>
+      <a href="/#token">$MALIBU</a>
+      <a href="https://malibu.tech/docs">Docs</a>
+      <a href="/console/">Console</a>
+    </div>
+    <a href="/console/" class="cta nav-cta">
+      Open console
+      <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<main class="hero">
+  <a href="/host/" class="back">← Back to host</a>
+  <div class="pill"><span class="b">?</span> Provider setup</div>
+  <h1>Troubleshoot Malibu</h1>
+  <p class="sub">Most installs are one click. If something stalls, start here — then reach us from the in-app support link or GitHub issues.</p>
+
+  <div class="topics">
+    <article class="topic">
+      <h2>Gatekeeper blocked the download</h2>
+      <p>Malibu ships signed and notarized. macOS should open it without extra steps. If you see “Malibu can’t be opened”:</p>
+      <ol>
+        <li>Open <strong>System Settings → Privacy &amp; Security</strong>.</li>
+        <li>Scroll to the security section and click <strong>Open Anyway</strong> for Malibu.</li>
+        <li>Re-open the <code>.dmg</code> from Downloads and drag Malibu to Applications.</li>
+      </ol>
+      <p class="note">Do not run <code>xattr -cr</code> unless support asks — it bypasses checks we rely on for provider integrity.</p>
+    </article>
+
+    <article class="topic">
+      <h2>Login item / “Open at Login” denied</h2>
+      <p>Malibu registers as a login item so your provider can restart after reboot. If you declined during onboarding:</p>
+      <ol>
+        <li>Open <strong>System Settings → General → Login Items</strong>.</li>
+        <li>Enable <strong>Malibu</strong> under “Open at Login”.</li>
+        <li>Relaunch Malibu and click <strong>Launch Provider</strong> again.</li>
+      </ol>
+      <p>Malibu never re-enables this without you clicking — if status shows disabled in the app, use the in-app nudge or Settings above.</p>
+    </article>
+
+    <article class="topic">
+      <h2>First model download stuck</h2>
+      <p>After launch, Malibu downloads the best model for your Mac. Large weights need disk space and a stable connection.</p>
+      <ul>
+        <li>Confirm at least <strong>30 GB free</strong> on your boot volume (70B-class models need more).</li>
+        <li>Stay on power and avoid sleep until the progress bar completes.</li>
+        <li>Check Malibu’s menu bar status — “Starting…” usually means the bundled provider is still warming up (give it 2–3 minutes).</li>
+        <li>Use <strong>Check for Updates</strong> in the Malibu menu if the app or provider version looks stale.</li>
+      </ul>
+      <p>If it fails repeatedly, quit Malibu, delete <code>~/Library/Application Support/Malibu/models</code>, and launch again.</p>
+    </article>
+
+    <article class="topic">
+      <h2>Uninstall</h2>
+      <ol>
+        <li>Quit Malibu from the menu bar.</li>
+        <li>Drag <strong>Malibu.app</strong> from Applications to Trash.</li>
+        <li>Remove the login item in <strong>System Settings → Login Items</strong> if still listed.</li>
+        <li>Optional — remove local data: <code>~/Library/Application Support/Malibu</code> and <code>~/macprovider</code> (CLI track only).</li>
+        <li>CLI track only: <code>launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/live.streamvc.macprovider.plist</code></li>
+      </ol>
+      <p class="note">Wallet keys and earnings history live on-chain / coordinator-side — uninstalling the app does not delete your provider identity.</p>
+    </article>
+  </div>
+</main>
+
+<footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FFFBF2; padding: 48px clamp(28px, 5vw, 64px); border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+  <div>© 2026 Malibu AI, Inc.</div>
+  <a href="/host/">Host download →</a>
+</footer>
+
+<script type="module" src="/src/nav.js"></script>
+</body>
+</html>
