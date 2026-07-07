@@ -1,4 +1,4 @@
-const STATS_BASE = (import.meta.env.VITE_MACPROVIDER_STATS_BASE_URL || 'https://stats.streamvc.live').replace(/\/+$/, '');
+const STATS_BASE = (import.meta.env.VITE_MACPROVIDER_STATS_BASE_URL || '').replace(/\/+$/, '');
 const OVERVIEW_URL = STATS_BASE + '/v1/stats/overview';
 const POLL_MS = 20000;
 const MIN_MANUAL_MS = 3000;

@@ -17,6 +17,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/mp/, ''),
       },
+      '/v1/stats': {
+        target: 'https://stats.streamvc.live',
+        changeOrigin: true,
+      },
       '/v1/rate-card': {
         target: 'https://coordinator.streamvc.live',
         changeOrigin: true,

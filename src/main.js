@@ -13,7 +13,7 @@ if (hero && !isTouch && !reduced) {
   }, { passive: true });
 }
 
-const STATS_URL = 'https://stats.streamvc.live/v1/stats/overview';
+const STATS_URL = '/v1/stats/overview';
 const STATUS_URL = '/api/mp/v1/status';
 const AGENT_DEMO = 'Plan a coastal drive from Malibu to Hearst Castle — distance, time, and stops. Use tools if helpful.';
 

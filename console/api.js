@@ -274,7 +274,7 @@ export function malibuCreditsFromUsage(usage) {
 
 export async function fetchNetworkOverview() {
   try {
-    const r = await fetch('https://stats.streamvc.live/v1/stats/overview', { headers: { Accept: 'application/json' } });
+    const r = await fetch('/v1/stats/overview', { headers: { Accept: 'application/json' } });
     if (!r.ok) return null;
     return r.json();
   } catch {
