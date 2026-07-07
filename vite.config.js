@@ -48,6 +48,7 @@ export default defineConfig({
         consoleAuthCallback: resolve(__dirname, 'console/auth/callback.html'),
         widget: resolve(__dirname, 'widget/index.html'),
         host: resolve(__dirname, 'host/index.html'),
+        hostTroubleshoot: resolve(__dirname, 'host/troubleshoot/index.html'),
         network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
         blog: resolve(__dirname, 'blog/index.html'),
