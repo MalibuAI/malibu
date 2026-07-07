@@ -41,12 +41,35 @@ run(`unzip -q ${JSON.stringify(zipPath)} -d ${JSON.stringify(distDocs)}`);
 rmSync(zipPath, { force: true });
 
 function prefixAbsolutePaths(content) {
-  // Prefix root-relative URLs used by the exported Mintlify app.
-  // Skip external URLs, protocol-relative URLs, already-prefixed /docs paths,
-  // and self-closing tag terminators ("/>) which must not become "/docs/>).
+  // Only rewrite root-relative URL paths inside quoted strings (HTML attrs, JS string literals).
+  // Require a path-like character after `/` so grammar tokens like `"/>"` and `"/**"` stay intact.
+  // Do NOT rewrite `/` inside regex literals like .replace(/^\/+/, '').
   return content
-    .replace(/(?<=["'`(])\/(?!docs\/)(?![a-z]+:)(?!>)/g, '/docs/')
+    .replace(/(?<=["'`])\/(?!docs\/)(?![a-z]+:)(?=[a-zA-Z0-9_/.])/g, '/docs/')
     .replace(/\/docs\/docs\//g, '/docs/');
+}
+
+function assertNoPathRewriteCorruption(dir) {
+  const corruptionPatterns = [
+    /\/docs\/\^/,
+    /"\/docs\/>/,
+    /\.replace\(\/docs\//,
+  ];
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) {
+      assertNoPathRewriteCorruption(path);
+      continue;
+    }
+    if (!TEXT_EXTENSIONS.test(name)) continue;
+    const text = readFileSync(path, 'utf8');
+    for (const pattern of corruptionPatterns) {
+      if (pattern.test(text)) {
+        console.error(`Path rewrite corruption detected in ${path}`);
+        process.exit(1);
+      }
+    }
+  }
 }
 
 function walk(dir) {
@@ -65,6 +88,7 @@ function walk(dir) {
 
 console.log('Rewriting exported paths for /docs hosting...');
 walk(distDocs);
+assertNoPathRewriteCorruption(distDocs);
 
 const llmsPath = join(distDocs, 'llms.txt');
 const llmsEntries = [
