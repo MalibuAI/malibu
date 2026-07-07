@@ -29,6 +29,16 @@ gh pr list --head "$(git branch --show-current)" --state all
 5. **After PR merge** — delete remote branch; `git checkout main && git pull`.
 6. **Verify gh auth** — `gh repo view MalibuAI/malibu` must succeed before push.
 
+## Auto-merge PRs
+
+Once all required CI checks are green, **merge automatically** — do not wait for "merge it" or "ship it".
+
+1. After opening or pushing a PR, poll checks: `gh pr checks <number>`
+2. When all required checks pass: `gh pr merge <number> --squash --delete-branch`
+3. Sync local: `git checkout main && git pull origin main`
+
+Hold off only if: CI is failing, checks are pending, the user explicitly asked not to merge, or there are unresolved merge conflicts.
+
 ## Recovery from wrong branch
 
 ```bash
