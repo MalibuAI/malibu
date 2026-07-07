@@ -40,7 +40,8 @@
     /* main panel */
     .panel { display: flex; flex-direction: column; min-height: 0; height: 100%; background: #0F1B26; margin-top: 0; }
     .panel-head { flex: 0 0 auto; display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid rgba(255, 251, 242,0.06); min-height: 56px; }
-    .panel-head[data-chat-head] { flex-wrap: nowrap; }
+    .panel-head[data-chat-head] { flex-wrap: nowrap; gap: 10px; }
+    .panel-head[data-chat-head] .chat-crumb { margin-right: auto; }
     .panel.workspace-open [data-chat-head] { display: none; }
     .panel:not(.workspace-open) [data-workspace-head] { display: none; }
     .panel-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -223,6 +224,11 @@
   <section class="panel" data-panel>
 
     <div class="panel-head" data-chat-head>
+      <nav class="chat-crumb" data-chat-crumb hidden aria-label="Conversation">
+        <span class="crumb-root">malibu · chat</span>
+        <span class="crumb-sep" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 L9 7 L5 11"/></svg></span>
+        <span class="crumb-title" data-crumb-title>New chat</span>
+      </nav>
       <div class="model-pick">
         <select data-model aria-label="Model"></select>
         <svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1.2 L4.5 4.5 L8 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -369,9 +375,12 @@
   import { createWorkspace } from './workspace.js';
   import {
     Activity, setActivityState, getActivityState, onActivityState,
-    createActivityDots, renderThinkingContent, renderStreamingContent, renderToolActivity,
-    CHAT_ICON_SVG, activityLabelForState,
-  } from './ui/activity.js';
+    createActivityDots, renderThinkingContent, renderStreamingContent,
+    activityLabelForState, isBusy, beginSession, endSession, stopSession, getAbortSignal,
+    isAbortError, onSessionChange,
+  } from './ui/session.js';
+  import { CHAT_ICON_SVG, icon } from './ui/icons.js';
+  import { renderToolCards, attachMessageActions, updateChatCrumb } from './ui/messages.js';
 
   const stream = document.querySelector('[data-stream] .stream-inner');
   const composer = document.querySelector('[data-composer]');
@@ -413,6 +422,8 @@
   const activityLabelEl = document.querySelector('[data-activity-label]');
   const composerBoxEl = document.querySelector('.composer-box');
   const newChatBtnEl = document.querySelector('[data-new-chat]');
+  const chatCrumbEl = document.querySelector('[data-chat-crumb]');
+  const crumbTitleEl = document.querySelector('[data-crumb-title]');
 
   let rateCard = null;
   let currentReceipt = '';
@@ -796,7 +807,7 @@
       title.className = 'item-title';
       title.textContent = t.title || 'New chat';
       item.appendChild(title);
-      if (t.id === threadId && busy && active !== Activity.IDLE) {
+      if (t.id === threadId && isBusy() && active !== Activity.IDLE) {
         item.appendChild(createActivityDots('activity-dots sm'));
       }
       item.addEventListener('click', () => loadThread(t.id));
@@ -815,6 +826,29 @@
     renderRecent();
   });
 
+  onSessionChange(({ busy: sessionBusy }) => {
+    if (sessionBusy) {
+      submit.className = 'send stop';
+      submit.innerHTML = `${icon('stop')} Stop`;
+    } else {
+      submit.className = 'send';
+      submit.innerHTML = 'Send <span class="kb">↵</span>';
+    }
+    submit.disabled = false;
+  });
+
+  function syncBreadcrumb() {
+    const title = threadTitle
+      || conversation.find((m) => m.role === 'user')?.content?.slice(0, 48)
+      || 'New chat';
+    updateChatCrumb({
+      crumbEl: chatCrumbEl,
+      titleEl: crumbTitleEl,
+      title,
+      visible: conversation.length > 0 || !!threadTitle,
+    });
+  }
+
   function persistThread() {
     if (!conversation.length) return;
     const settings = loadSettings();
@@ -831,7 +865,7 @@
   }
 
   function loadThread(id) {
-    if (busy) return;
+    if (isBusy()) return;
     workspace.close();
     const t = getThread(id);
     if (!t) return;
@@ -843,14 +877,16 @@
     for (const m of conversation) {
       if (m.role === 'user') addUserMsg(m.content);
       else if (m.role === 'assistant') {
-        const ai = addAiMsg(modelEl.options[modelEl.selectedIndex]?.text || t.model || 'Malibu');
+        const ai = addAiMsg(modelEl.options[modelEl.selectedIndex]?.text || t.model || 'Malibu', { live: false });
         ai.querySelector('.text').textContent = m.content;
         const billEl = ai.querySelector('[data-bill]');
-        if (billEl && m.meta) billEl.textContent = formatBillMeta({ usage: m.usage, meta: m.meta, latencyMs: m.latencyMs });
+        if (billEl && m.meta) finishBill(billEl, m.usage, m.meta, m.latencyMs);
         else if (billEl) billEl.textContent = 'saved';
+        wireAiMessageActions(ai, m.content);
       }
     }
     if (!conversation.length) showWelcome();
+    syncBreadcrumb();
     renderRecent();
     history.replaceState({}, '', location.pathname + (threadId ? `?thread=${threadId}` : ''));
   }
@@ -906,7 +942,7 @@
     return el;
   }
 
-  function addAiMsg(modelName) {
+  function addAiMsg(modelName, { live = true } = {}) {
     const el = document.createElement('div');
     el.className = 'msg ai';
     const avatar = document.createElement('div');
@@ -921,15 +957,39 @@
     const billed = document.createElement('span');
     billed.className = 'billed';
     billed.dataset.bill = '';
-    billed.textContent = 'thinking…';
+    billed.textContent = live ? 'thinking…' : 'saved';
     name.append(document.createTextNode(`${modelName} · `), pool, document.createTextNode(' · '), billed);
     const text = document.createElement('div');
-    text.className = 'text thinking';
-    renderThinkingContent(text);
+    text.className = 'text' + (live ? ' thinking' : '');
+    if (live) renderThinkingContent(text);
     body.append(name, text);
     el.append(avatar, body);
     stream.appendChild(el);
     return el;
+  }
+
+  function wireAiMessageActions(aiEl, content) {
+    attachMessageActions(aiEl.querySelector('.body'), {
+      content,
+      onCopy: () => {
+        navigator.clipboard.writeText(content).then(
+          () => toast('Copied to clipboard'),
+          () => toast('Could not copy', 'error'),
+        );
+      },
+      onRegenerate: () => regenerateFrom(aiEl),
+    });
+  }
+
+  async function regenerateFrom(aiEl) {
+    if (isBusy()) return;
+    const msgs = [...stream.querySelectorAll('.msg.ai')];
+    if (msgs[msgs.length - 1] !== aiEl) return;
+    const last = conversation[conversation.length - 1];
+    if (!last || last.role !== 'assistant') return;
+    conversation.pop();
+    aiEl.remove();
+    await generateReply();
   }
 
   function scrollBottom() {
@@ -965,23 +1025,12 @@
     }
   }
 
-  let busy = false;
-  async function send() {
-    if (busy) return;
-    const val = (input.value || '').trim();
-    if (!val) return;
+  async function generateReply() {
     if (!modelEl.value) { toast('No models available in the pool yet.', 'error'); return; }
     if (!isModelAllowed(modelEl.value)) { toast('This model is blocked by your local policy. Check Settings.', 'error'); return; }
-    busy = true;
-    submit.disabled = true;
-    dismissWelcome();
-    if (!threadTitle) threadTitle = val.slice(0, 48);
-    addUserMsg(val);
-    conversation.push({ role: 'user', content: val });
-    input.value = '';
-    grow();
-    scrollBottom();
 
+    beginSession();
+    const signal = getAbortSignal();
     const modelId = modelEl.value;
     const modelName = modelEl.options[modelEl.selectedIndex]?.text || modelId;
     setActivityState(Activity.THINKING);
@@ -997,6 +1046,8 @@
     const started = performance.now();
     let usage = null;
     let meta = {};
+    let buf = '';
+    let stopped = false;
 
     try {
       if (mode === 'agent') {
@@ -1010,6 +1061,7 @@
           conversationId: threadId,
           tools,
           autoApprove: !!settings.agentAutoApprove,
+          signal,
           onTimeline: addTimelineItem,
           onStreamDelta: (content) => {
             setActivityState(Activity.STREAMING);
@@ -1021,29 +1073,21 @@
           onStreamToolDelta: (toolCalls) => {
             setActivityState(Activity.TOOL);
             billEl.textContent = 'tools…';
-            const names = toolCalls.map((tc) => tc.function?.name).filter(Boolean).join(', ');
-            textEl.className = 'text tool-call';
-            renderToolActivity(textEl, names ? `Calling ${names}` : 'Planning tool calls');
+            textEl.className = 'text tool-cards';
+            renderToolCards(textEl, toolCalls);
             scrollBottom();
           },
         });
         usage = result.usage;
         meta = result.meta || {};
+        buf = result.content || '';
+        stopped = !!result.cancelled;
         textEl.className = 'text';
-        textEl.textContent = result.content || '';
-        if (!result.cancelled && !result.maxSteps) {
+        textEl.textContent = buf;
+        if (buf) {
           conversation.push({
             role: 'assistant',
-            content: result.content,
-            usage,
-            meta,
-            surface,
-            latencyMs: performance.now() - started,
-          });
-        } else if (result.cancelled) {
-          conversation.push({
-            role: 'assistant',
-            content: result.content,
+            content: buf,
             usage,
             meta,
             surface,
@@ -1052,13 +1096,14 @@
         }
         finishBill(billEl, usage, meta, performance.now() - started);
         if (result.maxSteps) toast('Agent stopped at max tool steps.');
+        if (stopped) billEl.textContent = 'stopped';
       } else {
-        let buf = '';
         for await (const event of chatStream({
           model: modelId,
           messages: conversation.filter((m) => m.role === 'user' || m.role === 'assistant'),
           maxTokens,
           conversationId: threadId,
+          signal,
         })) {
           if (event.type === 'delta') {
             if (!buf) {
@@ -1075,13 +1120,40 @@
             if (event.content) buf = event.content;
           }
         }
+        textEl.className = 'text';
         textEl.textContent = buf;
         conversation.push({ role: 'assistant', content: buf, usage, meta, surface, latencyMs: performance.now() - started });
         finishBill(billEl, usage, meta, performance.now() - started);
       }
+      if (buf) wireAiMessageActions(ai, buf);
       persistThread();
+      syncBreadcrumb();
       refreshUsage();
     } catch (e) {
+      if (isAbortError(e)) {
+        stopped = true;
+        textEl.className = 'text';
+        const partial = buf || textEl.textContent.replace(/\n\n\[Stopped\]$/, '').trim();
+        const content = partial
+          ? (partial.endsWith('[Stopped]') ? partial : `${partial}\n\n[Stopped]`)
+          : '[Generation stopped]';
+        textEl.textContent = content;
+        billEl.textContent = 'stopped';
+        if (partial && partial !== '[Generation stopped]') {
+          conversation.push({
+            role: 'assistant',
+            content,
+            usage,
+            meta,
+            surface,
+            latencyMs: performance.now() - started,
+          });
+          wireAiMessageActions(ai, content);
+          persistThread();
+          syncBreadcrumb();
+        }
+        return;
+      }
       const { kind, msg } = formatChatError(e);
       textEl.innerHTML = '';
       if (kind === 'quota') {
@@ -1108,14 +1180,35 @@
       billEl.textContent = kind === 'quota' ? 'quota' : 'error';
       toast(msg, 'error');
     } finally {
-      busy = false;
-      submit.disabled = false;
-      setActivityState(Activity.IDLE);
+      endSession();
     }
   }
 
+  async function send() {
+    if (isBusy()) return;
+    const val = (input.value || '').trim();
+    if (!val) return;
+    dismissWelcome();
+    if (!threadTitle) threadTitle = val.slice(0, 48);
+    addUserMsg(val);
+    conversation.push({ role: 'user', content: val });
+    input.value = '';
+    grow();
+    scrollBottom();
+    syncBreadcrumb();
+    await generateReply();
+  }
+
   composer.addEventListener('submit', (e) => { e.preventDefault(); send(); });
-  submit.addEventListener('click', (e) => { e.preventDefault(); send(); });
+  submit.addEventListener('click', (e) => {
+    if (isBusy() && submit.classList.contains('stop')) {
+      e.preventDefault();
+      stopSession();
+      return;
+    }
+    e.preventDefault();
+    send();
+  });
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
@@ -1128,7 +1221,7 @@
     });
   });
   document.querySelector('[data-new-chat]').addEventListener('click', () => {
-    if (busy) return;
+    if (isBusy()) return;
     workspace.close();
     threadId = createThreadId();
     conversation = [];
@@ -1138,6 +1231,7 @@
     input.value = '';
     grow();
     input.focus();
+    syncBreadcrumb();
     renderRecent();
     history.replaceState({}, '', location.pathname);
   });

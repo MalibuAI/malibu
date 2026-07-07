@@ -73,8 +73,6 @@ export function renderToolActivity(container, label) {
   container.appendChild(createActivityDots('activity-dots sm'));
 }
 
-export const CHAT_ICON_SVG = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3 H12 V8 H6 L4 11 V8 H2 Z"/></svg>';
-
 export function activityLabelForState(s) {
   if (s === Activity.THINKING) return 'Thinking';
   if (s === Activity.TOOL) return 'Running tools';

@@ -50,6 +50,7 @@ export async function* streamTurn({
   conversationId,
   tools,
   responseFormat,
+  signal,
   onToolDelta,
 }) {
   let content = '';
@@ -66,7 +67,9 @@ export async function* streamTurn({
     tools,
     toolChoice: tools?.length ? 'auto' : undefined,
     responseFormat,
+    signal,
   })) {
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     if (event.type === 'tool_delta') {
       lastToolCalls = event.toolCalls || [];
       onToolDelta?.(lastToolCalls);
@@ -91,11 +94,26 @@ export async function* streamTurn({
   }
 }
 
-export async function requestToolApproval(toolCalls, { autoApprove }) {
+export async function requestToolApproval(toolCalls, { autoApprove, signal }) {
   if (autoApprove) return true;
+  if (signal?.aborted) return false;
   return new Promise((resolve) => {
+    const onAbort = () => {
+      resolve(false);
+      cleanup();
+    };
+    const cleanup = () => {
+      signal?.removeEventListener('abort', onAbort);
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
     const evt = new CustomEvent('malibu:tool-approval', {
-      detail: { toolCalls, resolve },
+      detail: {
+        toolCalls,
+        resolve: (approved) => {
+          cleanup();
+          resolve(approved);
+        },
+      },
     });
     window.dispatchEvent(evt);
   });
@@ -109,6 +127,7 @@ export async function runAgentLoop({
   tools,
   responseFormat,
   autoApprove,
+  signal,
   onTimeline,
   onStreamDelta,
   onStreamToolDelta,
@@ -116,8 +135,19 @@ export async function runAgentLoop({
   let steps = 0;
   let lastUsage = null;
   let lastMeta = {};
+  let lastContent = '';
 
   while (steps < MAX_AGENT_STEPS) {
+    if (signal?.aborted) {
+      return {
+        content: lastContent || 'Generation stopped.',
+        usage: lastUsage,
+        meta: lastMeta,
+        cancelled: true,
+        steps,
+      };
+    }
+
     steps += 1;
     onTimeline?.({ kind: 'step', label: `Model turn ${steps}`, status: 'running' });
 
@@ -132,8 +162,10 @@ export async function runAgentLoop({
       conversationId,
       tools,
       responseFormat,
+      signal,
       onToolDelta: onStreamToolDelta,
     })) {
+      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
       if (event.type === 'delta') {
         content += event.text;
         onStreamDelta?.(content);
@@ -151,6 +183,8 @@ export async function runAgentLoop({
       return { content, usage: lastUsage, meta: lastMeta, toolCalls: null, steps };
     }
 
+    lastContent = content;
+
     onTimeline?.({
       kind: 'tools',
       label: `${toolCalls.length} tool call${toolCalls.length === 1 ? '' : 's'}`,
@@ -158,10 +192,16 @@ export async function runAgentLoop({
       toolCalls,
     });
 
-    const approved = await requestToolApproval(toolCalls, { autoApprove });
+    const approved = await requestToolApproval(toolCalls, { autoApprove, signal });
     if (!approved) {
       onTimeline?.({ kind: 'tools', label: 'Tool calls rejected', status: 'rejected', toolCalls });
-      return { content: content || 'Tool execution cancelled.', usage: lastUsage, meta: lastMeta, cancelled: true, steps };
+      return {
+        content: content || (signal?.aborted ? 'Generation stopped.' : 'Tool execution cancelled.'),
+        usage: lastUsage,
+        meta: lastMeta,
+        cancelled: true,
+        steps,
+      };
     }
 
     conversation.push({
@@ -175,6 +215,15 @@ export async function runAgentLoop({
     });
 
     for (const tc of toolCalls) {
+      if (signal?.aborted) {
+        return {
+          content: lastContent || 'Generation stopped.',
+          usage: lastUsage,
+          meta: lastMeta,
+          cancelled: true,
+          steps,
+        };
+      }
       const name = tc.function?.name;
       const args = tc.function?.arguments || '{}';
       onTimeline?.({ kind: 'tool', label: `${name}(…)`, status: 'running', tool: tc });
