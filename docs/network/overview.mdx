@@ -1,11 +1,24 @@
 ---
 title: Overview
 description: How the Malibu network is put together.
+icon: network
 ---
 
 # Overview
 
 > How the Malibu network is put together.
+
+<Columns cols={3}>
+  <Card title="Receipts" icon="file-signature" href="/network/receipts">
+    Ed25519-signed inference receipts.
+  </Card>
+  <Card title="Security model" icon="shield" href="/network/security">
+    Trust boundaries and threat surface.
+  </Card>
+  <Card title="Billing" icon="coins" href="/network/metering-and-billing">
+    Credits, rate card, settlement.
+  </Card>
+</Columns>
 
 Malibu is three moving parts: **providers** (Apple Silicon Macs running MLX), a **coordinator** (routing and billing), and a **gateway** (OpenAI-compatible API surface for buyers).
 

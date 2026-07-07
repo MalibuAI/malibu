@@ -1,11 +1,21 @@
 ---
 title: Introduction
 description: Malibu turns any Apple Silicon Mac into a remote-addressable, OpenAI-compatible AI inference endpoint.
+icon: compass
 ---
 
 # Introduction
 
 > Malibu turns any Apple Silicon Mac into a remote-addressable, OpenAI-compatible AI inference endpoint.
+
+<Columns cols={2}>
+  <Card title="I'm a provider" icon="apple" href="/getting-started/download-malibu" color="#FF6E5B">
+    Download the app, pick a model, start serving.
+  </Card>
+  <Card title="I'm a buyer" icon="terminal" href="/getting-started/api-key" color="#143A45">
+    Get an API key, hit the OpenAI-compatible endpoint.
+  </Card>
+</Columns>
 
 Malibu is a coordinated inference network built on Apple Silicon — distributed providers, centralized routing and billing. Providers run open-source models on their Macs; buyers hit an OpenAI-compatible API and get responses back with a signed receipt binding `(prompt, output, model, provider)`. Verifiable inference, without a datacenter.
 

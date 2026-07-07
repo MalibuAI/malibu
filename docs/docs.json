@@ -8,6 +8,9 @@
     "light": "#FF6E5B",
     "dark": "#143A45"
   },
+  "icons": {
+    "library": "lucide"
+  },
   "favicon": "/favicon.svg",
   "logo": {
     "light": "/favicon.svg",
@@ -83,6 +86,7 @@
       {
         "group": "Guides",
         "pages": [
+          "guides/index",
           "guides/openai-sdk",
           "guides/receipts",
           "guides/sticky-conversations",
