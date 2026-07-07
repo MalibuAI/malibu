@@ -233,6 +233,10 @@
       </div>
       <div class="status">
         <span><span class="dot" data-pool-dot></span> <span data-live-nodes class="skeleton-pulse">checking pool…</span></span>
+        <span class="activity-header" data-activity-header hidden>
+          <span class="activity-dots sm" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span data-activity-label>Generating</span>
+        </span>
         <div class="quota-bar" data-quota-bar hidden>
           <div class="track"><div class="fill" data-quota-fill style="width:0%"></div></div>
           <span class="label" data-quota-label>—</span>
@@ -363,6 +367,11 @@
   import { startGitHubSignIn } from './auth.js';
   import { toolsForMode } from './tools.js';
   import { createWorkspace } from './workspace.js';
+  import {
+    Activity, setActivityState, getActivityState, onActivityState,
+    createActivityDots, renderThinkingContent, renderStreamingContent, renderToolActivity,
+    CHAT_ICON_SVG, activityLabelForState,
+  } from './ui/activity.js';
 
   const stream = document.querySelector('[data-stream] .stream-inner');
   const composer = document.querySelector('[data-composer]');
@@ -400,6 +409,10 @@
   const modelPriceEl = document.createElement('span');
   modelPriceEl.className = 'price';
   document.querySelector('.model-pick')?.appendChild(modelPriceEl);
+  const activityHeaderEl = document.querySelector('[data-activity-header]');
+  const activityLabelEl = document.querySelector('[data-activity-label]');
+  const composerBoxEl = document.querySelector('.composer-box');
+  const newChatBtnEl = document.querySelector('[data-new-chat]');
 
   let rateCard = null;
   let currentReceipt = '';
@@ -773,15 +786,34 @@
     }
     recentSection.hidden = false;
     recentEl.innerHTML = '';
+    const active = getActivityState();
     for (const t of threads.slice(0, 12)) {
       const item = document.createElement('button');
       item.type = 'button';
-      item.className = 'item truncate' + (t.id === threadId ? ' active' : '');
-      item.textContent = t.title || 'New chat';
+      item.className = 'item' + (t.id === threadId ? ' active' : '');
+      item.innerHTML = CHAT_ICON_SVG;
+      const title = document.createElement('span');
+      title.className = 'item-title';
+      title.textContent = t.title || 'New chat';
+      item.appendChild(title);
+      if (t.id === threadId && busy && active !== Activity.IDLE) {
+        item.appendChild(createActivityDots('activity-dots sm'));
+      }
       item.addEventListener('click', () => loadThread(t.id));
       recentEl.appendChild(item);
     }
   }
+
+  onActivityState((s) => {
+    if (activityHeaderEl) activityHeaderEl.hidden = s === Activity.IDLE;
+    if (activityLabelEl) activityLabelEl.textContent = activityLabelForState(s);
+    composerBoxEl?.classList.toggle('is-working', s !== Activity.IDLE);
+    if (newChatBtnEl) {
+      if (s !== Activity.IDLE) newChatBtnEl.setAttribute('aria-disabled', 'true');
+      else newChatBtnEl.removeAttribute('aria-disabled');
+    }
+    renderRecent();
+  });
 
   function persistThread() {
     if (!conversation.length) return;
@@ -889,10 +921,11 @@
     const billed = document.createElement('span');
     billed.className = 'billed';
     billed.dataset.bill = '';
-    billed.textContent = 'streaming…';
+    billed.textContent = 'thinking…';
     name.append(document.createTextNode(`${modelName} · `), pool, document.createTextNode(' · '), billed);
     const text = document.createElement('div');
-    text.className = 'text';
+    text.className = 'text thinking';
+    renderThinkingContent(text);
     body.append(name, text);
     el.append(avatar, body);
     stream.appendChild(el);
@@ -951,10 +984,10 @@
 
     const modelId = modelEl.value;
     const modelName = modelEl.options[modelEl.selectedIndex]?.text || modelId;
+    setActivityState(Activity.THINKING);
     const ai = addAiMsg(modelName);
     const textEl = ai.querySelector('.text');
     const billEl = ai.querySelector('[data-bill]');
-    textEl.innerHTML = '<span style="opacity: 0.55;">▍</span>';
     scrollBottom();
 
     const settings = loadSettings();
@@ -979,13 +1012,18 @@
           autoApprove: !!settings.agentAutoApprove,
           onTimeline: addTimelineItem,
           onStreamDelta: (content) => {
-            textEl.innerHTML = escapeHtml(content) + '<span style="opacity: 0.55;">▍</span>';
+            setActivityState(Activity.STREAMING);
+            billEl.textContent = 'streaming…';
+            textEl.className = 'text';
+            renderStreamingContent(textEl, content, escapeHtml);
             scrollBottom();
           },
           onStreamToolDelta: (toolCalls) => {
+            setActivityState(Activity.TOOL);
+            billEl.textContent = 'tools…';
             const names = toolCalls.map((tc) => tc.function?.name).filter(Boolean).join(', ');
             textEl.className = 'text tool-call';
-            textEl.textContent = names ? `Calling ${names}…` : 'Planning tool calls…';
+            renderToolActivity(textEl, names ? `Calling ${names}` : 'Planning tool calls');
             scrollBottom();
           },
         });
@@ -1023,8 +1061,13 @@
           conversationId: threadId,
         })) {
           if (event.type === 'delta') {
+            if (!buf) {
+              setActivityState(Activity.STREAMING);
+              billEl.textContent = 'streaming…';
+            }
             buf += event.text;
-            textEl.innerHTML = escapeHtml(buf) + '<span style="opacity: 0.55;">▍</span>';
+            textEl.className = 'text';
+            renderStreamingContent(textEl, buf, escapeHtml);
             scrollBottom();
           } else if (event.type === 'done') {
             usage = event.usage;
@@ -1067,6 +1110,7 @@
     } finally {
       busy = false;
       submit.disabled = false;
+      setActivityState(Activity.IDLE);
     }
   }
 
