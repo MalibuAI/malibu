@@ -554,6 +554,10 @@ export async function* chatStream({
   };
 
   while (true) {
+    if (signal?.aborted) {
+      await reader.cancel().catch(() => {});
+      throw new DOMException('Aborted', 'AbortError');
+    }
     const { value, done } = await reader.read();
     if (value) buf += decoder.decode(value, { stream: !done });
     yield* parseSSEBuffer();
