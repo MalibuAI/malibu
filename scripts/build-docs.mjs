@@ -103,8 +103,26 @@ function walk(dir) {
   }
 }
 
+const THEME_TOGGLE_FALLBACK = `<script id="malibu-theme-toggle-fallback">(function(){const k="isDarkMode",m={true:"dark",false:"light",dark:"dark",light:"light"},c=["dark","light","true","false","system"];function a(t){const r=m[t]||t;document.documentElement.classList.remove(...c),document.documentElement.classList.add(r),["light","dark"].includes(r)&&(document.documentElement.style.colorScheme=r)}function g(){const e=document.documentElement;if(e.classList.contains("dark"))return"dark";if(e.classList.contains("light"))return"light";const t=localStorage.getItem(k);return!t||"system"===t?matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light":m[t]||t}function b(){document.querySelectorAll('[data-component-name="theme-toggle"]').forEach(e=>{e.dataset.malibuThemeBound||(e.dataset.malibuThemeBound="1",e.addEventListener("click",()=>{const t="dark"===g()?"light":"dark";localStorage.setItem(k,t),a(t)}))})}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",b):b(),new MutationObserver(b).observe(document.documentElement,{childList:!0,subtree:!0})})();</script>`;
+
+function injectThemeToggleFallback(dir) {
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) {
+      injectThemeToggleFallback(path);
+      continue;
+    }
+    if (!name.endsWith('.html')) continue;
+    const html = readFileSync(path, 'utf8');
+    if (html.includes('id="malibu-theme-toggle-fallback"')) continue;
+    if (!html.includes('data-component-name="theme-toggle"')) continue;
+    writeFileSync(path, html.replace('</body>', `${THEME_TOGGLE_FALLBACK}</body>`));
+  }
+}
+
 console.log('Rewriting exported paths for /docs hosting...');
 walk(distDocs);
+injectThemeToggleFallback(distDocs);
 assertNoPathRewriteCorruption(distDocs);
 
 const llmsPath = join(distDocs, 'llms.txt');
