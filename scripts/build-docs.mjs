@@ -42,9 +42,10 @@ rmSync(zipPath, { force: true });
 
 function prefixAbsolutePaths(content) {
   // Prefix root-relative URLs used by the exported Mintlify app.
-  // Skip external URLs, protocol-relative URLs, and already-prefixed /docs paths.
+  // Skip external URLs, protocol-relative URLs, already-prefixed /docs paths,
+  // and self-closing tag terminators ("/>) which must not become "/docs/>).
   return content
-    .replace(/(?<=["'`(])\/(?!docs\/)(?![a-z]+:)/g, '/docs/')
+    .replace(/(?<=["'`(])\/(?!docs\/)(?![a-z]+:)(?!>)/g, '/docs/')
     .replace(/\/docs\/docs\//g, '/docs/');
 }
 

@@ -17,6 +17,9 @@
     "dark": "/logo-dark.svg",
     "href": "https://malibu.tech"
   },
+  "appearance": {
+    "default": "system"
+  },
   "navbar": {
     "links": [
       { "label": "Console", "href": "https://malibu.tech/console" },
