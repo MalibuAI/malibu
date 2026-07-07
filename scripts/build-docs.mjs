@@ -43,9 +43,13 @@ rmSync(zipPath, { force: true });
 function prefixAbsolutePaths(content) {
   // Only rewrite root-relative URL paths inside quoted strings (HTML attrs, JS string literals).
   // Require a path-like character after `/` so grammar tokens like `"/>"` and `"/**"` stay intact.
+  // Skip regex closing delimiters like `/="([^"]*)"/g` where `/` is preceded by `"`.
   // Do NOT rewrite `/` inside regex literals like .replace(/^\/+/, '').
   return content
-    .replace(/(?<=["'`])\/(?!docs\/)(?![a-z]+:)(?=[a-zA-Z0-9_/.])/g, '/docs/')
+    .replace(
+      /(?<=["'`])\/(?!docs\/)(?![a-z]+:)(?=[a-zA-Z0-9_/.])(?![gimsuvy]+[,;)\s\]])/g,
+      '/docs/',
+    )
     .replace(/\/docs\/docs\//g, '/docs/');
 }
 
@@ -54,6 +58,7 @@ function assertNoPathRewriteCorruption(dir) {
     /\/docs\/\^/,
     /"\/docs\/>/,
     /\.replace\(\/docs\//,
+    /\/docs\/[gimsuvy]+[,;)\s\]]/,
   ];
   for (const name of readdirSync(dir)) {
     const path = join(dir, name);
