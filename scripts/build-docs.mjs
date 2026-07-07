@@ -22,6 +22,7 @@ const distDocs = join(root, 'dist', 'docs');
 const zipPath = join(root, '.tmp-docs-export.zip');
 
 const TEXT_EXTENSIONS = /\.(html|js|css|json|txt|xml|md)$/i;
+const JS_MANIFEST = /\/_next\/static\/(?:[^/]+\/_)?(?:build|ssg)Manifest\.js$/i;
 
 function run(cmd, cwd = root) {
   execSync(cmd, { cwd, stdio: 'inherit' });
@@ -43,14 +44,23 @@ rmSync(zipPath, { force: true });
 function prefixAbsolutePaths(content) {
   // Only rewrite root-relative URL paths inside quoted strings (HTML attrs, JS string literals).
   // Require a path-like character after `/` so grammar tokens like `"/>"` and `"/**"` stay intact.
+  // Skip comment delimiters like `"//"` and `"///"` used in syntax-highlighter grammars.
   // Skip regex closing delimiters like `/="([^"]*)"/g` where `/` is preceded by `"`.
   // Do NOT rewrite `/` inside regex literals like .replace(/^\/+/, '').
   return content
     .replace(
-      /(?<=["'`])\/(?!docs\/)(?![a-z]+:)(?=[a-zA-Z0-9_/.])(?![gimsuvy]+[,;)\s\]])/g,
+      /(?<=["'`])\/(?!docs\/)(?![a-z]+:)(?!\/)(?=[a-zA-Z0-9_/.])(?![gimsuvy]+[,;)\s\]])/g,
       '/docs/',
     )
     .replace(/\/docs\/docs\//g, '/docs/');
+}
+
+function shouldRewriteFile(path) {
+  if (path.endsWith('.html')) return true;
+  if (path.endsWith('.css')) return true;
+  if (path.endsWith('.json')) return true;
+  if (JS_MANIFEST.test(path)) return true;
+  return false;
 }
 
 function assertNoPathRewriteCorruption(dir) {
@@ -59,6 +69,8 @@ function assertNoPathRewriteCorruption(dir) {
     /"\/docs\/>/,
     /\.replace\(\/docs\//,
     /\/docs\/[gimsuvy]+[,;)\s\]]/,
+    /\/docs\/\/[*/]/,
+    /"\/docs\/\/"/,
   ];
   for (const name of readdirSync(dir)) {
     const path = join(dir, name);
@@ -84,7 +96,7 @@ function walk(dir) {
       walk(path);
       continue;
     }
-    if (!TEXT_EXTENSIONS.test(name)) continue;
+    if (!shouldRewriteFile(path)) continue;
     const original = readFileSync(path, 'utf8');
     const rewritten = prefixAbsolutePaths(original);
     if (rewritten !== original) writeFileSync(path, rewritten);
