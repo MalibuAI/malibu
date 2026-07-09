@@ -928,7 +928,7 @@
         ai.querySelector('.text').textContent = m.content;
         const billEl = ai.querySelector('[data-bill]');
         if (billEl && m.meta) finishBill(billEl, m.usage, m.meta, m.latencyMs);
-        else if (billEl) billEl.textContent = 'saved';
+        else if (billEl) setBillStatus(billEl, 'saved');
         wireAiMessageActions(ai, m.content);
       }
     }
@@ -1006,6 +1006,7 @@
     billed.className = 'billed';
     billed.dataset.bill = '';
     billed.textContent = live ? 'thinking…' : 'saved';
+    if (live) billed.classList.add('is-live');
     name.append(document.createTextNode(`${modelName} · `), pool, document.createTextNode(' · '), billed);
     const text = document.createElement('div');
     text.className = 'text' + (live ? ' thinking' : '');
@@ -1044,7 +1045,14 @@
     return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   }
 
+  function setBillStatus(billEl, text, { live = false } = {}) {
+    if (!billEl) return;
+    billEl.textContent = text;
+    billEl.classList.toggle('is-live', live);
+  }
+
   function finishBill(billEl, usage, meta, latencyMs) {
+    billEl.classList.remove('is-live');
     billEl.textContent = '';
     billEl.append(document.createTextNode(formatBillMeta({ usage, meta, latencyMs })));
     if (meta?.provider) {
@@ -1108,14 +1116,14 @@
           onTimeline: addTimelineItem,
           onStreamDelta: (content) => {
             setActivityState(Activity.STREAMING);
-            billEl.textContent = 'streaming…';
+            setBillStatus(billEl, 'streaming…', { live: true });
             textEl.className = 'text';
             renderStreamingContent(textEl, content, escapeHtml);
             scroller.follow({ anchorEl: ai });
           },
           onStreamToolDelta: (toolCalls) => {
             setActivityState(Activity.TOOL);
-            billEl.textContent = 'tools…';
+            setBillStatus(billEl, 'tools…', { live: true });
             textEl.className = 'text tool-cards';
             renderToolCards(textEl, toolCalls);
             scroller.follow({ anchorEl: ai });
@@ -1139,7 +1147,7 @@
         }
         finishBill(billEl, usage, meta, performance.now() - started);
         if (result.maxSteps) toast('Agent stopped at max tool steps.');
-        if (stopped) billEl.textContent = 'stopped';
+        if (stopped) setBillStatus(billEl, 'stopped');
       } else {
         for await (const event of chatStream({
           model: modelId,
@@ -1151,7 +1159,7 @@
           if (event.type === 'delta') {
             if (!buf) {
               setActivityState(Activity.STREAMING);
-              billEl.textContent = 'streaming…';
+              setBillStatus(billEl, 'streaming…', { live: true });
             }
             buf += event.text;
             textEl.className = 'text';
@@ -1181,7 +1189,7 @@
           ? (partial.endsWith('[Stopped]') ? partial : `${partial}\n\n[Stopped]`)
           : '[Generation stopped]';
         textEl.textContent = content;
-        billEl.textContent = 'stopped';
+        setBillStatus(billEl, 'stopped');
         if (partial && partial !== '[Generation stopped]') {
           conversation.push({
             role: 'assistant',
@@ -1220,7 +1228,7 @@
       } else {
         textEl.textContent = msg;
       }
-      billEl.textContent = kind === 'quota' ? 'quota' : 'error';
+      setBillStatus(billEl, kind === 'quota' ? 'quota' : 'error');
       toast(msg, 'error');
     } finally {
       endSession();

@@ -99,9 +99,46 @@ h1 { margin: 14px 0 6px; font-weight: 500; font-size: 32px; letter-spacing: -0.0
 .msg-action { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px; background: rgba(255,251,242,0.06); border: 1px solid rgba(255,251,242,0.10); color: rgba(255,251,242,0.65); transition: background 140ms ease, color 140ms ease; }
 .msg-action:hover { background: rgba(255,251,242,0.12); color: #FFFBF2; }
 
+/* Chat stream edge fades (scroll-fade) */
+.stream {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+}
+
+.composer {
+  position: relative;
+}
+
+.composer::before {
+  content: '';
+  position: absolute;
+  top: -28px;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: linear-gradient(to bottom, transparent, #0F1B26);
+  pointer-events: none;
+}
+
+/* Live billing status shimmer */
+@keyframes billShimmer {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+.billed.is-live {
+  background: linear-gradient(90deg, rgba(255,198,41,0.55) 0%, #FFFBF2 45%, rgba(255,198,41,0.55) 90%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: billShimmer 2.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .activity-dots span { animation: none; opacity: 0.8; }
   .activity-dots span:nth-child(2) { opacity: 0.55; }
   .activity-dots span:nth-child(3) { opacity: 0.35; }
   .stream-cursor { animation: none; opacity: 0.7; }
+  .billed.is-live { animation: none; color: #FFC629; background: none; }
 }
