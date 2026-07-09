@@ -403,13 +403,14 @@
   import { createWorkspace } from './workspace.js';
   import {
     Activity, setActivityState, getActivityState, onActivityState,
-    createActivityDots, renderThinkingContent, renderStreamingContent,
+    createActivityDots, renderStreamingContent,
     activityLabelForState, isBusy, beginSession, endSession, stopSession, getAbortSignal,
     isAbortError, onSessionChange,
   } from './ui/session.js';
   import { CHAT_ICON_SVG, icon } from './ui/icons.js';
   import { renderToolCards, attachMessageActions, updateChatCrumb } from './ui/messages.js';
   import { initScroller } from './ui/scroller.js';
+  import { addMarker, removeMarker } from './ui/markers.js';
 
   const streamViewport = document.querySelector('[data-stream]');
   const stream = document.querySelector('[data-stream] .stream-inner');
@@ -1017,8 +1018,8 @@
     header.append(sender, meta);
 
     const content = document.createElement('div');
-    content.className = 'msg-content' + (live ? ' thinking' : '');
-    if (live) renderThinkingContent(content);
+    content.className = 'msg-content';
+    if (!live) content.textContent = '';
 
     const footer = document.createElement('div');
     footer.className = 'msg-footer';
@@ -1103,9 +1104,34 @@
     const modelName = modelEl.options[modelEl.selectedIndex]?.text || modelId;
     setActivityState(Activity.THINKING);
     const ai = addAiMsg(modelName);
+    let thinkingMarker = addMarker(stream, { kind: 'thinking' }, { beforeEl: ai });
+    let toolMarker = null;
     const textEl = ai.querySelector('.msg-content');
     const billEl = ai.querySelector('[data-bill]');
     scroller.follow({ anchorEl: ai });
+
+    const clearThinkingMarker = () => {
+      removeMarker(thinkingMarker);
+      thinkingMarker = null;
+    };
+    const clearToolMarker = () => {
+      removeMarker(toolMarker);
+      toolMarker = null;
+    };
+    const clearMarkers = () => {
+      clearThinkingMarker();
+      clearToolMarker();
+    };
+    const onStreamStart = () => {
+      clearThinkingMarker();
+      clearToolMarker();
+    };
+    const showToolMarker = (toolCalls) => {
+      clearThinkingMarker();
+      if (!toolMarker) toolMarker = addMarker(stream, { kind: 'tool' }, { beforeEl: ai });
+      renderToolCards(toolMarker.querySelector('.marker-body'), toolCalls, { showDots: false, variant: 'marker' });
+      scroller.follow({ anchorEl: ai });
+    };
 
     const settings = loadSettings();
     const mode = settings.chatMode || 'chat';
@@ -1134,6 +1160,7 @@
           onStreamDelta: (content) => {
             setActivityState(Activity.STREAMING);
             setBillStatus(billEl, 'streaming…', { live: true });
+            onStreamStart();
             textEl.className = 'msg-content';
             renderStreamingContent(textEl, content, escapeHtml);
             scroller.follow({ anchorEl: ai });
@@ -1141,9 +1168,7 @@
           onStreamToolDelta: (toolCalls) => {
             setActivityState(Activity.TOOL);
             setBillStatus(billEl, 'tools…', { live: true });
-            textEl.className = 'msg-content tool-cards';
-            renderToolCards(textEl, toolCalls);
-            scroller.follow({ anchorEl: ai });
+            showToolMarker(toolCalls);
           },
         });
         usage = result.usage;
@@ -1177,6 +1202,7 @@
             if (!buf) {
               setActivityState(Activity.STREAMING);
               setBillStatus(billEl, 'streaming…', { live: true });
+              onStreamStart();
             }
             buf += event.text;
             textEl.className = 'msg-content';
@@ -1248,6 +1274,7 @@
       setBillStatus(billEl, kind === 'quota' ? 'quota' : 'error');
       toast(msg, 'error');
     } finally {
+      clearMarkers();
       endSession();
     }
   }
