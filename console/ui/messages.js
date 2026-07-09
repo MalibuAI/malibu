@@ -3,7 +3,7 @@ import { icon } from './icons.js';
 
 export function renderToolCards(container, toolCalls) {
   container.replaceChildren();
-  container.className = 'text tool-cards';
+  container.className = 'msg-content tool-cards';
   for (const tc of toolCalls || []) {
     const name = tc.function?.name || 'tool';
     const args = tc.function?.arguments || '{}';
@@ -25,8 +25,8 @@ export function renderToolCards(container, toolCalls) {
   container.appendChild(createActivityDots('activity-dots sm'));
 }
 
-export function attachMessageActions(bodyEl, { content, onCopy, onRegenerate }) {
-  if (!bodyEl || bodyEl.querySelector('.msg-actions')) return;
+export function attachMessageActions(footerEl, { content, onCopy, onRegenerate }) {
+  if (!footerEl || footerEl.querySelector('.msg-actions')) return;
   const row = document.createElement('div');
   row.className = 'msg-actions';
 
@@ -45,7 +45,7 @@ export function attachMessageActions(bodyEl, { content, onCopy, onRegenerate }) 
   regenBtn.addEventListener('click', () => onRegenerate?.());
 
   row.append(copyBtn, regenBtn);
-  bodyEl.appendChild(row);
+  footerEl.appendChild(row);
 }
 
 export function updateChatCrumb({ crumbEl, titleEl, title, visible }) {
