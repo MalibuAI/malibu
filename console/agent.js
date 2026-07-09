@@ -3,6 +3,9 @@ import { executeTool } from './tools.js';
 
 const MAX_AGENT_STEPS = 8;
 
+export const AGENT_SYSTEM_PROMPT =
+  'You are Malibu, a helpful assistant with access to tools. Only call a tool when the user\'s request clearly requires it — for example, arithmetic, JSON validation, or fetching a URL they provide. For greetings, UI tests, general chat, or questions you can answer directly, reply in plain text without tools.';
+
 export function createToolAccumulator() {
   const acc = {};
   return {
@@ -37,6 +40,12 @@ export function apiMessagesFromConversation(conversation) {
     }
     return { role: m.role, content: m.content };
   });
+}
+
+export function agentMessagesFromConversation(conversation) {
+  const mapped = apiMessagesFromConversation(conversation);
+  if (mapped[0]?.role === 'system') return mapped;
+  return [{ role: 'system', content: AGENT_SYSTEM_PROMPT }, ...mapped];
 }
 
 /**
@@ -157,7 +166,7 @@ export async function runAgentLoop({
 
     for await (const event of streamTurn({
       model,
-      messages: apiMessagesFromConversation(conversation),
+      messages: agentMessagesFromConversation(conversation),
       maxTokens,
       conversationId,
       tools,
