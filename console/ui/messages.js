@@ -1,9 +1,11 @@
 import { createActivityDots } from './activity.js';
 import { icon } from './icons.js';
 
-export function renderToolCards(container, toolCalls) {
+export function renderToolCards(container, toolCalls, { showDots = true, variant } = {}) {
+  if (!container) return;
+  const inMarker = variant === 'marker' || container.classList.contains('marker-body');
   container.replaceChildren();
-  container.className = 'msg-content tool-cards';
+  container.className = inMarker ? 'marker-body tool-cards' : 'msg-content tool-cards';
   for (const tc of toolCalls || []) {
     const name = tc.function?.name || 'tool';
     const args = tc.function?.arguments || '{}';
@@ -22,7 +24,9 @@ export function renderToolCards(container, toolCalls) {
     card.append(summary, pre);
     container.appendChild(card);
   }
-  container.appendChild(createActivityDots('activity-dots sm'));
+  if (showDots && !inMarker) {
+    container.appendChild(createActivityDots('activity-dots sm'));
+  }
 }
 
 export function attachMessageActions(footerEl, { content, onCopy, onRegenerate }) {

@@ -105,6 +105,28 @@ h1 { margin: 14px 0 6px; font-weight: 500; font-size: 32px; letter-spacing: -0.0
 .msg-action { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 7px; background: rgba(255,251,242,0.06); border: 1px solid rgba(255,251,242,0.10); color: rgba(255,251,242,0.65); transition: background 140ms ease, color 140ms ease; }
 .msg-action:hover { background: rgba(255,251,242,0.12); color: #FFFBF2; }
 
+/* Transcript marker rows (thinking, tools, status) */
+.marker {
+  margin: 2px 0 6px 42px;
+  max-width: calc(820px - 42px);
+}
+.marker-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: rgba(255,251,242,0.65);
+}
+.marker-label { color: rgba(255,198,41,0.92); }
+.marker-tool .marker-body {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* Chat stream edge fades (scroll-fade) */
 .stream {
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
