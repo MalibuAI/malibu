@@ -76,10 +76,15 @@
     .msg.user .avatar { background: #0C3A45; color: rgba(255, 251, 242,0.78); }
     .msg.ai .avatar { background: #FF6E5B; color: #FFFBF2; }
     .msg .body { flex: 1; min-width: 0; }
-    .msg .name { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .msg .name .billed { color: #FFC629; text-transform: none; letter-spacing: 0.04em; }
-    .msg .text { font-size: 15px; line-height: 1.65; color: rgba(255, 251, 242,0.92); white-space: pre-wrap; }
-    .msg.user .text { color: #FFFBF2; }
+    .msg-header { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .msg-sender { color: rgba(255, 251, 242,0.5); }
+    .msg-meta { color: #FFC629; text-transform: none; letter-spacing: 0.04em; margin-left: auto; }
+    .msg-content { font-size: 15px; line-height: 1.65; color: rgba(255, 251, 242,0.92); white-space: pre-wrap; }
+    .msg.user .msg-content { color: #FFFBF2; }
+    .msg-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; min-height: 0; }
+    .msg-footer:empty { display: none; }
+    .msg-meta-links { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: rgba(255,251,242,0.55); }
+    .msg-meta-links:empty { display: none; }
 
     .welcome { padding: 14px 0 6px; text-align: center; }
     .welcome h1 { margin: 0 0 8px; font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(36px, 4vw, 56px); line-height: 1; letter-spacing: -0.03em; color: #FFFBF2; }
@@ -176,7 +181,7 @@
     .tl-dot.error, .tl-dot.rejected { background: #FF6E5B; }
     .tl-dot.pending { background: #FFC629; }
     .tool-preview { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,251,242,0.65); white-space: pre-wrap; margin: 8px 0; max-height: 120px; overflow: auto; }
-    .msg .text.tool-call { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: rgba(255,198,41,0.9); }
+    .msg .msg-content.tool-call { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: rgba(255,198,41,0.9); }
 
     .panel.workspace-open { /* flex layout — chat hidden via rules above */ }
     .workspace-head { align-items: center; gap: 14px; }
@@ -925,7 +930,7 @@
       if (m.role === 'user') addUserMsg(m.content);
       else if (m.role === 'assistant') {
         const ai = addAiMsg(modelEl.options[modelEl.selectedIndex]?.text || t.model || 'Malibu', { live: false });
-        ai.querySelector('.text').textContent = m.content;
+        ai.querySelector('.msg-content').textContent = m.content;
         const billEl = ai.querySelector('[data-bill]');
         if (billEl && m.meta) finishBill(billEl, m.usage, m.meta, m.latencyMs);
         else if (billEl) setBillStatus(billEl, 'saved');
@@ -984,8 +989,8 @@
   function addUserMsg(text) {
     const el = document.createElement('div');
     el.className = 'msg user';
-    el.innerHTML = '<div class="avatar">YOU</div><div class="body"><div class="name">You</div><div class="text"></div></div>';
-    el.querySelector('.text').textContent = text;
+    el.innerHTML = '<div class="avatar">YOU</div><div class="body"><div class="msg-header"><span class="msg-sender">You</span></div><div class="msg-content"></div></div>';
+    el.querySelector('.msg-content').textContent = text;
     stream.appendChild(el);
     return el;
   }
@@ -998,27 +1003,38 @@
     avatar.textContent = 'M';
     const body = document.createElement('div');
     body.className = 'body';
-    const name = document.createElement('div');
-    name.className = 'name';
-    const pool = document.createElement('span');
-    pool.textContent = 'Malibu pool';
-    const billed = document.createElement('span');
-    billed.className = 'billed';
-    billed.dataset.bill = '';
-    billed.textContent = live ? 'thinking…' : 'saved';
-    if (live) billed.classList.add('is-live');
-    name.append(document.createTextNode(`${modelName} · `), pool, document.createTextNode(' · '), billed);
-    const text = document.createElement('div');
-    text.className = 'text' + (live ? ' thinking' : '');
-    if (live) renderThinkingContent(text);
-    body.append(name, text);
+
+    const header = document.createElement('div');
+    header.className = 'msg-header';
+    const sender = document.createElement('span');
+    sender.className = 'msg-sender';
+    sender.append(`${modelName} · Malibu pool`);
+    const meta = document.createElement('span');
+    meta.className = 'msg-meta billed';
+    meta.dataset.bill = '';
+    meta.textContent = live ? 'thinking…' : 'saved';
+    if (live) meta.classList.add('is-live');
+    header.append(sender, meta);
+
+    const content = document.createElement('div');
+    content.className = 'msg-content' + (live ? ' thinking' : '');
+    if (live) renderThinkingContent(content);
+
+    const footer = document.createElement('div');
+    footer.className = 'msg-footer';
+    const links = document.createElement('div');
+    links.className = 'msg-meta-links';
+    links.dataset.billLinks = '';
+    footer.appendChild(links);
+
+    body.append(header, content, footer);
     el.append(avatar, body);
     stream.appendChild(el);
     return el;
   }
 
   function wireAiMessageActions(aiEl, content) {
-    attachMessageActions(aiEl.querySelector('.body'), {
+    attachMessageActions(aiEl.querySelector('.msg-footer'), {
       content,
       onCopy: () => {
         navigator.clipboard.writeText(content).then(
@@ -1053,8 +1069,10 @@
 
   function finishBill(billEl, usage, meta, latencyMs) {
     billEl.classList.remove('is-live');
-    billEl.textContent = '';
-    billEl.append(document.createTextNode(formatBillMeta({ usage, meta, latencyMs })));
+    billEl.textContent = formatBillMeta({ usage, meta, latencyMs });
+    const linksEl = billEl.closest('.body')?.querySelector('[data-bill-links]');
+    if (!linksEl) return;
+    linksEl.replaceChildren();
     if (meta?.provider) {
       const plink = document.createElement('button');
       plink.type = 'button';
@@ -1062,17 +1080,16 @@
       plink.title = 'View network transparency';
       plink.textContent = 'node';
       plink.addEventListener('click', () => window.open('/network/', '_blank', 'noopener'));
-      billEl.append(document.createTextNode(' · '));
-      billEl.appendChild(plink);
+      linksEl.appendChild(plink);
     }
     if (meta?.receipt) {
+      if (linksEl.childNodes.length) linksEl.append(document.createTextNode(' · '));
       const link = document.createElement('button');
       link.type = 'button';
       link.className = 'receipt-link';
       link.textContent = 'receipt';
       link.addEventListener('click', () => openReceipt(meta.receipt));
-      billEl.append(document.createTextNode(' · '));
-      billEl.appendChild(link);
+      linksEl.appendChild(link);
     }
   }
 
@@ -1086,7 +1103,7 @@
     const modelName = modelEl.options[modelEl.selectedIndex]?.text || modelId;
     setActivityState(Activity.THINKING);
     const ai = addAiMsg(modelName);
-    const textEl = ai.querySelector('.text');
+    const textEl = ai.querySelector('.msg-content');
     const billEl = ai.querySelector('[data-bill]');
     scroller.follow({ anchorEl: ai });
 
@@ -1117,14 +1134,14 @@
           onStreamDelta: (content) => {
             setActivityState(Activity.STREAMING);
             setBillStatus(billEl, 'streaming…', { live: true });
-            textEl.className = 'text';
+            textEl.className = 'msg-content';
             renderStreamingContent(textEl, content, escapeHtml);
             scroller.follow({ anchorEl: ai });
           },
           onStreamToolDelta: (toolCalls) => {
             setActivityState(Activity.TOOL);
             setBillStatus(billEl, 'tools…', { live: true });
-            textEl.className = 'text tool-cards';
+            textEl.className = 'msg-content tool-cards';
             renderToolCards(textEl, toolCalls);
             scroller.follow({ anchorEl: ai });
           },
@@ -1133,7 +1150,7 @@
         meta = result.meta || {};
         buf = result.content || '';
         stopped = !!result.cancelled;
-        textEl.className = 'text';
+        textEl.className = 'msg-content';
         textEl.textContent = buf;
         if (buf) {
           conversation.push({
@@ -1162,7 +1179,7 @@
               setBillStatus(billEl, 'streaming…', { live: true });
             }
             buf += event.text;
-            textEl.className = 'text';
+            textEl.className = 'msg-content';
             renderStreamingContent(textEl, buf, escapeHtml);
             scroller.follow({ anchorEl: ai });
           } else if (event.type === 'done') {
@@ -1171,7 +1188,7 @@
             if (event.content) buf = event.content;
           }
         }
-        textEl.className = 'text';
+        textEl.className = 'msg-content';
         textEl.textContent = buf;
         conversation.push({ role: 'assistant', content: buf, usage, meta, surface, latencyMs: performance.now() - started });
         finishBill(billEl, usage, meta, performance.now() - started);
@@ -1183,7 +1200,7 @@
     } catch (e) {
       if (isAbortError(e)) {
         stopped = true;
-        textEl.className = 'text';
+        textEl.className = 'msg-content';
         const partial = buf || textEl.textContent.replace(/\n\n\[Stopped\]$/, '').trim();
         const content = partial
           ? (partial.endsWith('[Stopped]') ? partial : `${partial}\n\n[Stopped]`)
