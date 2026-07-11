@@ -15,7 +15,10 @@
 const ENDPOINT = 'https://malibu.tech/v1/stats/overview';
 const jsonOnly = process.argv.includes('--json');
 
-const fmt = (n) => (typeof n === 'number' ? n.toLocaleString('en-US') : String(n));
+// Missing/renamed fields print an explicit "n/a" — never a literal "undefined"
+// that an author might paste into a post as if it were data.
+const fmt = (n) =>
+  n == null ? 'n/a' : typeof n === 'number' ? n.toLocaleString('en-US') : String(n);
 
 async function main() {
   let payload;

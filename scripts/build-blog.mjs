@@ -194,7 +194,14 @@ function loadPosts() {
       if (Number.isNaN(new Date(data.date).getTime())) {
         throw new Error(`unparseable date "${data.date}"`);
       }
-      if (data.draft === true) continue;
+      // Fail SAFE on draft: any truthy-looking value keeps the post unpublished,
+      // so a stray `draft: true # note` (string) never leaks live. Only an
+      // explicit falsey value publishes.
+      const draftVal = data.draft;
+      const isDraft =
+        draftVal === true ||
+        (typeof draftVal === 'string' && /^\s*(true|yes|on|1|draft)\b/i.test(draftVal));
+      if (isDraft) continue;
 
       const canonical = data.canonical || `${SITE}/blog/${slug}/`;
       const rawOgImage = data.ogImage || data.heroImage || DEFAULT_HERO;
