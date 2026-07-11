@@ -149,9 +149,13 @@ function buildMessage() {
   const salvage = process.env.DRIP_SALVAGE_URL
     ? `\n\nA partial draft may be recoverable from the run's artifacts:\n${process.env.DRIP_SALVAGE_URL}`
     : '';
+  const disabled =
+    process.env.DRIP_DISABLED === 'true'
+      ? `\n\n🛑 The schedule has been AUTO-DISABLED after repeated failures. Fix the cause, then re-enable blog-drip.yml in the Actions tab.`
+      : '';
   return (
     `${header}\n\n` +
-    `No draft PR was opened. Check the GitHub Actions log — do not assume a post exists.${salvage}${telemLine}${nearCap}`
+    `No draft PR was opened. Check the GitHub Actions log — do not assume a post exists.${salvage}${disabled}${telemLine}${nearCap}`
   );
 }
 

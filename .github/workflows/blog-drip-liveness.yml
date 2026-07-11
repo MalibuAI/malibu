@@ -53,19 +53,35 @@ jobs:
             echo "Drip is dormant by config (no ANTHROPIC_API_KEY) — no liveness alert."
             exit 0
           fi
-          LAST=$(gh run list --workflow blog-drip.yml --status completed --limit 1 \
+
+          # (1) Recency — is the SCHEDULED drip running at all? --event schedule so
+          # a manual dispatch can't refresh this and mask a dead schedule.
+          LAST=$(gh run list --workflow blog-drip.yml --event schedule --status completed --limit 1 \
             --json createdAt --jq '.[0].createdAt // ""' 2>/dev/null || echo "")
           if [ -z "$LAST" ]; then
-            echo "No completed drip runs yet (fresh setup?) — nothing to check."
+            echo "No completed scheduled drip runs yet (fresh setup?) — nothing to check."
             exit 0
           fi
           NOW=$(date -u +%s)
-          LAST_TS=$(date -u -d "$LAST" +%s 2>/dev/null || echo 0)
+          # Parse failure → treat as "now" (fresh) so a bad timestamp never false-alarms.
+          LAST_TS=$(date -u -d "$LAST" +%s 2>/dev/null || echo "$NOW")
           AGE_DAYS=$(( (NOW - LAST_TS) / 86400 ))
-          echo "Last completed drip run: ${LAST} (${AGE_DAYS} day(s) ago)."
+          echo "Last completed scheduled run: ${LAST} (${AGE_DAYS} day(s) ago)."
           if [ "$AGE_DAYS" -ge "$MAX_AGE_DAYS" ]; then
-            MSG="🚨 Malibu blog drip liveness: no completed run in ${AGE_DAYS} days (last ${LAST}). The schedule may be disabled or the workflow is failing to start — check GitHub Actions."
+            MSG="🚨 Malibu blog drip liveness: no completed scheduled run in ${AGE_DAYS} days (last ${LAST}). The schedule may be disabled or failing to start — check GitHub Actions."
+            DRIP_OUTCOME=alert DRIP_ALERT_MSG="$MSG" node scripts/blog-drip-notify.mjs
+            exit 0
+          fi
+          echo "Recency OK — within ${MAX_AGE_DAYS} days."
+
+          # (2) Corroboration — is the drip RUNNING but failing every time? A second,
+          # differently-scoped check that doesn't depend on the in-run streak step.
+          CONC=$(gh run list --workflow blog-drip.yml --event schedule --status completed --limit 3 \
+            --json conclusion --jq '[.[].conclusion]' 2>/dev/null || echo '[]')
+          ALLFAIL=$(node -e 'let a=[];try{a=JSON.parse(process.argv[1])}catch{}; process.stdout.write(a.length>=3 && a.every(c=>c==="failure")?"1":"0");' "$CONC")
+          if [ "$ALLFAIL" = "1" ]; then
+            MSG="🚨 Malibu blog drip liveness: the last 3 scheduled runs all FAILED. The drip is running but never producing — check GitHub Actions."
             DRIP_OUTCOME=alert DRIP_ALERT_MSG="$MSG" node scripts/blog-drip-notify.mjs
           else
-            echo "Healthy — last run within ${MAX_AGE_DAYS} days."
+            echo "Corroboration OK — last 3 scheduled runs are not all failures."
           fi

@@ -52,7 +52,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: read
+  actions: write # read run history (streak/liveness) + disable self (circuit breaker)
 
 concurrency:
   group: blog-drip
@@ -259,11 +259,29 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
-          # Count consecutive prior FAILED completed runs (escalation input).
-          CONC=$(gh run list --workflow blog-drip.yml --status completed --limit 20 \
+          # Count consecutive prior FAILED SCHEDULED runs. --event schedule so a
+          # manual test_notify/dispatch between two real failures can't reset it.
+          CONC=$(gh run list --workflow blog-drip.yml --status completed --event schedule --limit 20 \
             --json conclusion --jq '[.[].conclusion]' 2>/dev/null || echo '[]')
           STREAK=$(node -e 'let a=[];try{a=JSON.parse(process.argv[1])}catch{}; let n=0; for(const c of a){ if(c==="failure") n++; else break; } process.stdout.write(String(n));' "$CONC")
           echo "prior_failures=${STREAK}" >> "$GITHUB_OUTPUT"
+
+      - name: Circuit breaker
+        id: breaker
+        # On the 5th consecutive scheduled failure (4 prior + this one), stop the
+        # bleed: disable the schedule so it stops running (and spending) until a
+        # human fixes the cause and re-enables it. Only on a real failure.
+        if: always() && steps.assemble.outputs.outcome != 'post' && steps.assemble.outputs.outcome != 'skip' && steps.streak.outputs.prior_failures >= 4
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          if gh workflow disable blog-drip.yml; then
+            echo "Circuit breaker: disabled blog-drip.yml after repeated failures."
+            echo "disabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Circuit breaker: gh workflow disable failed (needs actions:write) — schedule still live." >&2
+          fi
 
       - name: Salvage drafted post on failure
         id: salvage
@@ -293,6 +311,7 @@ jobs:
           DRIP_TURNS: ${{ steps.usage.outputs.turns }}
           DRIP_DURATION: ${{ steps.usage.outputs.duration }}
           DRIP_PRIOR_FAILURES: ${{ steps.streak.outputs.prior_failures }}
+          DRIP_DISABLED: ${{ steps.breaker.outputs.disabled }}
           # Keep in sync with --max-turns and timeout-minutes above.
           DRIP_MAX_TURNS: "50"
           DRIP_TIMEOUT_S: "1800"
