@@ -39,6 +39,8 @@ post would not clear that bar, do not write it.
    - `.drip/result.json` —
      `{"action":"post","slug":"<slug>","title":"<title>","thesis":"<one-sentence thesis>"}`
      The `thesis` is surfaced in the review notification, so make it the real claim.
+     If the run was given an "Operator topic hint", also set `"topic_hint_used"`:
+     `true` if you wrote about that topic, `false` if a stronger angle won instead.
    - `.drip/pr-body.md` — a short PR description: the thesis, the so-what, the topic,
      which sources you used, and which existing post (if any) you linked from.
 
