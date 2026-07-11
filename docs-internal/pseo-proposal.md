@@ -1,6 +1,6 @@
 # Malibu PSEO — Automated SEO Content Drip
 
-**Status:** Phase 1 in progress · **Owner:** Augustas · **Doc created:** 2026-07-11
+**Status:** Phases 1–2 merged (#33, #35); Phase 3 scaffolded, awaiting secrets · **Owner:** Augustas · **Doc created:** 2026-07-11
 
 A proposal + build plan to give malibu.tech an unattended, quality-gated blog-content
 routine, modeled on the Jellypod "PSEO daily content drip" workflow.
@@ -144,9 +144,17 @@ Body in Markdown. ## headings, paragraphs, - lists, **bold**, *italic*,
 
 ## 8. Owner action items (creds / accounts — cannot be automated)
 
-- [ ] Create a Telegram bot via **@BotFather**; capture bot token + target chat ID.
-- [ ] Verify the **malibu.tech** property in Google Search Console.
-- [ ] Decide cadence (assumed Mon/Wed/Fri).
+Phase 3 is built (`.github/workflows/blog-drip.yml`, `blog/drip-routine.md`,
+`scripts/blog-drip-notify.mjs`). To activate it:
+
+- [ ] Create a Telegram bot via **@BotFather**; capture the bot token + chat ID.
+- [ ] Add repo secrets (Settings → Secrets → Actions): **`ANTHROPIC_API_KEY`**,
+      **`TELEGRAM_BOT_TOKEN`**, **`TELEGRAM_CHAT_ID`**. Optional **`DRIP_PAT`**
+      (fine-grained PAT, contents+PR write) so CI runs on the drip's PRs.
+- [ ] First run: trigger the workflow manually (**Run workflow** / `workflow_dispatch`)
+      and watch the Actions log before trusting the schedule.
+- [ ] Verify the **malibu.tech** property in Google Search Console (for keyword data).
+- [ ] Confirm cadence (default Mon/Wed/Fri 16:00 UTC ≈ 09:00 PT; edit the cron).
 
 ## 9. Open flags
 

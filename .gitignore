@@ -1,5 +1,6 @@
 .DS_Store
 .claude/
+.drip/
 .imagegen-alt-start
 .omx/
 .vercel/

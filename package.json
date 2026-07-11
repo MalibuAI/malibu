@@ -7,6 +7,7 @@
     "build": "npm run blog:build && vite build && npm run docs:build",
     "blog:build": "node scripts/build-blog.mjs",
     "blog:stats": "node scripts/blog-stats.mjs",
+    "blog:lint": "node scripts/blog-lint.mjs",
     "docs:build": "node scripts/build-docs.mjs",
     "docs:validate": "node scripts/validate-docs-claims.mjs",
     "preview": "vite preview --host 127.0.0.1",
