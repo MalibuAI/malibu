@@ -15,11 +15,14 @@ name: Blog drip liveness
 
 on:
   schedule:
-    - cron: "0 15 * * 1" # Mondays 15:00 UTC, before the drip's 16:00 run
+    # Mon + Thu 15:00 UTC (before the drip's 16:00 run), so total-staleness is
+    # caught within a few days, not up to ~10.
+    - cron: "0 15 * * 1,4"
   workflow_dispatch:
 
 permissions:
-  actions: read
+  contents: read # actions/checkout needs this on a PRIVATE repo — without it the job 403s
+  actions: read # gh run list
 
 concurrency:
   group: blog-drip-liveness
@@ -37,11 +40,13 @@ jobs:
           node-version: "22"
       - name: Check drip liveness
         env:
-          GH_TOKEN: ${{ secrets.DRIP_PAT || github.token }}
+          # github.token carries actions:read here; DRIP_PAT (contents+PR write)
+          # may lack the Actions scope and would 403 → silent "no runs".
+          GH_TOKEN: ${{ github.token }}
           KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          MAX_AGE_DAYS: "8"
+          MAX_AGE_DAYS: "6"
         run: |
           set -uo pipefail
           if [ -z "${KEY:-}" ]; then

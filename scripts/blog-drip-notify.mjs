@@ -60,10 +60,20 @@ function nearCapLine() {
   if (durMatch && timeoutS && Number(durMatch[1]) >= 0.9 * timeoutS) {
     flags.push(`duration ${durMatch[1]}s/${timeoutS}s`);
   }
+  // Cost is the number that actually matters — flag a run near the per-run ceiling.
+  const cost = parseFloat((process.env.DRIP_COST || '').replace(/[^0-9.]/g, ''));
+  const maxCost = parseFloat(process.env.DRIP_MAX_COST || '');
+  if (Number.isFinite(cost) && Number.isFinite(maxCost) && maxCost > 0 && cost >= 0.9 * maxCost) {
+    flags.push(`cost $${cost.toFixed(2)}/$${maxCost.toFixed(2)}`);
+  }
   return flags.length
     ? `\n⚠ Near limits: ${flags.join(', ')} — raise the cap or narrow scope.`
     : '';
 }
+
+// Loud (buzzes the phone) only for things needing action, so routine posts/skips/
+// dormant pings don't train the operator to mute the channel that carries alerts.
+const LOUD_OUTCOMES = new Set(['failed', 'alert', 'infra_failed']);
 
 function buildMessage() {
   const result = readResult();
@@ -72,6 +82,15 @@ function buildMessage() {
   // Liveness check sends a fully-formed message.
   if (outcome === 'alert') {
     return process.env.DRIP_ALERT_MSG || '⚠️ Malibu blog drip — liveness alert.';
+  }
+  // A job died before the routine could run (checkout/setup/infra) — the drip
+  // is configured but couldn't start, so SOME signal must still reach Telegram.
+  if (outcome === 'infra_failed') {
+    return (
+      `⚠️ Malibu blog drip — the run could NOT start.\n\n` +
+      `A setup/infra step failed before the routine ran; no post was attempted. ` +
+      `Check the GitHub Actions log.`
+    );
   }
 
   const alsoEdited = (process.env.DRIP_ALSO_EDITED || '')
@@ -148,6 +167,8 @@ function writeSummary(text) {
 
 async function main() {
   const text = buildMessage();
+  const { outcome } = resolveOutcome();
+  const loud = LOUD_OUTCOMES.has(outcome);
   writeSummary(text); // durable, visible even if Telegram is down
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -164,7 +185,7 @@ async function main() {
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text }),
+      body: JSON.stringify({ chat_id: chatId, text, disable_notification: !loud }),
       signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) {

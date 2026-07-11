@@ -26,7 +26,9 @@ post would not clear that bar, do not write it.
 4. **Decide: post or skip.**
    - If nothing clears the §1 gate (thesis, so-what, only-we angle, real depth),
      **skip.** Write `.drip/result.json` with `{"action":"skip","reason":"<one sentence>"}`
-     and stop. Do not write a post.
+     and stop. Do not write a post. If the run was given an "Operator topic hint",
+     also set `"topic_hint_used": false` and make the `reason` explain why the
+     hinted topic didn't clear the bar.
    - Otherwise, **write exactly ONE** `blog/posts/<slug>.md` with complete
      frontmatter (per `blog/CLAUDE.md` §3) and a Markdown body that clears the bar.
      Kebab-case slug. Set `date` to today (UTC). Do the backward-internal-link step

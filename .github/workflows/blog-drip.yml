@@ -114,6 +114,15 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DRIP_OUTCOME: dormant
         run: node scripts/blog-drip-notify.mjs
+      - name: Notify preflight failure
+        # If checkout/setup/pre died (not the key check), `go` is undefined and the
+        # drip job silently skips. Without this, that trigger sends NO signal at all.
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DRIP_OUTCOME: infra_failed
+        run: node scripts/blog-drip-notify.mjs
 
   drip:
     needs: preflight
@@ -245,11 +254,13 @@ jobs:
         id: streak
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.DRIP_PAT || github.token }}
+          # github.token carries actions:read; a contents+PR-write DRIP_PAT may not,
+          # which would 403 → silent streak 0 → escalation never fires.
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           # Count consecutive prior FAILED completed runs (escalation input).
-          CONC=$(gh run list --workflow blog-drip.yml --status completed --limit 8 \
+          CONC=$(gh run list --workflow blog-drip.yml --status completed --limit 20 \
             --json conclusion --jq '[.[].conclusion]' 2>/dev/null || echo '[]')
           STREAK=$(node -e 'let a=[];try{a=JSON.parse(process.argv[1])}catch{}; let n=0; for(const c of a){ if(c==="failure") n++; else break; } process.stdout.write(String(n));' "$CONC")
           echo "prior_failures=${STREAK}" >> "$GITHUB_OUTPUT"
@@ -285,4 +296,6 @@ jobs:
           # Keep in sync with --max-turns and timeout-minutes above.
           DRIP_MAX_TURNS: "50"
           DRIP_TIMEOUT_S: "1800"
+          # Per-run cost ceiling (USD); a run at >=90% is flagged. Tune to taste.
+          DRIP_MAX_COST: "2.00"
         run: node scripts/blog-drip-notify.mjs
