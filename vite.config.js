@@ -8,6 +8,7 @@ import { existsSync, readdirSync } from 'node:fs';
 function blogInputs() {
   const inputs = {};
   const blogDir = resolve(__dirname, 'blog');
+  if (!existsSync(blogDir)) return inputs;
   if (existsSync(resolve(blogDir, 'index.html'))) {
     inputs.blog = resolve(blogDir, 'index.html');
   }
