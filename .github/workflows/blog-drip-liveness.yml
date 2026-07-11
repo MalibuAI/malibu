@@ -1,0 +1,71 @@
+# Independent liveness heartbeat for the blog content drip.
+#
+# The drip only signals when it runs. This weekly check catches the one failure
+# the drip cannot report itself: the workflow silently not running at all
+# (schedule disabled, repo actions paused, a bad edit that won't parse). It asks
+# the Actions API for the drip's last completed run and alerts on Telegram if
+# it's stale. Stateless — the run history is the source of truth, no persisted
+# state to drift.
+#
+# Quiet by design when: ANTHROPIC_API_KEY is unset (drip is intentionally
+# dormant — the drip's own preflight reports that), or there are no completed
+# runs yet (fresh setup). It only fires when a drip that WAS running goes stale.
+
+name: Blog drip liveness
+
+on:
+  schedule:
+    # Mon + Thu 15:00 UTC (before the drip's 16:00 run), so total-staleness is
+    # caught within a few days, not up to ~10.
+    - cron: "0 15 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: read # actions/checkout needs this on a PRIVATE repo — without it the job 403s
+  actions: read # gh run list
+
+concurrency:
+  group: blog-drip-liveness
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check drip liveness
+        env:
+          # github.token carries actions:read here; DRIP_PAT (contents+PR write)
+          # may lack the Actions scope and would 403 → silent "no runs".
+          GH_TOKEN: ${{ github.token }}
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MAX_AGE_DAYS: "6"
+        run: |
+          set -uo pipefail
+          if [ -z "${KEY:-}" ]; then
+            echo "Drip is dormant by config (no ANTHROPIC_API_KEY) — no liveness alert."
+            exit 0
+          fi
+          LAST=$(gh run list --workflow blog-drip.yml --status completed --limit 1 \
+            --json createdAt --jq '.[0].createdAt // ""' 2>/dev/null || echo "")
+          if [ -z "$LAST" ]; then
+            echo "No completed drip runs yet (fresh setup?) — nothing to check."
+            exit 0
+          fi
+          NOW=$(date -u +%s)
+          LAST_TS=$(date -u -d "$LAST" +%s 2>/dev/null || echo 0)
+          AGE_DAYS=$(( (NOW - LAST_TS) / 86400 ))
+          echo "Last completed drip run: ${LAST} (${AGE_DAYS} day(s) ago)."
+          if [ "$AGE_DAYS" -ge "$MAX_AGE_DAYS" ]; then
+            MSG="🚨 Malibu blog drip liveness: no completed run in ${AGE_DAYS} days (last ${LAST}). The schedule may be disabled or the workflow is failing to start — check GitHub Actions."
+            DRIP_OUTCOME=alert DRIP_ALERT_MSG="$MSG" node scripts/blog-drip-notify.mjs
+          else
+            echo "Healthy — last run within ${MAX_AGE_DAYS} days."
+          fi

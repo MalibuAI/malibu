@@ -4,6 +4,11 @@
 # deterministically lints, builds (a gate), opens a DRAFT pull request (never
 # merges), and notifies Telegram. Claude does the creative work only.
 #
+# STRUCTURE: a light `preflight` job checks the key (and sends the dormant alert),
+# and the heavy `drip` job runs only when configured — so harden-runner, npm ci,
+# and the paid Claude step never run on a dormant scheduled trigger. A separate
+# blog-drip-liveness.yml weekly-checks that the drip is still running at all.
+#
 # SECURITY BOUNDARY:
 #   - The Claude step receives ONLY anthropic_api_key. It is given NO GitHub
 #     token, and checkout uses persist-credentials:false, so the model's Bash
@@ -13,9 +18,7 @@
 #   - Egress is MONITORED by harden-runner (audit mode) for tamper/exfil
 #     visibility. RESIDUAL: the Claude step must hold ANTHROPIC_API_KEY and has
 #     Bash + WebFetch over untrusted web content. MITIGATE: use a DEDICATED,
-#     low-budget Anthropic key with billing alerts, and rotate on suspicion. To
-#     harden further, switch harden-runner to `egress-policy: block` with a
-#     curated allowed-endpoints list (see the commented block below).
+#     low-budget Anthropic key with billing alerts, and rotate on suspicion.
 #
 # REQUIRED repository secrets (Settings → Secrets and variables → Actions):
 #   ANTHROPIC_API_KEY   dedicated low-budget Claude key
@@ -25,9 +28,9 @@
 #   DRIP_PAT            fine-grained PAT (contents+PR write) so CI runs on the
 #                       drip's PRs (default GITHUB_TOKEN PRs don't trigger CI).
 #
-# Until ANTHROPIC_API_KEY is set, scheduled runs are a green no-op (preflight
-# skips the job). First: set secrets → run manually with "test_notify" checked
-# to verify Telegram → a full manual run → then trust the schedule.
+# Until ANTHROPIC_API_KEY is set, scheduled runs are a green no-op. First: set
+# secrets → run manually with "test_notify" checked → a full manual run → then
+# trust the schedule.
 
 name: Blog content drip
 
@@ -49,6 +52,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: read
 
 concurrency:
   group: blog-drip
@@ -76,8 +80,53 @@ jobs:
           printf '%s' '{"action":"skip","reason":"Telegram wiring test — ignore."}' > .drip/result.json
           node scripts/blog-drip-notify.mjs
 
-  drip:
+  # Light gate: is the drip configured? Handles the dormant alert itself so the
+  # expensive drip job is skipped entirely when there's no key.
+  preflight:
     if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.test_notify) }}
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.pre.outputs.go }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Preflight
+        id: pre
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "${KEY:-}" ]; then
+            echo "ANTHROPIC_API_KEY not set — blog drip is dormant." >&2
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Notify dormant
+        # Only when unconfigured: sends a "dormant" alert IF Telegram is set
+        # (you started setup → the key is missing), silent otherwise (fresh repo).
+        if: steps.pre.outputs.go == 'false'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DRIP_OUTCOME: dormant
+        run: node scripts/blog-drip-notify.mjs
+      - name: Notify preflight failure
+        # If checkout/setup/pre died (not the key check), `go` is undefined and the
+        # drip job silently skips. Without this, that trigger sends NO signal at all.
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DRIP_OUTCOME: infra_failed
+        run: node scripts/blog-drip-notify.mjs
+
+  drip:
+    needs: preflight
+    if: needs.preflight.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -89,15 +138,6 @@ jobs:
           # AUDIT (monitor), not BLOCK, is deliberate — NOT a shipped-disabled gap.
           # The routine's WebFetch research hits arbitrary primary-source domains a
           # static allowlist cannot enumerate, so block mode would break research.
-          # Audit gives exfil/tamper forensics; the primary control on the key is a
-          # dedicated low-budget Anthropic key + billing alerts. To move to block you
-          # must ALSO allowlist every research domain (impractical for open research):
-          # allowed-endpoints: >
-          #   api.anthropic.com:443
-          #   registry.npmjs.org:443
-          #   github.com:443
-          #   api.github.com:443
-          #   api.telegram.org:443
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,32 +145,17 @@ jobs:
           # Model step gets no push credentials; the assemble step re-auths.
           persist-credentials: false
 
-      - name: Preflight
-        id: pre
-        env:
-          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -z "${KEY:-}" ]; then
-            echo "ANTHROPIC_API_KEY not set — blog drip is dormant. Add secrets to activate." >&2
-            echo "go=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "go=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Set up Node
-        if: steps.pre.outputs.go == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
 
       - name: Install dependencies
-        if: steps.pre.outputs.go == 'true'
         run: npm ci
 
       - name: Run the content routine (Claude)
         id: claude
-        if: steps.pre.outputs.go == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           # NO github_token on purpose — the model must not be able to publish.
@@ -143,7 +168,7 @@ jobs:
             Do NOT run git, open a pull request, or merge — you have no
             credentials to do so and the workflow handles publishing. Always
             finish by writing .drip/result.json.
-            ${{ (github.event_name == 'workflow_dispatch' && inputs.topic != '') && format('Operator topic hint for this run: {0}. Prefer it if it clears the quality bar.', inputs.topic) || '' }}
+            ${{ (github.event_name == 'workflow_dispatch' && inputs.topic != '') && format('Operator topic hint for this run: {0}. Prefer it if it clears the quality bar, and set "topic_hint_used" in .drip/result.json to true if you used it, false if you chose a different angle.', inputs.topic) || '' }}
           claude_args: |
             --model claude-opus-4-8
             --max-turns 50
@@ -151,14 +176,13 @@ jobs:
 
       - name: Usage telemetry
         id: usage
-        if: always() && steps.pre.outputs.go == 'true'
+        if: always()
         env:
           EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
         run: node scripts/blog-drip-usage.mjs "$EXEC_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Assemble draft PR
         id: assemble
-        if: steps.pre.outputs.go == 'true'
         env:
           GH_TOKEN: ${{ secrets.DRIP_PAT || github.token }}
         run: |
@@ -226,11 +250,26 @@ jobs:
           echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
           echo "also_edited=${ALSO}" >> "$GITHUB_OUTPUT"
 
+      - name: Failure streak
+        id: streak
+        if: always()
+        env:
+          # github.token carries actions:read; a contents+PR-write DRIP_PAT may not,
+          # which would 403 → silent streak 0 → escalation never fires.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          # Count consecutive prior FAILED completed runs (escalation input).
+          CONC=$(gh run list --workflow blog-drip.yml --status completed --limit 20 \
+            --json conclusion --jq '[.[].conclusion]' 2>/dev/null || echo '[]')
+          STREAK=$(node -e 'let a=[];try{a=JSON.parse(process.argv[1])}catch{}; let n=0; for(const c of a){ if(c==="failure") n++; else break; } process.stdout.write(String(n));' "$CONC")
+          echo "prior_failures=${STREAK}" >> "$GITHUB_OUTPUT"
+
       - name: Salvage drafted post on failure
         id: salvage
         # Fires on an assemble failure AND on a Claude-step failure (assemble
         # skipped → outcome empty), i.e. anything that isn't a clean post/skip.
-        if: always() && steps.pre.outputs.go == 'true' && steps.assemble.outputs.outcome != 'post' && steps.assemble.outputs.outcome != 'skip'
+        if: always() && steps.assemble.outputs.outcome != 'post' && steps.assemble.outputs.outcome != 'skip'
         uses: actions/upload-artifact@v4
         with:
           name: blog-drip-salvage-${{ github.run_id }}
@@ -241,15 +280,11 @@ jobs:
           retention-days: 14
 
       - name: Notify Telegram
-        # NOT gated on `go`: on the dormant path this sends a "dormant" alert IF
-        # Telegram is configured (you started setup → the key is missing), and
-        # stays silent when nothing is configured yet (notifier prints-only with
-        # no Telegram secrets). So a set-then-revoked key is never silent.
         if: always()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          DRIP_OUTCOME: ${{ steps.pre.outputs.go == 'false' && 'dormant' || steps.assemble.outputs.outcome }}
+          DRIP_OUTCOME: ${{ steps.assemble.outputs.outcome }}
           DRIP_PR_URL: ${{ steps.assemble.outputs.pr_url }}
           DRIP_ALSO_EDITED: ${{ steps.assemble.outputs.also_edited }}
           DRIP_RUNWAY: ${{ steps.assemble.outputs.runway }}
@@ -257,4 +292,10 @@ jobs:
           DRIP_COST: ${{ steps.usage.outputs.cost }}
           DRIP_TURNS: ${{ steps.usage.outputs.turns }}
           DRIP_DURATION: ${{ steps.usage.outputs.duration }}
+          DRIP_PRIOR_FAILURES: ${{ steps.streak.outputs.prior_failures }}
+          # Keep in sync with --max-turns and timeout-minutes above.
+          DRIP_MAX_TURNS: "50"
+          DRIP_TIMEOUT_S: "1800"
+          # Per-run cost ceiling (USD); a run at >=90% is flagged. Tune to taste.
+          DRIP_MAX_COST: "2.00"
         run: node scripts/blog-drip-notify.mjs
