@@ -86,7 +86,12 @@ jobs:
         with:
           egress-policy: audit
           disable-sudo: true
-          # To enforce instead of monitor, set egress-policy: block and curate:
+          # AUDIT (monitor), not BLOCK, is deliberate — NOT a shipped-disabled gap.
+          # The routine's WebFetch research hits arbitrary primary-source domains a
+          # static allowlist cannot enumerate, so block mode would break research.
+          # Audit gives exfil/tamper forensics; the primary control on the key is a
+          # dedicated low-budget Anthropic key + billing alerts. To move to block you
+          # must ALSO allowlist every research domain (impractical for open research):
           # allowed-endpoints: >
           #   api.anthropic.com:443
           #   registry.npmjs.org:443
@@ -147,7 +152,9 @@ jobs:
       - name: Usage telemetry
         id: usage
         if: always() && steps.pre.outputs.go == 'true'
-        run: node scripts/blog-drip-usage.mjs "${{ steps.claude.outputs.execution_file }}" >> "$GITHUB_OUTPUT"
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: node scripts/blog-drip-usage.mjs "$EXEC_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Assemble draft PR
         id: assemble
@@ -220,7 +227,10 @@ jobs:
           echo "also_edited=${ALSO}" >> "$GITHUB_OUTPUT"
 
       - name: Salvage drafted post on failure
-        if: always() && steps.pre.outputs.go == 'true' && steps.assemble.outputs.outcome == 'failed'
+        id: salvage
+        # Fires on an assemble failure AND on a Claude-step failure (assemble
+        # skipped → outcome empty), i.e. anything that isn't a clean post/skip.
+        if: always() && steps.pre.outputs.go == 'true' && steps.assemble.outputs.outcome != 'post' && steps.assemble.outputs.outcome != 'skip'
         uses: actions/upload-artifact@v4
         with:
           name: blog-drip-salvage-${{ github.run_id }}
@@ -231,14 +241,19 @@ jobs:
           retention-days: 14
 
       - name: Notify Telegram
-        if: always() && steps.pre.outputs.go == 'true'
+        # NOT gated on `go`: on the dormant path this sends a "dormant" alert IF
+        # Telegram is configured (you started setup → the key is missing), and
+        # stays silent when nothing is configured yet (notifier prints-only with
+        # no Telegram secrets). So a set-then-revoked key is never silent.
+        if: always()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          DRIP_OUTCOME: ${{ steps.assemble.outputs.outcome }}
+          DRIP_OUTCOME: ${{ steps.pre.outputs.go == 'false' && 'dormant' || steps.assemble.outputs.outcome }}
           DRIP_PR_URL: ${{ steps.assemble.outputs.pr_url }}
           DRIP_ALSO_EDITED: ${{ steps.assemble.outputs.also_edited }}
           DRIP_RUNWAY: ${{ steps.assemble.outputs.runway }}
+          DRIP_SALVAGE_URL: ${{ steps.salvage.outputs.artifact-url }}
           DRIP_COST: ${{ steps.usage.outputs.cost }}
           DRIP_TURNS: ${{ steps.usage.outputs.turns }}
           DRIP_DURATION: ${{ steps.usage.outputs.duration }}

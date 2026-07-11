@@ -18,7 +18,8 @@ function emit(cost, turns, durationMs) {
     typeof durationMs === 'number' && durationMs > 0
       ? `${Math.round(durationMs / 1000)}s`
       : 'n/a';
-  const costStr = typeof cost === 'number' ? `$${cost.toFixed(2)}` : 'n/a';
+  const costStr =
+    typeof cost === 'number' && cost >= 0 && cost < 100000 ? `$${cost.toFixed(2)}` : 'n/a';
   const turnStr = Number.isFinite(turns) ? String(turns) : 'n/a';
   process.stdout.write(`cost=${costStr}\nturns=${turnStr}\nduration=${dur}\n`);
 }

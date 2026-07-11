@@ -72,9 +72,19 @@ function buildMessage() {
     const reason = result?.reason || 'nothing cleared the quality bar';
     return `🌴 Malibu blog — no post today.\n\nReason: ${reason}${runwayLine}${telemLine}`;
   }
+  if (outcome === 'dormant') {
+    return (
+      `🌴 Malibu blog drip is DORMANT.\n\n` +
+      `ANTHROPIC_API_KEY is not set, so no posts will be produced. ` +
+      `If you didn't expect this, the key may have been removed or revoked — the drip has stopped working.`
+    );
+  }
+  const salvage = process.env.DRIP_SALVAGE_URL
+    ? `\n\nA partial draft may be recoverable from the run's artifacts:\n${process.env.DRIP_SALVAGE_URL}`
+    : '';
   return (
     `⚠️ Malibu blog drip — run did NOT complete.\n\n` +
-    `No draft PR was opened. Check the GitHub Actions log — do not assume a post exists.${telemLine}`
+    `No draft PR was opened. Check the GitHub Actions log — do not assume a post exists.${salvage}${telemLine}`
   );
 }
 
