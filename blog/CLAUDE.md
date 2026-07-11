@@ -89,6 +89,8 @@ slug: custom-url-slug
 updated: 2026-08-01
 canonical: https://malibu.tech/blog/custom/
 draft: false
+faq: [{"q":"A question?","a":"A short, direct answer."}]
+howto: {"name":"How to X","totalTime":"PT5M","steps":[{"name":"Step 1","text":"Do this."}]}
 ---
 ```
 
@@ -110,6 +112,17 @@ draft: false
 | `updated` | no | Sets `dateModified`; bump it on a real content refresh. |
 | `canonical` | no | Defaults to `https://malibu.tech/blog/<slug>/`. |
 | `draft` | no | `draft: true` excludes the post from the build. |
+| `faq` | no | One-line JSON array of `{"q","a"}`. Renders a visible FAQ section **and** emits FAQPage JSON-LD from the same data. |
+| `howto` | no | One-line JSON `{"name"?,"totalTime"?,"steps":[{"name"?,"text"}]}` (or a bare steps array) → HowTo JSON-LD. |
+
+**Structured data (`faq` / `howto`) — opt in only when it genuinely fits.** These
+are single-line JSON values. Use `faq` only for a real Q&A the piece answers; the
+build renders the questions visibly so the schema always matches the page. Use
+`howto` only for a genuine step-by-step, and make sure those steps also appear in
+the body (the JSON-LD must describe visible content). Malformed JSON is ignored
+with a warning, not fatal. Note: Google has narrowed FAQ/HowTo *rich-result
+display*, so treat these as semantic markup that helps AI answer engines and
+future surfaces — not a guaranteed snippet. Don't force a post into this shape.
 
 ## 4. Voice and style
 

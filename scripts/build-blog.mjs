@@ -179,6 +179,42 @@ function toList(val) {
     .filter(Boolean);
 }
 
+// Optional structured-data fields carry a one-line JSON value. Malformed JSON is
+// warned + ignored (the FAQ/HowTo is simply omitted) rather than dropping the post.
+function parseJsonField(raw, label) {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    console.warn(`build-blog: ignoring malformed "${label}" JSON — ${err.message}`);
+    return null;
+  }
+}
+
+function normalizeFaq(v) {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((it) => ({ q: String(it?.q ?? '').trim(), a: String(it?.a ?? '').trim() }))
+    .filter((it) => it.q && it.a);
+}
+
+function normalizeHowto(v) {
+  if (!v) return null;
+  const rawSteps = Array.isArray(v) ? v : Array.isArray(v.steps) ? v.steps : [];
+  const steps = rawSteps
+    .map((s) => ({
+      name: String(s?.name ?? '').trim(),
+      text: String(s?.text ?? s?.name ?? '').trim(),
+    }))
+    .filter((s) => s.text);
+  if (!steps.length) return null;
+  return {
+    name: !Array.isArray(v) && v.name ? String(v.name).trim() : '',
+    totalTime: !Array.isArray(v) && v.totalTime ? String(v.totalTime).trim() : '',
+    steps,
+  };
+}
+
 function loadPosts() {
   if (!existsSync(postsDir)) return [];
   const posts = [];
@@ -229,6 +265,8 @@ function loadPosts() {
         heroAlt: data.heroAlt || '',
         keywords: toList(data.keywords),
         canonical,
+        faq: normalizeFaq(parseJsonField(data.faq, 'faq')),
+        howto: normalizeHowto(parseJsonField(data.howto, 'howto')),
         bodyHtml: renderBody(body.trim()),
         toc: tableOfContents(body.trim()),
       });
@@ -340,6 +378,11 @@ const POST_STYLE = `  <style>
     .post-body pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
     .post-body code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; padding: 2px 6px; background: rgba(255, 251, 242,0.08); border-radius: 5px; color: #FFC629; }
     .post-hr { border: 0; height: 1px; background: rgba(255, 251, 242,0.1); margin: 56px 0 40px; }
+    .post-faq { margin: 56px 0 0; }
+    .post-faq .faq-item { padding: 22px 0; border-top: 1px solid rgba(255, 251, 242,0.1); }
+    .post-faq .faq-item:last-child { border-bottom: 1px solid rgba(255, 251, 242,0.1); }
+    .post-faq .faq-item h3 { margin: 0 0 10px; }
+    .post-faq .faq-item p { margin: 0; color: rgba(255, 251, 242,0.78); }
     .post-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
     @media (max-width: 640px) { .post-cta-grid { grid-template-columns: 1fr; } }
     .post-cta { display: block; padding: 24px 26px; border-radius: 18px; border: 1px solid rgba(255, 251, 242,0.12); background: rgba(255, 251, 242,0.04); transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; }
@@ -381,10 +424,40 @@ function jsonLd(post) {
       { '@type': 'ListItem', position: 3, name: post.title, item: post.canonical },
     ],
   };
-  return (
-    `  <script type="application/ld+json">\n${jsonForScript(article)}\n  </script>\n` +
-    `  <script type="application/ld+json">\n${jsonForScript(breadcrumb)}\n  </script>`
-  );
+  const blocks = [article, breadcrumb];
+
+  // Opt-in FAQ/HowTo — only emitted when the post supplies matching frontmatter,
+  // so structured data never claims content the page doesn't have.
+  if (post.faq.length) {
+    blocks.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: post.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    });
+  }
+  if (post.howto) {
+    const howto = {
+      '@context': 'https://schema.org',
+      '@type': 'HowTo',
+      name: post.howto.name || post.title,
+      step: post.howto.steps.map((s, i) => ({
+        '@type': 'HowToStep',
+        position: i + 1,
+        ...(s.name ? { name: s.name } : {}),
+        text: s.text,
+      })),
+    };
+    if (post.howto.totalTime) howto.totalTime = post.howto.totalTime;
+    blocks.push(howto);
+  }
+
+  return blocks
+    .map((o) => `  <script type="application/ld+json">\n${jsonForScript(o)}\n  </script>`)
+    .join('\n');
 }
 
 function renderPost(post) {
@@ -415,6 +488,22 @@ ${post.toc.map((h) => `          <li><a href="#${escAttr(h.id)}">${escText(h.tex
         </ul>
       </nav>\n`
       : '';
+  // Render the FAQ visibly from the same data that feeds the FAQPage JSON-LD,
+  // so the structured data always matches what's on the page.
+  const faqSection = post.faq.length
+    ? `
+      <section class="post-faq" aria-label="Frequently asked questions">
+        <h2>Frequently asked questions</h2>
+${post.faq
+  .map(
+    (f) => `        <div class="faq-item">
+          <h3>${escText(f.q)}</h3>
+          <p>${escText(f.a)}</p>
+        </div>`,
+  )
+  .join('\n')}
+      </section>\n`
+    : '';
   return `<!doctype html>
 <html lang="en">
 ${BANNER(post.slug)}
@@ -467,7 +556,7 @@ ${hero}    </div>
     <div class="post-wrap post-body">
 
 ${toc}${post.bodyHtml}
-
+${faqSection}
       <hr class="post-hr" />
 
       <div class="post-cta-grid">
