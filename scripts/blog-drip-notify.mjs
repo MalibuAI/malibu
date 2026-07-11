@@ -49,6 +49,13 @@ function buildMessage() {
   const runwayLine =
     runway && /^\d+$/.test(runway) ? `\nBacklog: ${runway} idea(s) remaining.` : '';
 
+  const telem = [
+    process.env.DRIP_TURNS && process.env.DRIP_TURNS !== 'n/a' ? `${process.env.DRIP_TURNS} turns` : null,
+    process.env.DRIP_DURATION && process.env.DRIP_DURATION !== 'n/a' ? process.env.DRIP_DURATION : null,
+    process.env.DRIP_COST && process.env.DRIP_COST !== 'n/a' ? process.env.DRIP_COST : null,
+  ].filter(Boolean);
+  const telemLine = telem.length ? `\nRun: ${telem.join(' · ')}` : '';
+
   if (outcome === 'post') {
     const title = result?.title || 'Untitled draft';
     const thesis = result?.thesis ? `\n${result.thesis}\n` : '\n';
@@ -58,16 +65,16 @@ function buildMessage() {
     return (
       `🌴 Malibu blog — draft ready for review\n\n` +
       `“${title}”\n${thesis}${prUrl}\n${edited}\n` +
-      `Draft PR, not merged. Review against CLAUDE.md §5/§6 and merge if it clears the bar.${runwayLine}`
+      `Draft PR, not merged. Review against CLAUDE.md §5/§6 and merge if it clears the bar.${runwayLine}${telemLine}`
     );
   }
   if (outcome === 'skip') {
     const reason = result?.reason || 'nothing cleared the quality bar';
-    return `🌴 Malibu blog — no post today.\n\nReason: ${reason}${runwayLine}`;
+    return `🌴 Malibu blog — no post today.\n\nReason: ${reason}${runwayLine}${telemLine}`;
   }
   return (
     `⚠️ Malibu blog drip — run did NOT complete.\n\n` +
-    `No draft PR was opened. Check the GitHub Actions log — do not assume a post exists.`
+    `No draft PR was opened. Check the GitHub Actions log — do not assume a post exists.${telemLine}`
   );
 }
 
