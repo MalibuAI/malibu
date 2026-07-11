@@ -1,0 +1,23 @@
+# Malibu
+
+> Malibu is a network that turns idle Apple Silicon Macs into the world's largest AI cloud. It pays providers to keep open-source models warm and ready, serves buyers through an OpenAI-compatible gateway, and settles weekly in USDC on Base. Every response ships a signed, cryptographically verifiable inference receipt.
+
+## Blog
+
+- [Turning on the world's biggest AI cloud](https://malibu.tech/blog/turning-on-the-worlds-biggest-ai-cloud/): The manifesto — why 200M idle Apple Silicon Macs already hold more consumer AI compute than the top three hyperscalers combined, and how Malibu turns it on.
+
+## Product
+
+- [Host a model](https://malibu.tech/host/): Turn a stock Apple Silicon Mac into a paid inference provider with one command.
+- [Console](https://malibu.tech/console/): Point any OpenAI SDK client at Malibu; nothing else changes.
+- [Network](https://malibu.tech/network/): Live network stats and coverage.
+
+## Docs
+
+- [Documentation](https://malibu.tech/docs): Getting started, API reference, and guides.
+- [Litepaper](https://malibu.tech/docs/litepaper): The full technical and economic design.
+
+## Feeds
+
+- [Blog RSS](https://malibu.tech/blog/feed.xml)
+- [Sitemap](https://malibu.tech/sitemap.xml)

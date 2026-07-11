@@ -1,0 +1,29 @@
+# Malibu — https://malibu.tech
+# Good SEO is good content. We want humans and AI answer engines alike to read this.
+
+User-agent: *
+Allow: /
+
+# Explicitly welcome AI answer engines and their training/retrieval crawlers.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://malibu.tech/sitemap.xml
