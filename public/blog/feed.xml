@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Malibu · Blog</title>
+    <link>https://malibu.tech/blog/</link>
+    <description>Network updates, engineering notes, and the ideas behind turning idle Apple Silicon into the world's biggest AI cloud.</description>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 06 Jul 2026 00:00:00 GMT</lastBuildDate>
+    <atom:link href="https://malibu.tech/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Turning on the world's biggest AI cloud</title>
+      <link>https://malibu.tech/blog/turning-on-the-worlds-biggest-ai-cloud/</link>
+      <guid isPermaLink="true">https://malibu.tech/blog/turning-on-the-worlds-biggest-ai-cloud/</guid>
+      <pubDate>Mon, 06 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Two hundred million Apple Silicon Macs are already deployed, already paid for, and idle twenty hours a day. Malibu turns them on.</description>
+    </item>
+  </channel>
+</rss>
