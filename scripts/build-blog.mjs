@@ -191,10 +191,14 @@ function parseJsonField(raw, label) {
   }
 }
 
+// Require actual strings — never String()-coerce, or `{"a":42}` ships "42" and
+// `{"q":{...}}` ships "[object Object]" as visible + indexed FAQ content.
+const str = (v) => (typeof v === 'string' ? v.trim() : '');
+
 function normalizeFaq(v) {
   if (!Array.isArray(v)) return [];
   return v
-    .map((it) => ({ q: String(it?.q ?? '').trim(), a: String(it?.a ?? '').trim() }))
+    .map((it) => ({ q: str(it?.q), a: str(it?.a) }))
     .filter((it) => it.q && it.a);
 }
 
@@ -202,15 +206,12 @@ function normalizeHowto(v) {
   if (!v) return null;
   const rawSteps = Array.isArray(v) ? v : Array.isArray(v.steps) ? v.steps : [];
   const steps = rawSteps
-    .map((s) => ({
-      name: String(s?.name ?? '').trim(),
-      text: String(s?.text ?? s?.name ?? '').trim(),
-    }))
+    .map((s) => (typeof s === 'string' ? { name: '', text: str(s) } : { name: str(s?.name), text: str(s?.text) || str(s?.name) }))
     .filter((s) => s.text);
   if (!steps.length) return null;
   return {
-    name: !Array.isArray(v) && v.name ? String(v.name).trim() : '',
-    totalTime: !Array.isArray(v) && v.totalTime ? String(v.totalTime).trim() : '',
+    name: Array.isArray(v) ? '' : str(v.name),
+    totalTime: Array.isArray(v) ? '' : str(v.totalTime),
     steps,
   };
 }
@@ -244,6 +245,15 @@ function loadPosts() {
       const ogImage = rawOgImage.startsWith('/') ? `${SITE}${rawOgImage}` : rawOgImage;
       const words = body.trim().split(/\s+/).filter(Boolean).length;
 
+      // Warn when structured-data frontmatter is present but yields nothing
+      // usable (e.g. a bare array of the wrong shape) — silent omission hides bugs.
+      const faqRaw = parseJsonField(data.faq, 'faq');
+      const faq = normalizeFaq(faqRaw);
+      if (faqRaw && !faq.length) console.warn(`build-blog: ${file} — "faq" had no usable {q,a} pairs; omitting.`);
+      const howtoRaw = parseJsonField(data.howto, 'howto');
+      const howto = normalizeHowto(howtoRaw);
+      if (howtoRaw && !howto) console.warn(`build-blog: ${file} — "howto" had no usable steps; omitting.`);
+
       posts.push({
         slug,
         title: data.title,
@@ -265,8 +275,8 @@ function loadPosts() {
         heroAlt: data.heroAlt || '',
         keywords: toList(data.keywords),
         canonical,
-        faq: normalizeFaq(parseJsonField(data.faq, 'faq')),
-        howto: normalizeHowto(parseJsonField(data.howto, 'howto')),
+        faq,
+        howto,
         bodyHtml: renderBody(body.trim()),
         toc: tableOfContents(body.trim()),
       });
@@ -383,6 +393,10 @@ const POST_STYLE = `  <style>
     .post-faq .faq-item:last-child { border-bottom: 1px solid rgba(255, 251, 242,0.1); }
     .post-faq .faq-item h3 { margin: 0 0 10px; }
     .post-faq .faq-item p { margin: 0; color: rgba(255, 251, 242,0.78); }
+    .post-howto { margin: 56px 0 0; }
+    .post-howto .howto-steps { margin: 0; padding: 0 0 0 24px; counter-reset: howto; }
+    .post-howto .howto-steps li { margin: 0 0 14px; padding-left: 6px; }
+    .post-howto .howto-steps li strong { color: #FF6E5B; font-weight: 600; }
     .post-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
     @media (max-width: 640px) { .post-cta-grid { grid-template-columns: 1fr; } }
     .post-cta { display: block; padding: 24px 26px; border-radius: 18px; border: 1px solid rgba(255, 251, 242,0.12); background: rgba(255, 251, 242,0.04); transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; }
@@ -479,25 +493,48 @@ function renderPost(post) {
         <span class="sep">·</span>
         <span>${post.readingTime} min read</span>
       </div>`;
+  // TOC covers body headings plus the generated HowTo/FAQ sections, so the
+  // "jump to any section" list doesn't miss them.
+  const howtoHeading = post.howto ? post.howto.name || 'Steps' : '';
+  const tocEntries = [
+    ...post.toc,
+    ...(post.howto ? [{ text: howtoHeading, id: 'steps' }] : []),
+    ...(post.faq.length ? [{ text: 'Frequently asked questions', id: 'faq' }] : []),
+  ];
   const toc =
-    post.toc.length >= 3
+    tocEntries.length >= 3
       ? `      <nav class="post-toc" aria-label="On this page">
         <div class="post-toc-label">On this page</div>
         <ul>
-${post.toc.map((h) => `          <li><a href="#${escAttr(h.id)}">${escText(h.text)}</a></li>`).join('\n')}
+${tocEntries.map((h) => `          <li><a href="#${escAttr(h.id)}">${escText(h.text)}</a></li>`).join('\n')}
         </ul>
       </nav>\n`
       : '';
-  // Render the FAQ visibly from the same data that feeds the FAQPage JSON-LD,
-  // so the structured data always matches what's on the page.
+  // Render HowTo steps visibly from the same data that feeds the HowTo JSON-LD,
+  // so the structured data always describes content that's actually on the page.
+  const howtoSection = post.howto
+    ? `
+      <section class="post-howto" id="steps" aria-labelledby="howto-heading">
+        <h2 id="howto-heading">${escText(howtoHeading)}</h2>
+        <ol class="howto-steps">
+${post.howto.steps
+  .map(
+    (s) =>
+      `          <li>${s.name ? `<strong>${escText(s.name)}.</strong> ` : ''}${escText(s.text)}</li>`,
+  )
+  .join('\n')}
+        </ol>
+      </section>\n`
+    : '';
+  // Render the FAQ visibly from the same data that feeds the FAQPage JSON-LD.
   const faqSection = post.faq.length
     ? `
-      <section class="post-faq" aria-label="Frequently asked questions">
-        <h2>Frequently asked questions</h2>
+      <section class="post-faq" id="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">Frequently asked questions</h2>
 ${post.faq
   .map(
     (f) => `        <div class="faq-item">
-          <h3>${escText(f.q)}</h3>
+          <h3 id="${escAttr(slugify(f.q))}">${escText(f.q)}</h3>
           <p>${escText(f.a)}</p>
         </div>`,
   )
@@ -556,7 +593,7 @@ ${hero}    </div>
     <div class="post-wrap post-body">
 
 ${toc}${post.bodyHtml}
-${faqSection}
+${howtoSection}${faqSection}
       <hr class="post-hr" />
 
       <div class="post-cta-grid">

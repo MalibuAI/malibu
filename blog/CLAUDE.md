@@ -113,16 +113,24 @@ howto: {"name":"How to X","totalTime":"PT5M","steps":[{"name":"Step 1","text":"D
 | `canonical` | no | Defaults to `https://malibu.tech/blog/<slug>/`. |
 | `draft` | no | `draft: true` excludes the post from the build. |
 | `faq` | no | One-line JSON array of `{"q","a"}`. Renders a visible FAQ section **and** emits FAQPage JSON-LD from the same data. |
-| `howto` | no | One-line JSON `{"name"?,"totalTime"?,"steps":[{"name"?,"text"}]}` (or a bare steps array) → HowTo JSON-LD. |
+| `howto` | no | One-line JSON `{"name"?,"totalTime"?,"steps":[{"name"?,"text"}]}`, or a bare array of step strings. Renders a visible step list **and** emits HowTo JSON-LD. |
 
 **Structured data (`faq` / `howto`) — opt in only when it genuinely fits.** These
-are single-line JSON values. Use `faq` only for a real Q&A the piece answers; the
-build renders the questions visibly so the schema always matches the page. Use
-`howto` only for a genuine step-by-step, and make sure those steps also appear in
-the body (the JSON-LD must describe visible content). Malformed JSON is ignored
-with a warning, not fatal. Note: Google has narrowed FAQ/HowTo *rich-result
-display*, so treat these as semantic markup that helps AI answer engines and
-future surfaces — not a guaranteed snippet. Don't force a post into this shape.
+are single-line JSON values, and the build renders both visibly from the same data
+that feeds the JSON-LD, so structured data always matches the page. Rules:
+
+- **When:** only for posts that are genuinely Q&A (`faq`) or step-by-step
+  (`howto`) shaped — e.g. the "Switching off the OpenAI API…" or "Turn your Mac
+  into paid inference capacity" backlog rows, not the thesis/manifesto pieces.
+  Don't bolt one on. Don't force a post into this shape.
+- **FAQ quality:** aim for ≤ 6 real questions a reader actually asks; each answer
+  1–3 sentences that ADD information beyond the body — never restate it (that's
+  FAQ-stuffing). Answers are plain text (no Markdown/links).
+- **Robustness:** `q`/`a`/step values must be strings; wrong types and malformed
+  JSON are dropped with a warning, never fatal.
+- **Reach:** Google has narrowed FAQ/HowTo *rich-result display*, so treat these
+  as semantic markup that helps AI answer engines and future surfaces — not a
+  guaranteed snippet.
 
 ## 4. Voice and style
 
