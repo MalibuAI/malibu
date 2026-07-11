@@ -179,6 +179,43 @@ function toList(val) {
     .filter(Boolean);
 }
 
+// Optional structured-data fields carry a one-line JSON value. Malformed JSON is
+// warned + ignored (the FAQ/HowTo is simply omitted) rather than dropping the post.
+function parseJsonField(raw, label) {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    console.warn(`build-blog: ignoring malformed "${label}" JSON — ${err.message}`);
+    return null;
+  }
+}
+
+// Require actual strings — never String()-coerce, or `{"a":42}` ships "42" and
+// `{"q":{...}}` ships "[object Object]" as visible + indexed FAQ content.
+const str = (v) => (typeof v === 'string' ? v.trim() : '');
+
+function normalizeFaq(v) {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((it) => ({ q: str(it?.q), a: str(it?.a) }))
+    .filter((it) => it.q && it.a);
+}
+
+function normalizeHowto(v) {
+  if (!v) return null;
+  const rawSteps = Array.isArray(v) ? v : Array.isArray(v.steps) ? v.steps : [];
+  const steps = rawSteps
+    .map((s) => (typeof s === 'string' ? { name: '', text: str(s) } : { name: str(s?.name), text: str(s?.text) || str(s?.name) }))
+    .filter((s) => s.text);
+  if (!steps.length) return null;
+  return {
+    name: Array.isArray(v) ? '' : str(v.name),
+    totalTime: Array.isArray(v) ? '' : str(v.totalTime),
+    steps,
+  };
+}
+
 function loadPosts() {
   if (!existsSync(postsDir)) return [];
   const posts = [];
@@ -208,6 +245,15 @@ function loadPosts() {
       const ogImage = rawOgImage.startsWith('/') ? `${SITE}${rawOgImage}` : rawOgImage;
       const words = body.trim().split(/\s+/).filter(Boolean).length;
 
+      // Warn when structured-data frontmatter is present but yields nothing
+      // usable (e.g. a bare array of the wrong shape) — silent omission hides bugs.
+      const faqRaw = parseJsonField(data.faq, 'faq');
+      const faq = normalizeFaq(faqRaw);
+      if (faqRaw && !faq.length) console.warn(`build-blog: ${file} — "faq" had no usable {q,a} pairs; omitting.`);
+      const howtoRaw = parseJsonField(data.howto, 'howto');
+      const howto = normalizeHowto(howtoRaw);
+      if (howtoRaw && !howto) console.warn(`build-blog: ${file} — "howto" had no usable steps; omitting.`);
+
       posts.push({
         slug,
         title: data.title,
@@ -229,6 +275,8 @@ function loadPosts() {
         heroAlt: data.heroAlt || '',
         keywords: toList(data.keywords),
         canonical,
+        faq,
+        howto,
         bodyHtml: renderBody(body.trim()),
         toc: tableOfContents(body.trim()),
       });
@@ -340,6 +388,15 @@ const POST_STYLE = `  <style>
     .post-body pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
     .post-body code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; padding: 2px 6px; background: rgba(255, 251, 242,0.08); border-radius: 5px; color: #FFC629; }
     .post-hr { border: 0; height: 1px; background: rgba(255, 251, 242,0.1); margin: 56px 0 40px; }
+    .post-faq { margin: 56px 0 0; }
+    .post-faq .faq-item { padding: 22px 0; border-top: 1px solid rgba(255, 251, 242,0.1); }
+    .post-faq .faq-item:last-child { border-bottom: 1px solid rgba(255, 251, 242,0.1); }
+    .post-faq .faq-item h3 { margin: 0 0 10px; }
+    .post-faq .faq-item p { margin: 0; color: rgba(255, 251, 242,0.78); }
+    .post-howto { margin: 56px 0 0; }
+    .post-howto .howto-steps { margin: 0; padding: 0 0 0 24px; counter-reset: howto; }
+    .post-howto .howto-steps li { margin: 0 0 14px; padding-left: 6px; }
+    .post-howto .howto-steps li strong { color: #FF6E5B; font-weight: 600; }
     .post-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
     @media (max-width: 640px) { .post-cta-grid { grid-template-columns: 1fr; } }
     .post-cta { display: block; padding: 24px 26px; border-radius: 18px; border: 1px solid rgba(255, 251, 242,0.12); background: rgba(255, 251, 242,0.04); transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; }
@@ -381,10 +438,40 @@ function jsonLd(post) {
       { '@type': 'ListItem', position: 3, name: post.title, item: post.canonical },
     ],
   };
-  return (
-    `  <script type="application/ld+json">\n${jsonForScript(article)}\n  </script>\n` +
-    `  <script type="application/ld+json">\n${jsonForScript(breadcrumb)}\n  </script>`
-  );
+  const blocks = [article, breadcrumb];
+
+  // Opt-in FAQ/HowTo — only emitted when the post supplies matching frontmatter,
+  // so structured data never claims content the page doesn't have.
+  if (post.faq.length) {
+    blocks.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: post.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    });
+  }
+  if (post.howto) {
+    const howto = {
+      '@context': 'https://schema.org',
+      '@type': 'HowTo',
+      name: post.howto.name || post.title,
+      step: post.howto.steps.map((s, i) => ({
+        '@type': 'HowToStep',
+        position: i + 1,
+        ...(s.name ? { name: s.name } : {}),
+        text: s.text,
+      })),
+    };
+    if (post.howto.totalTime) howto.totalTime = post.howto.totalTime;
+    blocks.push(howto);
+  }
+
+  return blocks
+    .map((o) => `  <script type="application/ld+json">\n${jsonForScript(o)}\n  </script>`)
+    .join('\n');
 }
 
 function renderPost(post) {
@@ -406,15 +493,54 @@ function renderPost(post) {
         <span class="sep">·</span>
         <span>${post.readingTime} min read</span>
       </div>`;
+  // TOC covers body headings plus the generated HowTo/FAQ sections, so the
+  // "jump to any section" list doesn't miss them.
+  const howtoHeading = post.howto ? post.howto.name || 'Steps' : '';
+  const tocEntries = [
+    ...post.toc,
+    ...(post.howto ? [{ text: howtoHeading, id: 'steps' }] : []),
+    ...(post.faq.length ? [{ text: 'Frequently asked questions', id: 'faq' }] : []),
+  ];
   const toc =
-    post.toc.length >= 3
+    tocEntries.length >= 3
       ? `      <nav class="post-toc" aria-label="On this page">
         <div class="post-toc-label">On this page</div>
         <ul>
-${post.toc.map((h) => `          <li><a href="#${escAttr(h.id)}">${escText(h.text)}</a></li>`).join('\n')}
+${tocEntries.map((h) => `          <li><a href="#${escAttr(h.id)}">${escText(h.text)}</a></li>`).join('\n')}
         </ul>
       </nav>\n`
       : '';
+  // Render HowTo steps visibly from the same data that feeds the HowTo JSON-LD,
+  // so the structured data always describes content that's actually on the page.
+  const howtoSection = post.howto
+    ? `
+      <section class="post-howto" id="steps" aria-labelledby="howto-heading">
+        <h2 id="howto-heading">${escText(howtoHeading)}</h2>
+        <ol class="howto-steps">
+${post.howto.steps
+  .map(
+    (s) =>
+      `          <li>${s.name ? `<strong>${escText(s.name)}.</strong> ` : ''}${escText(s.text)}</li>`,
+  )
+  .join('\n')}
+        </ol>
+      </section>\n`
+    : '';
+  // Render the FAQ visibly from the same data that feeds the FAQPage JSON-LD.
+  const faqSection = post.faq.length
+    ? `
+      <section class="post-faq" id="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">Frequently asked questions</h2>
+${post.faq
+  .map(
+    (f) => `        <div class="faq-item">
+          <h3 id="${escAttr(slugify(f.q))}">${escText(f.q)}</h3>
+          <p>${escText(f.a)}</p>
+        </div>`,
+  )
+  .join('\n')}
+      </section>\n`
+    : '';
   return `<!doctype html>
 <html lang="en">
 ${BANNER(post.slug)}
@@ -467,7 +593,7 @@ ${hero}    </div>
     <div class="post-wrap post-body">
 
 ${toc}${post.bodyHtml}
-
+${howtoSection}${faqSection}
       <hr class="post-hr" />
 
       <div class="post-cta-grid">

@@ -89,6 +89,8 @@ slug: custom-url-slug
 updated: 2026-08-01
 canonical: https://malibu.tech/blog/custom/
 draft: false
+faq: [{"q":"A question?","a":"A short, direct answer."}]
+howto: {"name":"How to X","totalTime":"PT5M","steps":[{"name":"Step 1","text":"Do this."}]}
 ---
 ```
 
@@ -110,6 +112,25 @@ draft: false
 | `updated` | no | Sets `dateModified`; bump it on a real content refresh. |
 | `canonical` | no | Defaults to `https://malibu.tech/blog/<slug>/`. |
 | `draft` | no | `draft: true` excludes the post from the build. |
+| `faq` | no | One-line JSON array of `{"q","a"}`. Renders a visible FAQ section **and** emits FAQPage JSON-LD from the same data. |
+| `howto` | no | One-line JSON `{"name"?,"totalTime"?,"steps":[{"name"?,"text"}]}`, or a bare array of step strings. Renders a visible step list **and** emits HowTo JSON-LD. |
+
+**Structured data (`faq` / `howto`) — opt in only when it genuinely fits.** These
+are single-line JSON values, and the build renders both visibly from the same data
+that feeds the JSON-LD, so structured data always matches the page. Rules:
+
+- **When:** only for posts that are genuinely Q&A (`faq`) or step-by-step
+  (`howto`) shaped — e.g. the "Switching off the OpenAI API…" or "Turn your Mac
+  into paid inference capacity" backlog rows, not the thesis/manifesto pieces.
+  Don't bolt one on. Don't force a post into this shape.
+- **FAQ quality:** aim for ≤ 6 real questions a reader actually asks; each answer
+  1–3 sentences that ADD information beyond the body — never restate it (that's
+  FAQ-stuffing). Answers are plain text (no Markdown/links).
+- **Robustness:** `q`/`a`/step values must be strings; wrong types and malformed
+  JSON are dropped with a warning, never fatal.
+- **Reach:** Google has narrowed FAQ/HowTo *rich-result display*, so treat these
+  as semantic markup that helps AI answer engines and future surfaces — not a
+  guaranteed snippet.
 
 ## 4. Voice and style
 
