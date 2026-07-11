@@ -1,31 +1,46 @@
 # Automated SEO blog "content drip" (PSEO Phase 3).
 #
 # Runs Claude Code on a schedule to draft ONE excellent post, then the workflow
-# deterministically builds the site, opens a DRAFT pull request (never merges),
-# and notifies Telegram. Claude does the creative work only — git, the PR, and
-# the Telegram token stay out of the model's hands.
+# deterministically lints, builds (a gate), opens a DRAFT pull request (never
+# merges), and notifies Telegram. Claude does the creative work only.
+#
+# SECURITY BOUNDARY (see the reviews that shaped this):
+#   - The Claude step receives ONLY anthropic_api_key. It is given NO GitHub
+#     token, and checkout uses persist-credentials:false, so the model's Bash
+#     has no credentials to push or open a PR even if instructed to. The
+#     deterministic "Assemble" step authenticates separately to publish.
+#   - The Telegram token is exposed only to the final notify step.
+#   - RESIDUAL RISK: the Claude step must hold ANTHROPIC_API_KEY to run, and it
+#     has Bash + WebFetch (untrusted web content). A prompt-injected page could,
+#     in principle, try to exfiltrate that key. MITIGATE: use a DEDICATED, low-
+#     budget Anthropic key for this workflow with billing alerts, and rotate it
+#     on any suspicion. Consider adding an egress allowlist (harden-runner).
 #
 # REQUIRED repository secrets (Settings → Secrets and variables → Actions):
-#   ANTHROPIC_API_KEY   Claude API key (console.anthropic.com)
+#   ANTHROPIC_API_KEY   dedicated low-budget Claude key
 #   TELEGRAM_BOT_TOKEN  from @BotFather
 #   TELEGRAM_CHAT_ID    the chat/channel to notify
 # OPTIONAL:
-#   DRIP_PAT            a fine-grained PAT (contents+PR write). Add this so CI
-#                       (Vercel/build) runs on the drip's PRs — PRs opened with the
-#                       default GITHUB_TOKEN do not trigger other workflows. Without
-#                       it the draft PR is still created, just without auto-checks.
+#   DRIP_PAT            fine-grained PAT (contents+PR write). Add so CI (Vercel/
+#                       build) runs on the drip's PRs — PRs opened with the
+#                       default GITHUB_TOKEN don't trigger other workflows.
 #
-# First run: set the secrets, then trigger manually via the "Run workflow" button
-# (workflow_dispatch) and watch the Actions log before trusting the schedule.
+# First: set secrets, then run manually with "test_notify" checked to verify the
+# Telegram wiring in seconds; then a full manual run; then trust the schedule.
 
 name: Blog content drip
 
 on:
   schedule:
-    # Mon / Wed / Fri at 16:00 UTC (~09:00 PT). Cron is UTC — it does not shift
-    # for daylight saving; adjust the hour if you want a fixed local time.
+    # Mon / Wed / Fri at 16:00 UTC (~09:00 PT). Cron is UTC; it does not shift
+    # for daylight saving — adjust the hour for a fixed local time.
     - cron: "0 16 * * 1,3,5"
   workflow_dispatch:
+    inputs:
+      test_notify:
+        description: "Only send a test Telegram message and exit (verifies wiring)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -36,12 +51,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Fast path: verify Telegram secrets are wired without a full (paid) run.
+  test-notify:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_notify }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Send test message
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DRIP_OUTCOME: skip
+        run: |
+          mkdir -p .drip
+          printf '%s' '{"action":"skip","reason":"Telegram wiring test — ignore."}' > .drip/result.json
+          node scripts/blog-drip-notify.mjs
+
   drip:
+    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.test_notify) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Model step gets no push credentials; the assemble step re-auths.
+          persist-credentials: false
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -55,15 +95,16 @@ jobs:
       - name: Run the content routine (Claude)
         uses: anthropics/claude-code-action@v1
         with:
+          # NO github_token on purpose — the model must not be able to publish.
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ github.token }}
           prompt: |
             You are the Malibu blog content routine, running unattended in CI on
             the malibu.tech repository. Read and follow blog/drip-routine.md
-            exactly — it defines your entire task, the quality bar, and the output
+            exactly — it defines your task, the quality bar, and the output
             contract (.drip/result.json). Obey blog/CLAUDE.md as the house style.
-            Do NOT run git, open a pull request, or merge — the workflow handles
-            publishing. Always finish by writing .drip/result.json.
+            Do NOT run git, open a pull request, or merge — you have no
+            credentials to do so and the workflow handles publishing. Always
+            finish by writing .drip/result.json.
           claude_args: |
             --model claude-opus-4-8
             --max-turns 50
@@ -74,44 +115,70 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DRIP_PAT || github.token }}
         run: |
-          set -euo pipefail
-          if [ ! -f .drip/result.json ]; then
-            echo "No .drip/result.json produced by the routine." >&2
-            echo "outcome=failed" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          ACTION=$(node -e "process.stdout.write(String(require('./.drip/result.json').action||''))")
+          set -uo pipefail
+          # Fail-closed: only the explicit success/skip paths overwrite this.
+          echo "outcome=failed" >> "$GITHUB_OUTPUT"
+          echo "runway=$(grep -cE '\| idea \|' blog/ideas.md 2>/dev/null || echo 0)" >> "$GITHUB_OUTPUT"
+
+          if [ ! -f .drip/result.json ]; then echo "No .drip/result.json produced." >&2; exit 1; fi
+          ACTION=$(node -e "process.stdout.write(String(require('./.drip/result.json').action||''))" 2>/dev/null) \
+            || { echo "result.json is not valid JSON" >&2; exit 1; }
           echo "Routine action: ${ACTION}"
-          if [ "$ACTION" != "post" ]; then
-            echo "outcome=skip" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+
+          if [ "$ACTION" = "skip" ]; then echo "outcome=skip" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if [ "$ACTION" != "post" ]; then echo "Unknown action '${ACTION}'" >&2; exit 1; fi
 
           SLUG=$(node -e "process.stdout.write(String(require('./.drip/result.json').slug||''))")
           TITLE=$(node -e "process.stdout.write(String(require('./.drip/result.json').title||'Untitled draft'))")
-          if [ -z "$SLUG" ]; then echo "result.json action=post but no slug" >&2; echo "outcome=failed" >> "$GITHUB_OUTPUT"; exit 0; fi
-
-          # Regenerate + gate: a broken post fails here, before any PR is opened.
-          npm run blog:build
-          npx vite build > /dev/null
-
-          if [ ! -f ".drip/pr-body.md" ]; then
-            printf '%s\n' "Automated blog draft: **${TITLE}**" "" "Generated by the blog content drip. Review against blog/CLAUDE.md before merging." > .drip/pr-body.md
-          fi
+          [ -n "$SLUG" ] || { echo "action=post but no slug" >&2; exit 1; }
+          [ -f "blog/posts/${SLUG}.md" ] || { echo "post file blog/posts/${SLUG}.md missing" >&2; exit 1; }
 
           BRANCH="blog-drip/${SLUG}-${GITHUB_RUN_ID}"
+          git check-ref-format --branch "$BRANCH" >/dev/null 2>&1 \
+            || { echo "slug '${SLUG}' yields an invalid branch name" >&2; exit 1; }
+
+          # Deterministic brand/house-style gate (CLAUDE.md §4/§5) — do not trust
+          # the model's self-check.
+          node scripts/blog-lint.mjs "$SLUG" || { echo "blog-lint failed" >&2; exit 1; }
+
+          # Build gate — a post that does not compile never opens a PR.
+          npm run blog:build || { echo "blog:build failed" >&2; exit 1; }
+          ./node_modules/.bin/vite build >/dev/null || { echo "vite build failed" >&2; exit 1; }
+
+          # Flag any EXISTING post edited (e.g. a backward link) for extra review.
+          ALSO=$(git status --porcelain blog/posts/ | awk '{print $2}' \
+            | grep -v "^blog/posts/${SLUG}\.md$" | paste -sd, - || true)
+
+          if [ ! -f ".drip/pr-body.md" ]; then
+            printf '%s\n' "Automated blog draft: **${TITLE}**" > .drip/pr-body.md
+          fi
+          cat >> .drip/pr-body.md <<'CHECKLIST'
+
+          ---
+          **Reviewer checklist (blog/CLAUDE.md §5/§6):**
+          - [ ] No `streamvc` / `MacProvider` / internal hostnames (auto-linted)
+          - [ ] No invented or inflated network numbers — only `blog:stats` figures
+          - [ ] No investment / yield / passive-income framing
+          - [ ] Competitor claims cite a primary source
+          - [ ] Reads like the manifesto; straight quotes; no AI-slop
+          - [ ] Clears the §1 gate: real thesis, so-what, only-we angle
+          CHECKLIST
+
           git config user.name "malibu-blog-drip"
           git config user.email "actions@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git checkout -b "$BRANCH"
           git add blog/ public/
-          git commit -m "Draft blog post: ${TITLE}"
-          git push -u origin "$BRANCH"
+          git commit -m "Draft blog post: ${TITLE}" || { echo "nothing to commit" >&2; exit 1; }
+          git push -u origin "$BRANCH" || { echo "push failed" >&2; exit 1; }
 
           PR_URL=$(gh pr create --draft --base main --head "$BRANCH" \
-            --title "Draft: ${TITLE}" --body-file .drip/pr-body.md)
+            --title "Draft: ${TITLE}" --body-file .drip/pr-body.md) \
+            || { echo "gh pr create failed" >&2; exit 1; }
           echo "Opened draft PR: ${PR_URL}"
           echo "outcome=post" >> "$GITHUB_OUTPUT"
           echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "also_edited=${ALSO}" >> "$GITHUB_OUTPUT"
 
       - name: Notify Telegram
         if: always()
@@ -120,4 +187,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DRIP_OUTCOME: ${{ steps.assemble.outputs.outcome }}
           DRIP_PR_URL: ${{ steps.assemble.outputs.pr_url }}
+          DRIP_ALSO_EDITED: ${{ steps.assemble.outputs.also_edited }}
+          DRIP_RUNWAY: ${{ steps.assemble.outputs.runway }}
         run: node scripts/blog-drip-notify.mjs
