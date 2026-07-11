@@ -50,9 +50,7 @@ on:
         default: ""
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write # read run history (streak/liveness) + disable self (circuit breaker)
+  contents: read # least privilege for test-notify/preflight (checkout only); drip elevates below
 
 concurrency:
   group: blog-drip
@@ -127,6 +125,12 @@ jobs:
   drip:
     needs: preflight
     if: needs.preflight.outputs.go == 'true'
+    # Only this job needs write scopes (git push/PR + streak read + breaker disable).
+    # test-notify/preflight stay read-only. The model step still gets no token.
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -260,18 +264,24 @@ jobs:
         run: |
           set -uo pipefail
           # Count consecutive prior FAILED SCHEDULED runs. --event schedule so a
-          # manual test_notify/dispatch between two real failures can't reset it.
-          CONC=$(gh run list --workflow blog-drip.yml --status completed --event schedule --limit 20 \
+          # manual test_notify/dispatch can't reset it. --created >= the workflow's
+          # last-updated day so a re-enable (or edit) RESETS the baseline — otherwise
+          # the pre-disable failures would re-trip the breaker on the first flake.
+          SINCE=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/blog-drip.yml" --jq '.updated_at' 2>/dev/null | cut -dT -f1 || echo "")
+          CREATED=""; [ -n "$SINCE" ] && CREATED="--created >=${SINCE}"
+          CONC=$(gh run list --workflow blog-drip.yml --status completed --event schedule ${CREATED} --limit 20 \
             --json conclusion --jq '[.[].conclusion]' 2>/dev/null || echo '[]')
           STREAK=$(node -e 'let a=[];try{a=JSON.parse(process.argv[1])}catch{}; let n=0; for(const c of a){ if(c==="failure") n++; else break; } process.stdout.write(String(n));' "$CONC")
+          echo "prior_failures=${STREAK} (since ${SINCE:-beginning})"
           echo "prior_failures=${STREAK}" >> "$GITHUB_OUTPUT"
 
       - name: Circuit breaker
         id: breaker
         # On the 5th consecutive scheduled failure (4 prior + this one), stop the
-        # bleed: disable the schedule so it stops running (and spending) until a
-        # human fixes the cause and re-enables it. Only on a real failure.
-        if: always() && steps.assemble.outputs.outcome != 'post' && steps.assemble.outputs.outcome != 'skip' && steps.streak.outputs.prior_failures >= 4
+        # bleed: disable the schedule until a human fixes the cause and re-enables.
+        # Gate on an actual step FAILURE (not just non-post/skip) so a cancelled run
+        # can't trip it.
+        if: always() && (steps.assemble.outcome == 'failure' || steps.claude.outcome == 'failure') && steps.streak.outputs.prior_failures >= 4
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

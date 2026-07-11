@@ -54,17 +54,34 @@ jobs:
             exit 0
           fi
 
+          # (0) If the drip was DELIBERATELY disabled (our circuit breaker or an
+          # operator), stay quiet — the AUTO-DISABLED alert already fired, and
+          # re-alarming twice a week is exactly the fatigue we avoid. NOTE: only
+          # `disabled_manually` is suppressed; `disabled_inactivity` (GitHub's
+          # 60-day auto-disable) falls through to the recency alarm below.
+          STATE=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/blog-drip.yml" --jq '.state' 2>/dev/null || echo "")
+          echo "blog-drip.yml state: ${STATE:-unknown}"
+          if [ "$STATE" = "disabled_manually" ]; then
+            echo "Drip is disabled_manually (breaker or operator) — no liveness alarm."
+            exit 0
+          fi
+
+          # Reset window: only look at runs since the workflow was last enabled/edited,
+          # so a re-enable clears stale pre-disable history.
+          SINCE=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/blog-drip.yml" --jq '.updated_at' 2>/dev/null | cut -dT -f1 || echo "")
+          CREATED=""; [ -n "$SINCE" ] && CREATED="--created >=${SINCE}"
+
           # (1) Recency — is the SCHEDULED drip running at all? --event schedule so
           # a manual dispatch can't refresh this and mask a dead schedule.
-          LAST=$(gh run list --workflow blog-drip.yml --event schedule --status completed --limit 1 \
+          LAST=$(gh run list --workflow blog-drip.yml --event schedule --status completed ${CREATED} --limit 1 \
             --json createdAt --jq '.[0].createdAt // ""' 2>/dev/null || echo "")
           if [ -z "$LAST" ]; then
-            echo "No completed scheduled drip runs yet (fresh setup?) — nothing to check."
+            echo "No completed scheduled drip runs since ${SINCE:-setup} — nothing to check."
             exit 0
           fi
           NOW=$(date -u +%s)
           # Parse failure → treat as "now" (fresh) so a bad timestamp never false-alarms.
-          LAST_TS=$(date -u -d "$LAST" +%s 2>/dev/null || echo "$NOW")
+          LAST_TS=$(date -u -d "$LAST" +%s 2>/dev/null || { echo "WARN: could not parse '$LAST'; treating as fresh." >&2; echo "$NOW"; })
           AGE_DAYS=$(( (NOW - LAST_TS) / 86400 ))
           echo "Last completed scheduled run: ${LAST} (${AGE_DAYS} day(s) ago)."
           if [ "$AGE_DAYS" -ge "$MAX_AGE_DAYS" ]; then
@@ -76,7 +93,7 @@ jobs:
 
           # (2) Corroboration — is the drip RUNNING but failing every time? A second,
           # differently-scoped check that doesn't depend on the in-run streak step.
-          CONC=$(gh run list --workflow blog-drip.yml --event schedule --status completed --limit 3 \
+          CONC=$(gh run list --workflow blog-drip.yml --event schedule --status completed ${CREATED} --limit 3 \
             --json conclusion --jq '[.[].conclusion]' 2>/dev/null || echo '[]')
           ALLFAIL=$(node -e 'let a=[];try{a=JSON.parse(process.argv[1])}catch{}; process.stdout.write(a.length>=3 && a.every(c=>c==="failure")?"1":"0");' "$CONC")
           if [ "$ALLFAIL" = "1" ]; then
