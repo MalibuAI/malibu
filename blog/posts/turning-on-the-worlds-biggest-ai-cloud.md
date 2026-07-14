@@ -67,7 +67,7 @@ curl https://api.malibu.tech/v1/chat/completions \
   -H "Authorization: Bearer $MALIBU_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen3-235b",
+    "model": "gpt-oss-120b",
     "messages": [{"role": "user", "content": "Hello."}]
   }'
 ```
