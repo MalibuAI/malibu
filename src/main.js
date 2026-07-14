@@ -111,9 +111,20 @@ async function refreshLiveStats() {
         if (['tokens_served_total', 'requests_total'].includes(name)) return fmtCompact(num);
         return num.toLocaleString();
       };
+      // A proof stat of zero (or one that rounds to zero, like a lone 0.035 kW
+      // node) reads as broken, so hide the whole item until it has real signal.
+      const isZeroish = (text) => {
+        if (text === '—') return true;
+        const num = parseFloat(text);
+        return Number.isFinite(num) && num === 0;
+      };
       document.querySelectorAll('[data-proof-metric]').forEach((el) => {
         const name = el.dataset.proofMetric;
-        if (name in merged) el.textContent = fmtMetric(name, merged[name]);
+        if (!(name in merged)) return;
+        const text = fmtMetric(name, merged[name]);
+        el.textContent = text;
+        const item = el.closest('.home-proof-item');
+        if (item) item.hidden = isZeroish(text);
       });
     }
   } catch {}
