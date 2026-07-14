@@ -90,7 +90,6 @@ async function refreshLiveStats() {
         if (v == null || !Number.isFinite(Number(v))) return '—';
         const num = Number(v);
         if (name === 'bandwidth_gb_per_s') return num < 10 ? num.toFixed(2).replace(/\.?0+$/, '') : fmtCompact(num);
-        if (name === 'avg_tokens_per_request') return Math.round(num).toLocaleString();
         if (['tokens_served_total', 'requests_total'].includes(name)) return fmtCompact(num);
         return num.toLocaleString();
       };

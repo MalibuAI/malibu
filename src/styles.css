@@ -537,7 +537,7 @@ nav[data-nav-pill] .nav-cta:hover { background: #C2543A; color: #FFFBF2; }
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #4FBFD4;
+  color: #6ACCDD;
   margin-bottom: 14px;
 }
 .net-verify-headline {
@@ -635,11 +635,16 @@ nav[data-nav-pill] .nav-cta:hover { background: #C2543A; color: #FFFBF2; }
   overflow-x: auto;
   margin: 0;
 }
+.net-verify-demo-tuple:focus-visible {
+  outline: 2px solid #6ACCDD;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
 .net-verify-demo-note {
   font-family: 'Hanken Grotesk', sans-serif;
   font-size: 12px;
   line-height: 1.5;
-  color: rgba(255, 251, 242, 0.62);
+  color: rgba(255, 251, 242, 0.72);
   margin-top: 12px;
 }
 .net-verify-demo-note code {
@@ -653,9 +658,12 @@ nav[data-nav-pill] .nav-cta:hover { background: #C2543A; color: #FFFBF2; }
 
 .net-chart-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
+  /* Cap column growth so a solo Traffic chart (Throughput hidden pre-beta)
+     doesn't span full width and then jump narrower when Throughput appears. */
+  grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 560px));
   gap: 20px;
   margin-bottom: 20px;
+  justify-content: center;
 }
 .net-chart-card {
   background: rgba(255, 251, 242, 0.03);

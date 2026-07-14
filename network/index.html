@@ -102,7 +102,7 @@
             <span class="net-verify-demo-title">Ed25519 signature check</span>
             <span class="net-verify-demo-status" data-verify-status role="status" aria-live="polite" aria-atomic="true">—</span>
           </div>
-          <pre class="net-verify-demo-tuple" data-verify-tuple></pre>
+          <pre class="net-verify-demo-tuple" data-verify-tuple tabindex="0" role="group" aria-label="Signed receipt tuple (scrollable)"></pre>
           <div class="net-verify-demo-note">Live demo: we generate a keypair, sign a sample receipt tuple, and verify the signature in your browser — the Ed25519 primitive at the core of every Malibu receipt. Production receipts add RFC 8785 canonicalization; verify a real one with <code>malibu-verify</code>.</div>
         </div>
       </div>
@@ -244,10 +244,10 @@
 
       <div class="net-card-grid">
         <div class="net-card" hidden>
-          <div class="net-card-label">Capacity ready</div>
+          <div class="net-card-label">Capacity headroom</div>
           <div class="net-card-value"><span data-metric="capacity_ready_pct">—</span><span class="net-card-unit">%</span></div>
           <div class="net-util-bar" aria-hidden="true"><div class="net-util-fill" data-util-fill style="width: 0%;"></div></div>
-          <div class="net-card-sub">No queue. Your job starts the moment you send it.</div>
+          <div class="net-card-sub">Share of the pool sitting idle, ready for new work.</div>
         </div>
         <div class="net-card">
           <div class="net-card-label">GPU cores</div>
