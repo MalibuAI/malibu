@@ -111,7 +111,10 @@ function paintOverview(data) {
   // pool is ready right now" = 100 − utilization. But "100% ready" with zero
   // nodes online is a lie, so gate the card on a live pool (port of the
   // homepage zero-hiding discipline in src/main.js).
-  const util = Number(n.network_utilization_pct);
+  // Guard explicitly: Number(null) and Number('') are 0, which would fake a
+  // "100% ready" reading whenever the coordinator omits utilization.
+  const rawUtil = n.network_utilization_pct;
+  const util = rawUtil == null || rawUtil === '' ? NaN : Number(rawUtil);
   const capacityReady = Number.isFinite(util)
     ? Math.max(0, Math.min(100, 100 - util))
     : null;
@@ -375,11 +378,13 @@ if (els.refresh) {
 setInterval(updateUpdatedLabel, 15000);
 
 // ---- Verify-a-receipt demo -------------------------------------------------
-// Runs a REAL Ed25519 sign + verify in the browser over a canonical v0.3
-// receipt tuple — the same signature check `malibu-verify` runs on live
-// receipts. The keypair is ephemeral and the tuple is a sample: this proves the
-// mechanism, it is not production traffic, and it verifies provenance +
-// integrity only (not that the answer is correct — that is TOPLOC, planned v1).
+// Runs a REAL Ed25519 sign + verify in the browser over a sample receipt tuple
+// — the Ed25519 primitive behind every Malibu receipt. NOTE: production receipts
+// canonicalize with RFC 8785 (JCS) and carry trust/hash checks, so this is a
+// demonstration of the signature scheme, not a byte-for-byte `malibu-verify`
+// run. The keypair is ephemeral and the tuple is a sample: not production
+// traffic, and it attests provenance + integrity only (not that the answer is
+// correct — that is TOPLOC, planned v1).
 (function initVerifyDemo() {
   const btn = document.querySelector('[data-verify-run]');
   const panel = document.querySelector('[data-verify-demo]');

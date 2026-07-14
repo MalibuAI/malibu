@@ -52,7 +52,6 @@ export function mount(root, { navigate, esc, openAccount }) {
     const local = period === 'today' ? aggregateLocalUsage(1) : aggregateLocalUsage(days);
     const network = await fetchNetworkOverview().catch(() => null);
     const net = network?.network || {};
-    const hw = net.nodes_hardware_attested ?? net.hardware_attested ?? '—';
 
     if (authMode() !== 'key') {
       el.className = '';
@@ -71,7 +70,6 @@ export function mount(root, { navigate, esc, openAccount }) {
           <p class="hint">Aggregate pool stats. Per-request provider IDs show on chat replies.</p>
           <div class="grid">
             <div class="card"><div class="lbl">Nodes online</div><div class="val" style="font-size:22px;">${net.nodes_online ?? '—'}</div></div>
-            <div class="card"><div class="lbl">Hardware attested</div><div class="val" style="font-size:22px;">${hw}</div></div>
           </div>
           <div class="nav-links"><a href="/network/">Full network dashboard</a></div>
         </div>

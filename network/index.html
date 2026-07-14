@@ -90,20 +90,20 @@
         <div class="net-verify-copy">
           <div class="net-verify-eyebrow">Signed &amp; verifiable</div>
           <h2 class="net-verify-headline">Every response is signed on-node. You can check it yourself.</h2>
-          <p class="net-verify-teeth">Invalid or missing receipt → the request is free. Settlement enforces it.</p>
+          <p class="net-verify-teeth">You're only billed when the receipt verifies — settlement refunds anything it can't.</p>
           <p class="net-verify-bound">A receipt proves <em>who</em> served the response and that it wasn't altered — not that the answer is correct. Forward-pass attestation (TOPLOC) is planned for v1.</p>
           <div class="net-verify-actions">
             <button type="button" class="net-verify-btn" data-verify-run>Verify a receipt in your browser →</button>
             <a href="https://malibu.tech/docs/network/receipts" class="net-verify-link">How receipts work →</a>
           </div>
         </div>
-        <div class="net-verify-demo" data-verify-demo hidden aria-live="polite">
+        <div class="net-verify-demo" data-verify-demo hidden>
           <div class="net-verify-demo-head">
-            <span class="net-verify-demo-title">Ed25519 receipt check</span>
-            <span class="net-verify-demo-status" data-verify-status>—</span>
+            <span class="net-verify-demo-title">Ed25519 signature check</span>
+            <span class="net-verify-demo-status" data-verify-status role="status" aria-live="polite" aria-atomic="true">—</span>
           </div>
           <pre class="net-verify-demo-tuple" data-verify-tuple></pre>
-          <div class="net-verify-demo-note">Demo: a keypair is generated, a sample receipt tuple is signed, and the signature is verified live in your browser — the same check <code>malibu-verify</code> runs on real receipts.</div>
+          <div class="net-verify-demo-note">Live demo: we generate a keypair, sign a sample receipt tuple, and verify the signature in your browser — the Ed25519 primitive at the core of every Malibu receipt. Production receipts add RFC 8785 canonicalization; verify a real one with <code>malibu-verify</code>.</div>
         </div>
       </div>
     </div>
@@ -243,7 +243,7 @@
       </div>
 
       <div class="net-card-grid">
-        <div class="net-card">
+        <div class="net-card" hidden>
           <div class="net-card-label">Capacity ready</div>
           <div class="net-card-value"><span data-metric="capacity_ready_pct">—</span><span class="net-card-unit">%</span></div>
           <div class="net-util-bar" aria-hidden="true"><div class="net-util-fill" data-util-fill style="width: 0%;"></div></div>
