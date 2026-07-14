@@ -209,19 +209,17 @@
           </div>
         </div>
 
-        <!-- Per-request decode speed: the single-stream number a buyer feels on
-             their own stream. It moves opposite to the aggregate Throughput
-             chart above — falling as the pool fills while the total rises — so
-             it is presented as a distinct stat, not another throughput line.
-             Hidden until the coordinator publishes network.decode_tok_s with
-             enough samples to be honest (gate in src/network.js). -->
-        <div class="net-chart-card net-decode-card" data-decode-card hidden>
+        <!-- Per-request decode speed: the single-stream number, distinct from
+             aggregate throughput. Hidden until the coordinator publishes a
+             well-formed network.decode_tok_s with enough samples (gate in
+             src/network.js). -->
+        <div class="net-chart-card net-decode-card" data-chart-card="decode" hidden>
           <div class="net-chart-head">
             <div>
               <div class="net-chart-eyebrow">Per-request · decode</div>
               <div class="net-chart-title">Stream speed</div>
             </div>
-            <div class="net-chart-legend"><span>what one request feels</span></div>
+            <div class="net-chart-legend"><span>single stream</span></div>
           </div>
           <div class="net-decode-body">
             <div class="net-decode-median">
@@ -233,7 +231,7 @@
             </div>
           </div>
           <div class="net-decode-foot">
-            <p class="net-decode-note">The single-stream speed you feel — not the aggregate throughput above. It falls as the pool fills while the total rises; we show both on purpose.</p>
+            <p class="net-decode-note">The speed a single stream sees — separate from the aggregate throughput total, and typically lower as the pool fills.</p>
             <span data-decode-samples class="net-decode-samples"></span>
           </div>
         </div>

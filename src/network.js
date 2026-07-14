@@ -167,17 +167,24 @@ function humanWindow(seconds) {
 // request latency. Absent today; the card reveals itself when the coordinator
 // ships the field with enough samples.
 function paintDecodeSpeed(decode) {
-  const card = document.querySelector('[data-decode-card]');
+  const card = document.querySelector('[data-chart-card="decode"]');
   if (!card) return;
   const d = decode || {};
-  const median = Number(d.median);
-  const p10 = Number(d.p10);
-  const p90 = Number(d.p90);
-  const samples = Number(d.sample_count);
-  // Honest gate: a real median, a real range, and enough samples to mean it.
+  // Treat null/'' as missing: Number(null) and Number('') are 0, which is
+  // finite and would slip a fake "0–0 tok/s" range past the gate (same footgun
+  // guarded for utilization above).
+  const num = (v) => (v == null || v === '' ? NaN : Number(v));
+  const median = num(d.median);
+  const p10 = num(d.p10);
+  const p90 = num(d.p90);
+  const samples = num(d.sample_count);
+  // Honest gate: a well-formed distribution (positive, ordered p10 ≤ median ≤
+  // p90) with enough samples to mean it. Anything malformed hides the card.
   const ok =
     Number.isFinite(median) && median > 0 &&
-    Number.isFinite(p10) && Number.isFinite(p90) &&
+    Number.isFinite(p10) && p10 > 0 &&
+    Number.isFinite(p90) && p90 > 0 &&
+    p10 <= median && median <= p90 &&
     Number.isFinite(samples) && samples >= MIN_DECODE_SAMPLES;
   card.hidden = !ok;
   if (!ok) return;
@@ -186,7 +193,7 @@ function paintDecodeSpeed(decode) {
   const rangeEl = card.querySelector('[data-decode-range]');
   const samplesEl = card.querySelector('[data-decode-samples]');
   if (medEl) medEl.textContent = nfmt(Math.round(median));
-  if (rangeEl) rangeEl.textContent = Math.round(p10) + '–' + Math.round(p90) + ' tok/s';
+  if (rangeEl) rangeEl.textContent = nfmt(Math.round(p10)) + '–' + nfmt(Math.round(p90)) + ' tok/s';
   if (samplesEl) {
     const win = humanWindow(d.window_seconds);
     samplesEl.textContent =
