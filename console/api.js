@@ -498,6 +498,7 @@ export async function* chatStream({
   }
   if (responseFormat) body.response_format = responseFormat;
 
+  const requestStart = performance.now();
   const r = await fetch(`${BASE}/v1/chat/completions`, {
     method: 'POST',
     signal,
@@ -521,6 +522,11 @@ export async function* chatStream({
   let content = '';
   let finishReason = '';
   const toolAcc = {};
+  // Decode-window timing so the console can show the honest per-request decode
+  // speed the user actually felt: tokens ÷ (first token → last token), NOT
+  // total latency. First-token time also gives TTFT (queue + prompt + relay).
+  let firstTokenAt = null;
+  let lastTokenAt = null;
 
   const parseSSEBuffer = function* parseSSEBuffer() {
     let idx;
@@ -537,6 +543,9 @@ export async function* chatStream({
           const delta = choice?.delta;
           if (choice?.finish_reason) finishReason = choice.finish_reason;
           if (delta?.content) {
+            const now = performance.now();
+            if (firstTokenAt == null) firstTokenAt = now;
+            lastTokenAt = now;
             content += delta.content;
             yield { type: 'delta', text: delta.content };
           }
@@ -576,6 +585,10 @@ export async function* chatStream({
     meta,
     finishReason,
     toolCalls: toolList(toolAcc),
+    timing: {
+      ttftMs: firstTokenAt != null ? firstTokenAt - requestStart : null,
+      decodeMs: firstTokenAt != null && lastTokenAt != null ? lastTokenAt - firstTokenAt : null,
+    },
   };
 }
 
@@ -605,11 +618,27 @@ function formatLatency(latencyMs) {
   return `${Math.round(ms)}ms`;
 }
 
-export function formatBillMeta({ usage, meta, latencyMs }) {
+// Decode-only speed the user felt on this stream: completion tokens over the
+// decode window (first token → last token), not total latency. Gated on a real
+// window and enough tokens so a tiny reply can't show a wild rate; omitted
+// otherwise rather than shown as a misleading number.
+export function formatDecodeSpeed(usage, timing) {
+  const completion = Number(usage?.completion_tokens) || 0;
+  const decodeMs = Number(timing?.decodeMs);
+  if (completion < 8 || !Number.isFinite(decodeMs) || decodeMs < 200) return '';
+  // (completion − 1) inter-token gaps span the measured window.
+  const toks = (completion - 1) / (decodeMs / 1000);
+  if (!Number.isFinite(toks) || toks <= 0) return '';
+  return `${Math.round(toks)} tok/s`;
+}
+
+export function formatBillMeta({ usage, meta, latencyMs, timing }) {
   const parts = [];
   const totalTokens = normalizedTotalTokens(usage);
   if (totalTokens > 0) parts.push(`${formatTokenCount(totalTokens)} tokens`);
   if (usage?.cached_prompt_tokens) parts.push(`${formatTokenCount(usage.cached_prompt_tokens)} cached`);
+  const decode = formatDecodeSpeed(usage, timing);
+  if (decode) parts.push(decode);
   const latency = formatLatency(latencyMs);
   if (latency) parts.push(latency);
   if (meta?.settlement) parts.push(meta.settlement);

@@ -933,7 +933,7 @@
         const ai = addAiMsg(modelEl.options[modelEl.selectedIndex]?.text || t.model || 'Malibu', { live: false });
         ai.querySelector('.msg-content').textContent = m.content;
         const billEl = ai.querySelector('[data-bill]');
-        if (billEl && m.meta) finishBill(billEl, m.usage, m.meta, m.latencyMs);
+        if (billEl && m.meta) finishBill(billEl, m.usage, m.meta, m.latencyMs, m.timing);
         else if (billEl) setBillStatus(billEl, 'saved');
         wireAiMessageActions(ai, m.content);
       }
@@ -1068,9 +1068,9 @@
     billEl.classList.toggle('is-live', live);
   }
 
-  function finishBill(billEl, usage, meta, latencyMs) {
+  function finishBill(billEl, usage, meta, latencyMs, timing) {
     billEl.classList.remove('is-live');
-    billEl.textContent = formatBillMeta({ usage, meta, latencyMs });
+    billEl.textContent = formatBillMeta({ usage, meta, latencyMs, timing });
     const linksEl = billEl.closest('.body')?.querySelector('[data-bill-links]');
     if (!linksEl) return;
     linksEl.replaceChildren();
@@ -1140,6 +1140,7 @@
     const started = performance.now();
     let usage = null;
     let meta = {};
+    let timing = null;
     let buf = '';
     let stopped = false;
 
@@ -1211,13 +1212,14 @@
           } else if (event.type === 'done') {
             usage = event.usage;
             meta = event.meta || {};
+            timing = event.timing || null;
             if (event.content) buf = event.content;
           }
         }
         textEl.className = 'msg-content';
         textEl.textContent = buf;
-        conversation.push({ role: 'assistant', content: buf, usage, meta, surface, latencyMs: performance.now() - started });
-        finishBill(billEl, usage, meta, performance.now() - started);
+        conversation.push({ role: 'assistant', content: buf, usage, meta, timing, surface, latencyMs: performance.now() - started });
+        finishBill(billEl, usage, meta, performance.now() - started, timing);
       }
       if (buf) wireAiMessageActions(ai, buf);
       persistThread();
