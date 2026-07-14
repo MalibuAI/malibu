@@ -53,12 +53,12 @@
     <div style="position: relative; max-width: 1240px; margin: 0 auto;">
       <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;">
         <div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">The network, live</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">Early network · building in public</div>
           <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(56px, 8vw, 128px); line-height: 0.9; letter-spacing: -0.035em; color: #FFFBF2; margin: 0;">
             Malibu <em style="font-style: normal; color: #FF6E5B;">runs.</em>
           </h1>
           <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; color: rgba(255, 251, 242,0.72); margin: 22px 0 0; max-width: 60ch;">
-            Every number below comes off the coordinator itself. Real Macs, real prompts, refreshed every few seconds.
+            Every number below reads straight off the coordinator — no dashboards, no theater. Early network, building in the open.
           </p>
         </div>
 
@@ -83,6 +83,32 @@
     </div>
   </section>
 
+  <!-- ============ VERIFIABILITY BAND ============ -->
+  <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(40px, 5vh, 64px);">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div class="net-verify">
+        <div class="net-verify-copy">
+          <div class="net-verify-eyebrow">Signed &amp; verifiable</div>
+          <h2 class="net-verify-headline">Every response is signed on-node. You can check it yourself.</h2>
+          <p class="net-verify-teeth">You're only billed when the receipt verifies — settlement refunds anything it can't.</p>
+          <p class="net-verify-bound">A receipt proves <em>who</em> served the response and that it wasn't altered — not that the answer is correct. Forward-pass attestation (TOPLOC) is planned for v1.</p>
+          <div class="net-verify-actions">
+            <button type="button" class="net-verify-btn" data-verify-run>Verify a receipt in your browser →</button>
+            <a href="https://malibu.tech/docs/network/receipts" class="net-verify-link">How receipts work →</a>
+          </div>
+        </div>
+        <div class="net-verify-demo" data-verify-demo hidden>
+          <div class="net-verify-demo-head">
+            <span class="net-verify-demo-title">Ed25519 signature check</span>
+            <span class="net-verify-demo-status" data-verify-status role="status" aria-live="polite" aria-atomic="true">—</span>
+          </div>
+          <pre class="net-verify-demo-tuple" data-verify-tuple tabindex="0" role="group" aria-label="Signed receipt tuple (scrollable)"></pre>
+          <div class="net-verify-demo-note">Live demo: we generate a keypair, sign a sample receipt tuple, and verify the signature in your browser — the Ed25519 primitive at the core of every Malibu receipt. Production receipts add RFC 8785 canonicalization; verify a real one with <code>malibu-verify</code>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ PRIMARY COUNTERS ============ -->
   <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(48px, 6vh, 80px);">
     <div style="position: relative; max-width: 1240px; margin: 0 auto;">
@@ -100,7 +126,7 @@
         <div class="net-counter" data-accent="aqua">
           <div class="net-counter-label">Nodes online</div>
           <div class="net-counter-value" data-metric="nodes_online">—</div>
-          <div class="net-counter-sub"><span data-metric="nodes_hardware_attested">—</span> hardware-attested</div>
+          <div class="net-counter-sub"><a href="/host/" style="color: #4FBFD4;">Add your Mac →</a></div>
         </div>
         <div class="net-counter" data-accent="cream">
           <div class="net-counter-label">Bandwidth</div>
@@ -138,7 +164,7 @@
               <path data-chart-area d="" fill="url(#grad-rpm)"/>
               <path data-chart-line d="" fill="none" stroke="#FF6E5B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <div class="net-chart-empty" data-chart-empty="rpm" hidden>No traffic in the last 30 minutes.</div>
+            <div class="net-chart-empty" data-chart-empty="rpm" hidden>Awaiting first traffic — every prompt lands here, signed.</div>
           </div>
           <div class="net-chart-foot">
             <span>Peak <strong data-chart-peak="rpm">—</strong></span>
@@ -146,7 +172,7 @@
           </div>
         </div>
 
-        <div class="net-chart-card">
+        <div class="net-chart-card" data-chart-card="tpm" hidden>
           <div class="net-chart-head">
             <div>
               <div class="net-chart-eyebrow">Tokens / min · last 30m</div>
@@ -217,14 +243,11 @@
       </div>
 
       <div class="net-card-grid">
-        <div class="net-card">
-          <div class="net-card-label">Network power</div>
-          <div class="net-card-value"><span data-metric="network_power_kw">—</span><span class="net-card-unit">kW</span></div>
-        </div>
-        <div class="net-card">
-          <div class="net-card-label">Utilization</div>
-          <div class="net-card-value"><span data-metric="network_utilization_pct">—</span><span class="net-card-unit">%</span></div>
+        <div class="net-card" hidden>
+          <div class="net-card-label">Capacity headroom</div>
+          <div class="net-card-value"><span data-metric="capacity_ready_pct">—</span><span class="net-card-unit">%</span></div>
           <div class="net-util-bar" aria-hidden="true"><div class="net-util-fill" data-util-fill style="width: 0%;"></div></div>
+          <div class="net-card-sub">Share of the pool sitting idle, ready for new work.</div>
         </div>
         <div class="net-card">
           <div class="net-card-label">GPU cores</div>
@@ -239,17 +262,8 @@
           <div class="net-card-value"><span data-metric="unified_ram_gb_total">—</span><span class="net-card-unit">GB</span></div>
         </div>
         <div class="net-card">
-          <div class="net-card-label">Avg tokens / request</div>
-          <div class="net-card-value" data-metric="avg_tokens_per_request">—</div>
-        </div>
-        <div class="net-card">
           <div class="net-card-label">Models serving</div>
           <div class="net-card-value" data-metric="models_serving">—</div>
-        </div>
-        <div class="net-card">
-          <div class="net-card-label">Hardware attested</div>
-          <div class="net-card-value" data-metric="nodes_hardware_attested">—</div>
-          <div class="net-card-sub">of <span data-metric="nodes_online">—</span> online</div>
         </div>
       </div>
     </div>
