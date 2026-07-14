@@ -498,7 +498,6 @@ export async function* chatStream({
   }
   if (responseFormat) body.response_format = responseFormat;
 
-  const requestStart = performance.now();
   const r = await fetch(`${BASE}/v1/chat/completions`, {
     method: 'POST',
     signal,
@@ -522,9 +521,10 @@ export async function* chatStream({
   let content = '';
   let finishReason = '';
   const toolAcc = {};
-  // Decode-window timing so the console can show the honest per-request decode
-  // speed the user actually felt: tokens ÷ (first token → last token), NOT
-  // total latency. First-token time also gives TTFT (queue + prompt + relay).
+  // Decode-window timing so the console can show the per-request speed the user
+  // actually felt on this stream: tokens ÷ (first content token → last content
+  // token), which excludes queue + prompt + TTFT. It is client-observed
+  // delivery (includes network relay between chunks), not pure model decode.
   let firstTokenAt = null;
   let lastTokenAt = null;
 
@@ -586,7 +586,6 @@ export async function* chatStream({
     finishReason,
     toolCalls: toolList(toolAcc),
     timing: {
-      ttftMs: firstTokenAt != null ? firstTokenAt - requestStart : null,
       decodeMs: firstTokenAt != null && lastTokenAt != null ? lastTokenAt - firstTokenAt : null,
     },
   };
@@ -618,11 +617,11 @@ function formatLatency(latencyMs) {
   return `${Math.round(ms)}ms`;
 }
 
-// Decode-only speed the user felt on this stream: completion tokens over the
-// decode window (first token → last token), not total latency. Gated on a real
-// window and enough tokens so a tiny reply can't show a wild rate; omitted
-// otherwise rather than shown as a misleading number.
-export function formatDecodeSpeed(usage, timing) {
+// Speed the user felt on this stream: completion tokens over the decode window
+// (first content token → last), excluding queue/prompt/TTFT. Client-observed
+// delivery, not pure model decode. Gated on a real window and enough tokens so
+// a tiny reply can't show a wild rate; omitted rather than shown when unsafe.
+function formatDecodeSpeed(usage, timing) {
   const completion = Number(usage?.completion_tokens) || 0;
   const decodeMs = Number(timing?.decodeMs);
   if (completion < 8 || !Number.isFinite(decodeMs) || decodeMs < 200) return '';
