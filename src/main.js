@@ -41,7 +41,6 @@ async function refreshLiveStats() {
       fetch(STATUS_URL).catch(() => null),
     ]);
     let nodes = null;
-    let tps = null;
     let requestsTotal = null;
     let tokensTotal = null;
 
@@ -60,14 +59,6 @@ async function refreshLiveStats() {
       if (nodes == null && n.nodes_online > 0) nodes = n.nodes_online;
       requestsTotal = n.requests_total;
       tokensTotal = n.tokens_served_total;
-      const rpm = stats?.timeseries?.rpm_30m?.points;
-      if (Array.isArray(rpm)) {
-        const recent = [...rpm].reverse().find((p) => p?.value != null && p.value > 0);
-        if (recent?.value) tps = (recent.value / 60).toFixed(1);
-      }
-      if (!tps && n.avg_tokens_per_request && n.requests_total) {
-        tps = (n.avg_tokens_per_request * 0.15).toFixed(1);
-      }
     }
 
     if (nodes != null) {
@@ -79,12 +70,6 @@ async function refreshLiveStats() {
       });
       document.querySelectorAll('[data-proof-nodes]').forEach((el) => {
         el.textContent = Number(nodes).toLocaleString();
-      });
-    }
-    if (tps != null) {
-      document.querySelectorAll('[data-live-tps]').forEach((el) => {
-        const suffix = el.dataset.suffix === 'none';
-        el.textContent = suffix ? tps : (el.tagName === 'SPAN' && el.closest('[data-live-pill], p, [data-hero-chat-meta]') ? tps + ' t/s' : tps);
       });
     }
     if (requestsTotal != null) {
