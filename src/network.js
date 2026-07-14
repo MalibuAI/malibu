@@ -141,6 +141,57 @@ function paintOverview(data) {
   // Charts
   paintRpm(data.timeseries && data.timeseries.rpm_30m);
   paintTpm(data.timeseries && data.timeseries.tpm_30m);
+
+  // Per-request decode speed (the single-stream number, opposite of aggregate).
+  paintDecodeSpeed(n.decode_tok_s);
+}
+
+// Minimum decode samples before an honest median + range can be shown. Below
+// this the distribution is noise, so the whole card stays hidden — the same
+// pre-beta "hide until real data" discipline used for the Throughput chart,
+// and the reason we do NOT synthesize a per-request speed from aggregates
+// (that fabrication was removed in #49/#53).
+const MIN_DECODE_SAMPLES = 20;
+
+function humanWindow(seconds) {
+  const s = Number(seconds);
+  if (!Number.isFinite(s) || s <= 0) return '';
+  if (s % 86400 === 0) return (s / 86400) + 'd';
+  if (s % 3600 === 0) return (s / 3600) + 'h';
+  if (s % 60 === 0) return (s / 60) + 'm';
+  return Math.round(s) + 's';
+}
+
+// Expects network.decode_tok_s = { median, p10, p90, sample_count, window_seconds }
+// measured server-side over the decode window (first→last token), NOT total
+// request latency. Absent today; the card reveals itself when the coordinator
+// ships the field with enough samples.
+function paintDecodeSpeed(decode) {
+  const card = document.querySelector('[data-decode-card]');
+  if (!card) return;
+  const d = decode || {};
+  const median = Number(d.median);
+  const p10 = Number(d.p10);
+  const p90 = Number(d.p90);
+  const samples = Number(d.sample_count);
+  // Honest gate: a real median, a real range, and enough samples to mean it.
+  const ok =
+    Number.isFinite(median) && median > 0 &&
+    Number.isFinite(p10) && Number.isFinite(p90) &&
+    Number.isFinite(samples) && samples >= MIN_DECODE_SAMPLES;
+  card.hidden = !ok;
+  if (!ok) return;
+
+  const medEl = card.querySelector('[data-decode-median]');
+  const rangeEl = card.querySelector('[data-decode-range]');
+  const samplesEl = card.querySelector('[data-decode-samples]');
+  if (medEl) medEl.textContent = nfmt(Math.round(median));
+  if (rangeEl) rangeEl.textContent = Math.round(p10) + '–' + Math.round(p90) + ' tok/s';
+  if (samplesEl) {
+    const win = humanWindow(d.window_seconds);
+    samplesEl.textContent =
+      'median over ' + nfmt(samples) + ' requests' + (win ? ' · last ' + win : '');
+  }
 }
 
 function pointsToSeries(series, keys) {

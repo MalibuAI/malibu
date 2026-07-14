@@ -674,6 +674,77 @@ nav[data-nav-pill] .nav-cta:hover { background: #C2543A; color: #FFFBF2; }
   flex-direction: column;
   gap: 18px;
 }
+/* Per-request decode card: a stat readout, deliberately distinct from the
+   aggregate throughput charts it sits beside. Accent seam keeps them from
+   reading as the same kind of number. */
+.net-decode-card {
+  border-color: rgba(79, 191, 212, 0.28);
+  justify-content: space-between;
+}
+.net-decode-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 0 2px;
+}
+.net-decode-median {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.net-decode-median > [data-decode-median] {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: clamp(44px, 6vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #FFFBF2;
+}
+.net-decode-unit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: rgba(255, 251, 242, 0.62);
+}
+.net-decode-median-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 251, 242, 0.45);
+}
+.net-decode-range {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: rgba(255, 251, 242, 0.72);
+}
+.net-decode-range-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 251, 242, 0.45);
+}
+.net-decode-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.net-decode-note {
+  margin: 0;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 251, 242, 0.6);
+}
+.net-decode-samples {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 251, 242, 0.4);
+}
 .net-chart-head {
   display: flex;
   align-items: flex-start;
