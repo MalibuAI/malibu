@@ -176,7 +176,7 @@
           <div class="net-chart-head">
             <div>
               <div class="net-chart-eyebrow">Tokens / min · last 30m</div>
-              <div class="net-chart-title">Throughput</div>
+              <div class="net-chart-title">Aggregate network throughput</div>
             </div>
             <div class="net-chart-legend">
               <span class="net-chart-legend-dot" style="background: #4FBFD4;"></span><span>in</span>
@@ -207,12 +207,17 @@
             <span>In peak <strong data-chart-peak="tpm-in">—</strong></span>
             <span>Out peak <strong data-chart-peak="tpm-out">—</strong></span>
           </div>
+          <p class="net-decode-note" style="margin-top: 14px;">Total tokens across every request running at once — it rises as the pool absorbs concurrent load. It is <strong>not</strong> the speed of a single stream, which moves the opposite way as the network fills.</p>
         </div>
 
         <!-- Per-request decode speed: the single-stream number, distinct from
-             aggregate throughput. Hidden until the coordinator publishes a
-             well-formed network.decode_tok_s with enough samples (gate in
-             src/network.js). -->
+             aggregate throughput. Dormant by design — the backend field it reads
+             (network.decode_tok_s) was found infeasible to publish safely and its
+             dependency issue #55 was closed not-planned (no coordinator-side decode
+             measurement, no privacy-safe shape for the current pool). Kept hidden,
+             not removed, per that resolution; the honest fix for #48 is the
+             "Aggregate network throughput" relabel above. Gate lives in
+             src/network.js — the card only renders if the field ever ships. -->
         <div class="net-chart-card net-decode-card" data-chart-card="decode" hidden>
           <div class="net-chart-head">
             <div>
