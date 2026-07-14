@@ -80,32 +80,48 @@ function paintMetric(name, value) {
   });
 }
 
+// Hide the enclosing card for a metric when its value would read as broken or
+// dishonest pre-beta (e.g. a "ready" percentage while no nodes are online).
+function hideCardWhen(name, shouldHide) {
+  document.querySelectorAll(`[data-metric="${name}"]`).forEach((el) => {
+    const card = el.closest('.net-card, .net-counter');
+    if (card) card.hidden = !!shouldHide;
+  });
+}
+
 function paintOverview(data) {
   const n = data.network || {};
 
   paintMetric('tokens_served_total', nfmt(n.tokens_served_total));
   paintMetric('requests_total', nfmt(n.requests_total));
   paintMetric('nodes_online', nfmt(n.nodes_online));
-  paintMetric('nodes_hardware_attested', nfmt(n.nodes_hardware_attested));
   paintMetric('bandwidth_gb_per_s', nfmt(n.bandwidth_gb_per_s));
 
-  paintMetric('network_power_kw', fmtDecimal(n.network_power_kw, 1));
-  paintMetric('network_utilization_pct', nfmt(n.network_utilization_pct));
   paintMetric('gpu_cores_total', nfmt(n.gpu_cores_total));
   paintMetric('cpu_cores_total', nfmt(n.cpu_cores_total));
   paintMetric('unified_ram_gb_total', nfmt(n.unified_ram_gb_total));
-  paintMetric('avg_tokens_per_request', nfmt(n.avg_tokens_per_request));
   paintMetric('models_serving', nfmt(n.models_serving));
 
   paintMetric('tokens_in_total', nfmt(n.tokens_in_total));
   paintMetric('tokens_out_total', nfmt(n.tokens_out_total));
 
-  // Utilization bar
+  // Host reframe: the next Mac to join is node #(online + 1).
+  const nodesOnline = Number(n.nodes_online);
+  const nextNode = Number.isFinite(nodesOnline) ? nodesOnline + 1 : null;
+  paintMetric('next_node_number', nextNode == null ? '—' : nfmt(nextNode));
+
+  // Capacity headroom: the honest reframe of utilization is "how much of the
+  // pool is ready right now" = 100 − utilization. But "100% ready" with zero
+  // nodes online is a lie, so gate the card on a live pool (port of the
+  // homepage zero-hiding discipline in src/main.js).
+  const util = Number(n.network_utilization_pct);
+  const capacityReady = Number.isFinite(util)
+    ? Math.max(0, Math.min(100, 100 - util))
+    : null;
+  paintMetric('capacity_ready_pct', capacityReady == null ? '—' : nfmt(capacityReady));
+  hideCardWhen('capacity_ready_pct', !(nodesOnline > 0) || capacityReady == null);
   const utilFill = document.querySelector('[data-util-fill]');
-  if (utilFill) {
-    const pct = Math.max(0, Math.min(100, Number(n.network_utilization_pct) || 0));
-    utilFill.style.width = pct + '%';
-  }
+  if (utilFill) utilFill.style.width = (capacityReady == null ? 0 : capacityReady) + '%';
 
   // Token in/out ratio bar
   const tin = Number(n.tokens_in_total) || 0;
@@ -213,6 +229,10 @@ function paintTpm(series) {
   const allVals = inVals.concat(outVals);
   const anyData = allVals.some((v) => v != null && v > 0);
   if (empty) empty.hidden = anyData;
+  // Pre-beta, an empty throughput chart alongside the empty traffic chart reads
+  // as broken. Hide the whole card until there is real throughput to plot.
+  const card = document.querySelector('[data-chart-card="tpm"]');
+  if (card) card.hidden = !anyData;
   drawGrid(svg.querySelector('[data-chart-grid]'), 600, 220, 12);
 
   const max = Math.max(1, ...allVals.map((v) => (v == null ? 0 : v)));
@@ -356,6 +376,82 @@ if (els.refresh) {
 }
 
 setInterval(updateUpdatedLabel, 15000);
+
+// ---- Verify-a-receipt demo -------------------------------------------------
+// Runs a REAL Ed25519 sign + verify in the browser over a canonical v0.3
+// receipt tuple — the same signature check `malibu-verify` runs on live
+// receipts. The keypair is ephemeral and the tuple is a sample: this proves the
+// mechanism, it is not production traffic, and it verifies provenance +
+// integrity only (not that the answer is correct — that is TOPLOC, planned v1).
+(function initVerifyDemo() {
+  const btn = document.querySelector('[data-verify-run]');
+  const panel = document.querySelector('[data-verify-demo]');
+  const statusEl = document.querySelector('[data-verify-status]');
+  const tupleEl = document.querySelector('[data-verify-tuple]');
+  if (!btn || !panel || !tupleEl) return;
+
+  const toHex = (buf) =>
+    [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+  async function sha256Hex(str) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return toHex(digest);
+  }
+
+  function setStatus(text, state) {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.dataset.state = state || '';
+  }
+
+  async function run() {
+    panel.hidden = false;
+    btn.disabled = true;
+    setStatus('running…', 'running');
+    try {
+      const [promptHash, outputHash, modelHash] = await Promise.all([
+        sha256Hex('Summarize the Malibu litepaper in one line.'),
+        sha256Hex('A verifiable inference network on idle Apple silicon.'),
+        sha256Hex('mlx-community/Qwen3-8B-4bit'),
+      ]);
+
+      const keyPair = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
+      const providerPubkey = toHex(await crypto.subtle.exportKey('raw', keyPair.publicKey));
+
+      // v0.3 tuple, canonicalized in fixed field order.
+      const fields = [
+        ['model_hash', 'sha256:' + modelHash],
+        ['model_id', 'qwen3-8b'],
+        ['prompt_hash', 'sha256:' + promptHash],
+        ['output_hash', 'sha256:' + outputHash],
+        ['provider_pubkey', providerPubkey],
+        ['receipt_version', '0.3.3'],
+        ['tokens_out', '12'],
+        ['ttft_ms', '214'],
+        ['unix_ts', String(Math.floor(Date.now() / 1000))],
+      ];
+      const msg = new TextEncoder().encode(fields.map(([k, v]) => k + '=' + v).join('\n'));
+      const sig = await crypto.subtle.sign({ name: 'Ed25519' }, keyPair.privateKey, msg);
+      const ok = await crypto.subtle.verify({ name: 'Ed25519' }, keyPair.publicKey, sig, msg);
+
+      const short = (v) => (v.length > 44 ? v.slice(0, 41) + '…' : v);
+      tupleEl.textContent =
+        fields.map(([k, v]) => k.padEnd(16) + short(v)).join('\n') +
+        '\n' + 'signature'.padEnd(16) + short(toHex(sig));
+      setStatus(ok ? 'signature valid ✓' : 'signature invalid ✕', ok ? 'ok' : 'bad');
+    } catch {
+      // Ed25519 in WebCrypto isn't available in every browser — the CLI still verifies.
+      tupleEl.textContent =
+        'Ed25519 verification is not available in this browser.\n' +
+        'Run `malibu-verify` on any X-Malibu-Receipt header to check it offline.';
+      setStatus('use malibu-verify', 'bad');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  btn.addEventListener('click', run);
+})();
 
 fetchOverview();
 if (!reduced) startPolling();
