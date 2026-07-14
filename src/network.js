@@ -105,10 +105,7 @@ function paintOverview(data) {
   paintMetric('tokens_in_total', nfmt(n.tokens_in_total));
   paintMetric('tokens_out_total', nfmt(n.tokens_out_total));
 
-  // Host reframe: the next Mac to join is node #(online + 1).
   const nodesOnline = Number(n.nodes_online);
-  const nextNode = Number.isFinite(nodesOnline) ? nodesOnline + 1 : null;
-  paintMetric('next_node_number', nextNode == null ? '—' : nfmt(nextNode));
 
   // Capacity headroom: the honest reframe of utilization is "how much of the
   // pool is ready right now" = 100 − utilization. But "100% ready" with zero
