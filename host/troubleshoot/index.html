@@ -11,25 +11,25 @@
   <link rel="stylesheet" href="/src/styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    html, body { margin: 0; padding: 0; background: #143A45; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+    html, body { margin: 0; padding: 0; background: #143A45; color: #FAFBFF; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
     * { box-sizing: border-box; }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
     .hero { padding: clamp(120px, 18vh, 160px) clamp(28px, 5vw, 64px) clamp(48px, 8vh, 72px); max-width: 760px; margin: 0 auto; }
-    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: rgba(255, 251, 242,0.06); border: 1px solid rgba(255, 198, 41,0.42); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #FFFBF2; margin-bottom: 24px; }
-    .pill .b { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #FF6E5B; color: #FFFBF2; font-size: 12px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: rgba(250, 251, 255,0.06); border: 1px solid rgba(255, 198, 41,0.42); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #FAFBFF; margin-bottom: 24px; }
+    .pill .b { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #F76B57; color: #FAFBFF; font-size: 12px; }
     h1 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(40px, 6vw, 64px); line-height: 1; letter-spacing: -0.03em; margin: 0 0 16px; }
-    .sub { font-size: 18px; line-height: 1.55; color: rgba(255, 251, 242,0.78); margin: 0 0 36px; }
-    .back { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 28px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 110, 91,0.9); }
-    .back:hover { color: #FF6E5B; }
+    .sub { font-size: 18px; line-height: 1.55; color: rgba(250, 251, 255,0.78); margin: 0 0 36px; }
+    .back { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 28px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(247, 107, 87,0.9); }
+    .back:hover { color: #F76B57; }
     .topics { display: flex; flex-direction: column; gap: 20px; }
-    .topic { padding: 24px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; }
-    .topic h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 10px; color: #FFFBF2; }
-    .topic p, .topic li { font-size: 15px; line-height: 1.6; color: rgba(255, 251, 242,0.76); margin: 0 0 10px; }
+    .topic { padding: 24px 26px; background: rgba(250, 251, 255,0.04); border: 1px solid rgba(250, 251, 255,0.10); border-radius: 14px; }
+    .topic h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 10px; color: #FAFBFF; }
+    .topic p, .topic li { font-size: 15px; line-height: 1.6; color: rgba(250, 251, 255,0.76); margin: 0 0 10px; }
     .topic ul, .topic ol { margin: 0; padding-left: 20px; }
     .topic li { margin-bottom: 8px; }
     .topic code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; color: rgba(255, 198, 41,0.92); }
-    .topic .note { margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: rgba(255, 251, 242,0.52); }
+    .topic .note { margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: rgba(250, 251, 255,0.52); }
   </style>
 </head>
 <body>
@@ -37,12 +37,9 @@
 <nav data-nav-pill aria-label="Primary navigation">
   <a href="/" class="mark" aria-label="Malibu home">
     <span class="dot">
-      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
-        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
-        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
-      </svg>
+      <img src="/logo-mark.svg" width="18" height="13" alt="" aria-hidden="true" />
     </span>
-    <span class="name">malibu</span>
+    <span class="brand-wordmark">Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span></span>
   </a>
   <button type="button" data-nav-toggle aria-expanded="false" aria-controls="host-nav-menu" aria-label="Menu" class="nav-toggle">
     <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -117,7 +114,7 @@
   </div>
 </main>
 
-<footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FFFBF2; padding: 48px clamp(28px, 5vw, 64px); border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+<footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FAFBFF; padding: 48px clamp(28px, 5vw, 64px); border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.5); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
   <div>© 2026 Malibu AI, Inc.</div>
   <a href="/host/">Host download →</a>
 </footer>
