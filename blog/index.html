@@ -68,35 +68,32 @@
   </script>
   <style>
     .blog-list { display: flex; flex-direction: column; gap: 24px; }
-    .blog-card { display: block; padding: 32px clamp(24px, 3vw, 44px); border-radius: 20px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.08); transition: background 200ms ease, border-color 200ms ease, transform 200ms ease; }
-    .blog-card:hover { background: rgba(255, 251, 242,0.06); border-color: rgba(255, 110, 91,0.4); transform: translateY(-2px); }
+    .blog-card { display: block; padding: 32px clamp(24px, 3vw, 44px); border-radius: 20px; background: rgba(250, 251, 255,0.04); border: 1px solid rgba(250, 251, 255,0.08); transition: background 200ms ease, border-color 200ms ease, transform 200ms ease; }
+    .blog-card:hover { background: rgba(250, 251, 255,0.06); border-color: rgba(247, 107, 87,0.4); transform: translateY(-2px); }
     .blog-card-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #FFC629; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px 18px; }
-    .blog-card-meta .date { color: rgba(255, 251, 242,0.55); }
-    .blog-card-title { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(24px, 2.6vw, 34px); line-height: 1.15; letter-spacing: -0.02em; color: #FFFBF2; margin: 0 0 12px; }
-    .blog-card-excerpt { font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; line-height: 1.55; color: rgba(255, 251, 242,0.72); margin: 0; max-width: 68ch; }
-    .blog-card-more { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #FF6E5B; }
+    .blog-card-meta .date { color: rgba(250, 251, 255,0.55); }
+    .blog-card-title { font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(24px, 2.6vw, 34px); line-height: 1.15; letter-spacing: -0.02em; color: #FAFBFF; margin: 0 0 12px; }
+    .blog-card-excerpt { font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; line-height: 1.55; color: rgba(250, 251, 255,0.72); margin: 0; max-width: 68ch; }
+    .blog-card-more { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #F76B57; }
   </style>
 </head>
 <body>
 
 <!-- ============ FLOATING NAV ============ -->
 <nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
-  <a href="/" style="display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12); flex-shrink: 0;">
-    <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #0C3A45;">
-      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
-        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
-        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
-      </svg>
+  <a href="/" class="brand-lockup" style="padding-right: 10px; border-right: 1px solid rgba(250, 251, 255,0.12);">
+    <span class="brand-mark-circle">
+      <img src="/logo-mark.svg" width="18" height="13" alt="" aria-hidden="true" />
     </span>
-    <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; line-height: 1;">malibu</span>
+    <span class="brand-wordmark">Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span></span>
   </a>
   <button type="button" data-nav-toggle aria-expanded="false" aria-controls="blog-nav-menu" aria-label="Menu" class="nav-toggle">
     <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
   </button>
   <div data-nav-menu id="blog-nav-menu" class="nav-menu">
-    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72);">
+    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(250, 251, 255,0.72);">
       <a href="/network/">Network</a>
-      <a href="/blog/" style="color: #FFFBF2;">Blog</a>
+      <a href="/blog/" style="color: #FAFBFF;">Blog</a>
       <a href="/#token">$MALIBU</a>
       <a href="https://malibu.tech/docs">Docs</a>
       <a href="/console/">Console</a>
@@ -108,17 +105,17 @@
   </div>
 </nav>
 
-<main id="top" style="background: #143A45; color: #FFFBF2; min-height: 100vh;">
+<main id="top" style="background: #143A45; color: #FAFBFF; min-height: 100vh;">
 
   <!-- ============ HEADER ============ -->
   <section style="position: relative; padding: clamp(120px, 18vh, 200px) clamp(20px, 5vw, 80px) clamp(48px, 6vh, 72px);">
-    <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 260px; background: radial-gradient(ellipse at top, rgba(255, 110, 91,0.18), transparent 70%); pointer-events: none;"></div>
+    <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 260px; background: radial-gradient(ellipse at top, rgba(247, 107, 87,0.18), transparent 70%); pointer-events: none;"></div>
     <div style="position: relative; max-width: 900px; margin: 0 auto;">
       <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">The Malibu blog</div>
-      <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(56px, 8vw, 128px); line-height: 0.9; letter-spacing: -0.035em; color: #FFFBF2; margin: 0;">
-        Writing <em style="font-style: normal; color: #FF6E5B;">from the network.</em>
+      <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(56px, 8vw, 128px); line-height: 0.9; letter-spacing: -0.035em; color: #FAFBFF; margin: 0;">
+        Writing <em style="font-style: normal; color: #F76B57;">from the network.</em>
       </h1>
-      <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; color: rgba(255, 251, 242,0.72); margin: 22px 0 0; max-width: 60ch;">
+      <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; color: rgba(250, 251, 255,0.72); margin: 22px 0 0; max-width: 60ch;">
         Network updates, engineering notes, and the ideas behind turning every idle Apple Silicon Mac into part of the world's biggest AI cloud.
       </p>
     </div>
@@ -147,12 +144,12 @@
   </section>
 
   <!-- ============ FOOTER ============ -->
-  <footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FFFBF2; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
+  <footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FAFBFF; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
     <div style="position: relative; max-width: 1240px; margin: 0 auto;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap;">
         <div>
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
-          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
             <a href="/console/">Console</a>
             <a href="/host/">Host a model</a>
             <a href="/network/">Network</a>
@@ -161,7 +158,7 @@
         </div>
         <div>
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Learn</div>
-          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
             <a href="/blog/">Blog</a>
             <a href="https://malibu.tech/docs">Docs</a>
             <a href="https://malibu.tech/docs/litepaper">Litepaper</a>
@@ -169,9 +166,9 @@
           </div>
         </div>
       </div>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.66);">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.66);">
         <div>© 2026 Malibu AI, Inc.</div>
-        <a href="/">Back to malibu →</a>
+        <a href="/">Back to Malibu →</a>
       </div>
     </div>
   </footer>
