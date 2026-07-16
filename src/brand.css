@@ -80,6 +80,14 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-lockup:hover,
+.brand-lockup:focus-visible {
+  text-decoration: none;
+  color: inherit;
 }
 
 .brand-heading-accent { color: var(--sunset-coral); }

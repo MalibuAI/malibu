@@ -3,6 +3,8 @@
 html, body { margin: 0; background: #101D29; color: #FAFBFF; font-family: 'Hanken Grotesk', system-ui, sans-serif; min-height: 100vh; }
 a { color: #FFC629; text-decoration: none; }
 a:hover { text-decoration: underline; }
+.brand-lockup,
+.brand-lockup:hover { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
 .wrap { max-width: 920px; margin: 0 auto; padding: 32px 24px 48px; }
 .back { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(250, 251, 255,0.55); }
