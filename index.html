@@ -16,20 +16,17 @@
 <body>
 
 <nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
-  <a href="#top" style="display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12); flex-shrink: 0;">
-    <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #0C3A45;">
-      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
-        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
-        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
-      </svg>
+  <a href="#top" class="brand-lockup" style="padding-right: 10px; border-right: 1px solid var(--ice-white-12);">
+    <span class="brand-mark-circle">
+      <img src="/logo-mark.svg" width="18" height="13" alt="" aria-hidden="true" />
     </span>
-    <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; line-height: 1;">malibu</span>
+    <span class="brand-wordmark">Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span></span>
   </a>
   <button type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav-menu" aria-label="Menu" class="nav-toggle">
     <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
   </button>
   <div data-nav-menu id="site-nav-menu" class="nav-menu">
-    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72);">
+    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(250, 251, 255,0.72);">
       <a href="/network/">Network</a>
       <a href="/blog/">Blog</a>
       <a href="#token">$MALIBU</a>
@@ -46,7 +43,7 @@
 <main id="top" style="background: #143A45;">
 
   <!-- HERO -->
-  <section data-screen-label="Hero" data-hero-root style="position: relative; overflow: hidden; min-height: 100vh; background: #143A45; color: #FFFBF2;">
+  <section data-screen-label="Hero" data-hero-root style="position: relative; overflow: hidden; min-height: 100vh; background: #143A45; color: #FAFBFF;">
     <picture>
       <source srcset="/images/brand/hero-malibu-bay.avif" type="image/avif" />
       <source srcset="/images/brand/hero-malibu-bay.webp" type="image/webp" />
@@ -58,10 +55,10 @@
       <source src="/images/brand/hero-malibu-bay.webm" type="video/webm" />
       <source src="/images/brand/hero-malibu-bay.mp4"  type="video/mp4" />
     </video>
-    <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(194, 84, 58,0.55) 0%, rgba(255, 110, 91,0.32) 25%, rgba(255, 198, 41,0.18) 55%, rgba(90,30,18,0.55) 100%); mix-blend-mode: multiply; animation: skyShift 60s ease-in-out infinite; pointer-events: none;"></div>
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(194, 84, 58,0.55) 0%, rgba(247, 107, 87,0.32) 25%, rgba(255, 198, 41,0.18) 55%, rgba(90,30,18,0.55) 100%); mix-blend-mode: multiply; animation: skyShift 60s ease-in-out infinite; pointer-events: none;"></div>
     <div aria-hidden="true" style="position: absolute; left: 58%; top: 58%; width: 60vmin; height: 60vmin; transform: translate3d(calc(-50% + var(--mx, 0) * 8px), calc(-50% + var(--my, 0) * 4px), 0); pointer-events: none; will-change: transform;">
       <div style="position: absolute; inset: 0; animation: sunDrift 22s ease-in-out infinite;">
-        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255,210,140,0.70) 0%, rgba(255,150,70,0.32) 22%, rgba(255, 110, 91,0.10) 42%, transparent 62%); mix-blend-mode: screen; animation: sunPulse 6s ease-in-out infinite;"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255,210,140,0.70) 0%, rgba(255,150,70,0.32) 22%, rgba(247, 107, 87,0.10) 42%, transparent 62%); mix-blend-mode: screen; animation: sunPulse 6s ease-in-out infinite;"></div>
       </div>
     </div>
     <div aria-hidden="true" style="position: absolute; top: -240px; right: -240px; width: 80vmin; height: 80vmin; background: radial-gradient(circle at 60% 35%, rgba(255,215,150,0.52), rgba(255,170,100,0.18) 36%, transparent 60%); mix-blend-mode: screen; pointer-events: none; animation: leakDrift 18s ease-in-out infinite;"></div>
@@ -75,8 +72,8 @@
         </filter>
         <linearGradient id="malibu-ocean" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stop-color="#FFC872" stop-opacity="0.65"/>
-          <stop offset="48%" stop-color="#FF6E5B" stop-opacity="0.25"/>
-          <stop offset="100%" stop-color="#C2543A" stop-opacity="0"/>
+          <stop offset="48%" stop-color="#F76B57" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="#E05A48" stop-opacity="0"/>
         </linearGradient>
       </defs>
       <rect x="0" y="0" width="100%" height="100%" fill="url(#malibu-ocean)" filter="url(#malibu-ripple)"/>
@@ -86,23 +83,23 @@
     <div aria-hidden="true" class="grain-layer"></div>
 
     <div data-hero-content style="position: absolute; z-index: 5; left: clamp(28px, 5vw, 64px); right: clamp(28px, 5vw, 64px); bottom: clamp(48px, 8vh, 96px); max-width: 100%;">
-      <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(72px, 11vw, 184px); line-height: 0.86; letter-spacing: -0.035em; color: #FFFBF2; margin: 0 0 18px; text-wrap: balance; text-shadow: 0 6px 40px rgba(12, 58, 69,0.85), 0 2px 12px rgba(12, 58, 69,0.7);">
-        Malibu<span style="color: #FF6E5B;">.</span>
+      <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(72px, 11vw, 184px); line-height: 0.86; letter-spacing: -0.035em; color: #FAFBFF; margin: 0 0 18px; text-wrap: balance; text-shadow: 0 6px 40px rgba(12, 58, 69,0.85), 0 2px 12px rgba(12, 58, 69,0.7);">
+        Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span>
       </h1>
-      <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(22px, 2.4vw, 38px); line-height: 1.2; letter-spacing: -0.01em; color: #FFFBF2; margin: 0 0 22px; max-width: 40ch; text-shadow: 0 3px 20px rgba(12, 58, 69,0.95), 0 1px 8px rgba(12, 58, 69,0.85);">
+      <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(22px, 2.4vw, 38px); line-height: 1.2; letter-spacing: -0.01em; color: #FAFBFF; margin: 0 0 22px; max-width: 40ch; text-shadow: 0 3px 20px rgba(12, 58, 69,0.95), 0 1px 8px rgba(12, 58, 69,0.85);">
         Open-model inference on real Macs. Private, verifiable, cheaper.
       </p>
-      <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.55; letter-spacing: -0.005em; color: #FFFBF2; margin: 0 0 28px; max-width: 72ch; text-wrap: balance; text-shadow: 0 2px 14px rgba(12, 58, 69,0.95), 0 1px 6px rgba(12, 58, 69,0.85);">
+      <p style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.55; letter-spacing: -0.005em; color: #FAFBFF; margin: 0 0 28px; max-width: 72ch; text-wrap: balance; text-shadow: 0 2px 14px rgba(12, 58, 69,0.95), 0 1px 6px rgba(12, 58, 69,0.85);">
         Mac owners host open models on idle Apple Silicon and earn USDC + $MALIBU. Developers point Cursor, Cline, or Aider at one API endpoint. $MALIBU is the network — every prompt pays providers, burns supply, and grows the floor.
       </p>
 
-      <form data-hero-chat onsubmit="return false;" style="position: relative; max-width: 720px; background: rgba(20, 58, 69,0.62); border: 1px solid rgba(255, 251, 242,0.18); border-radius: 18px; padding: 6px 6px 6px 18px; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(14px); box-shadow: 0 24px 60px -22px rgba(20, 58, 69,0.7);">
+      <form data-hero-chat onsubmit="return false;" style="position: relative; max-width: 720px; background: rgba(20, 58, 69,0.62); border: 1px solid rgba(250, 251, 255,0.18); border-radius: 18px; padding: 6px 6px 6px 18px; display: flex; align-items: center; gap: 10px; backdrop-filter: blur(14px); box-shadow: 0 24px 60px -22px rgba(20, 58, 69,0.7);">
         <span aria-hidden="true" style="display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 198, 41,0.78); white-space: nowrap;">
           <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #FFC629; animation: pillPulse 2.4s ease-in-out infinite;"></span>
           Agent
         </span>
-        <input data-hero-chat-input type="text" placeholder="Try an agent task — ‘plan a coastal drive with tools’" aria-label="Try Malibu agent" style="flex: 1 1 auto; min-width: 0; padding: 14px 8px; border: 0; outline: 0; background: transparent; color: #FFFBF2; font-family: 'Hanken Grotesk', sans-serif; font-size: 15px; letter-spacing: -0.005em;" />
-        <button data-hero-chat-submit type="submit" aria-label="Send" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: #FF6E5B; color: #FFFBF2; border-radius: 12px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: -0.005em; white-space: nowrap;">
+        <input data-hero-chat-input type="text" placeholder="Try an agent task — ‘plan a coastal drive with tools’" aria-label="Try Malibu agent" style="flex: 1 1 auto; min-width: 0; padding: 14px 8px; border: 0; outline: 0; background: transparent; color: #FAFBFF; font-family: 'Hanken Grotesk', sans-serif; font-size: 15px; letter-spacing: -0.005em;" />
+        <button data-hero-chat-submit type="submit" aria-label="Send" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: #F76B57; color: #FAFBFF; border-radius: 12px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: -0.005em; white-space: nowrap;">
           Try it
           <svg width="13" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -135,38 +132,38 @@
   </section>
 
   <!-- JOIN CARDS -->
-  <section id="network" data-screen-label="Network" style="position: relative; overflow: hidden; background: #143A45; color: #FFFBF2; padding: clamp(96px, 16vh, 200px) clamp(28px, 5vw, 80px) clamp(80px, 12vh, 160px);">
+  <section id="network" data-screen-label="Network" style="position: relative; overflow: hidden; background: #143A45; color: #FAFBFF; padding: clamp(96px, 16vh, 200px) clamp(28px, 5vw, 80px) clamp(80px, 12vh, 160px);">
     <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 200px; background: radial-gradient(ellipse at top, rgba(255, 198, 41,0.18), transparent 70%); pointer-events: none;"></div>
     <div style="position: relative; max-width: 1180px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 56px;">
-        <h2 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(56px, 8vw, 120px); line-height: 0.94; letter-spacing: -0.035em; color: #FFFBF2; margin: 0 0 24px;">
-          Two ways in<span style="color: #FF6E5B;">.</span>
+        <h2 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(56px, 8vw, 120px); line-height: 0.94; letter-spacing: -0.035em; color: #FAFBFF; margin: 0 0 24px;">
+          Two ways in<span class="brand-period brand-period--square" aria-hidden="true"></span>
         </h2>
-        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.6vw, 20px); line-height: 1.5; color: rgba(255, 251, 242,0.78); margin: 0 auto; max-width: 60ch; text-wrap: balance;">
+        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.6vw, 20px); line-height: 1.5; color: rgba(250, 251, 255,0.78); margin: 0 auto; max-width: 60ch; text-wrap: balance;">
           Build with the API or host a Mac. Real hardware, real models, real settlement.
         </p>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto;">
-        <a href="/console/?mode=agent" data-join-card style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, #FF6E5B 0%, #C2543A 46%, #0C3A45 100%); color: #FFFBF2; transition: transform 240ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms ease; box-shadow: 0 18px 50px -22px rgba(12, 58, 69,0.55);">
+        <a href="/console/?mode=agent" data-join-card style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, #F76B57 0%, #E05A48 46%, #0C3A45 100%); color: #FAFBFF; transition: transform 240ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms ease; box-shadow: 0 18px 50px -22px rgba(12, 58, 69,0.55);">
           <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 62%; overflow: hidden;">
             <picture>
               <source srcset="/images/brand/card-buy-screen-streaming.avif" type="image/avif" />
               <source srcset="/images/brand/card-buy-screen-streaming.webp" type="image/webp" />
               <img src="/images/brand/card-buy-screen-streaming.png" alt="Malibu console for running AI models" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" />
             </picture>
-            <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 110, 91,0.32) 0%, transparent 30%); pointer-events: none;"></div>
+            <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(247, 107, 87,0.32) 0%, transparent 30%); pointer-events: none;"></div>
             <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(20, 58, 69,0.30) 100%); pointer-events: none;"></div>
           </div>
           <div style="position: absolute; left: 0; right: 0; top: 0; height: 38%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 32px 0; text-align: center;">
             <div style="display: inline-flex; align-items: center; gap: 12px;">
-              <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -0.02em; color: #FFFBF2; line-height: 1;">Build</span>
+              <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -0.02em; color: #FAFBFF; line-height: 1;">Build</span>
             </div>
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; color: rgba(255, 251, 242,0.92);">
+            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; color: rgba(250, 251, 255,0.92);">
               OpenAI-compatible API for agents &amp; coding tools.
             </div>
           </div>
         </a>
-        <a href="/host/" data-join-card style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, #4FBFD4 0%, #1A8FA8 50%, #0C3A45 100%); color: #FFFBF2; transition: transform 240ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms ease; box-shadow: 0 18px 50px -22px rgba(12, 58, 69,0.5);">
+        <a href="/host/" data-join-card style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, #4BB8D0 0%, #1A8FA8 50%, #0C3A45 100%); color: #FAFBFF; transition: transform 240ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms ease; box-shadow: 0 18px 50px -22px rgba(12, 58, 69,0.5);">
           <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 62%; overflow: hidden;">
             <picture>
               <source srcset="/images/brand/card-sell-mac-window.avif" type="image/avif" />
@@ -178,9 +175,9 @@
           </div>
           <div style="position: absolute; left: 0; right: 0; top: 0; height: 38%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 32px 0; text-align: center;">
             <div style="display: inline-flex; align-items: center; gap: 12px;">
-              <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -0.02em; color: #FFFBF2; line-height: 1;">Host</span>
+              <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -0.02em; color: #FAFBFF; line-height: 1;">Host</span>
             </div>
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; color: rgba(255, 251, 242,0.92);">
+            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; color: rgba(250, 251, 255,0.92);">
               Earn USDC + $MALIBU from idle<br />Mac time.
             </div>
           </div>
@@ -270,20 +267,20 @@
   </section>
 
   <!-- TOKEN -->
-  <section id="token" data-screen-label="Token" style="position: relative; overflow: hidden; background: #143A45; color: #FFFBF2; padding: clamp(96px, 14vh, 160px) clamp(28px, 5vw, 80px);">
-    <div aria-hidden="true" style="position: absolute; top: 0; left: 25%; right: 25%; height: 220px; background: radial-gradient(ellipse at top, rgba(255, 110, 91,0.22), transparent 70%); pointer-events: none;"></div>
+  <section id="token" data-screen-label="Token" style="position: relative; overflow: hidden; background: #143A45; color: #FAFBFF; padding: clamp(96px, 14vh, 160px) clamp(28px, 5vw, 80px);">
+    <div aria-hidden="true" style="position: absolute; top: 0; left: 25%; right: 25%; height: 220px; background: radial-gradient(ellipse at top, rgba(247, 107, 87,0.22), transparent 70%); pointer-events: none;"></div>
     <div style="position: relative; max-width: 1080px; margin: 0 auto;">
       <div style="text-align: center; margin: 0 auto 56px; max-width: min(960px, 94vw);">
         <div class="home-strip-eyebrow" style="text-align: center;">For holders</div>
-        <h2 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(38px, 5vw, 76px); line-height: 1.05; letter-spacing: -0.035em; color: #FFFBF2; margin: 0;">
-          The network is the token<span style="color: #FF6E5B;">.</span>
+        <h2 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(38px, 5vw, 76px); line-height: 1.05; letter-spacing: -0.035em; color: #FAFBFF; margin: 0;">
+          The network is the token<span class="brand-period brand-period--square" aria-hidden="true"></span>
         </h2>
       </div>
       <div style="max-width: 60ch; margin: 0 auto 40px; text-align: center;">
-        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(18px, 1.5vw, 22px); line-height: 1.55; color: #FFFBF2; margin: 0 0 24px;">
+        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(18px, 1.5vw, 22px); line-height: 1.55; color: #FAFBFF; margin: 0 0 24px;">
           Every dollar of buyer spend flows through a fixed split: providers get paid, supply burns, reserves grow. Network activity is token demand.
         </p>
-        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.55; color: rgba(255, 251, 242,0.82); margin: 0;">
+        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.55; color: rgba(250, 251, 255,0.82); margin: 0;">
           Hold $MALIBU, own the network. Every dollar of buyer spend flows through providers, burn, and reserve.
         </p>
       </div>
@@ -292,43 +289,43 @@
           Read the litepaper →
         </a>
       </div>
-      <div aria-hidden="true" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 251, 242,0.18) 50%, transparent); margin-bottom: 72px;"></div>
+      <div aria-hidden="true" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(250, 251, 255,0.18) 50%, transparent); margin-bottom: 72px;"></div>
       <div style="text-align: center; margin: 0 auto 40px; max-width: 56ch;">
         <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">What happens to every $1</div>
-        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.5; color: rgba(255, 251, 242,0.78); margin: 0;">
+        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.5; color: rgba(250, 251, 255,0.78); margin: 0;">
           Three things happen the moment a prompt clears.
         </p>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: rgba(255, 251, 242,0.10); border: 1px solid rgba(255, 251, 242,0.10);">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: rgba(250, 251, 255,0.10); border: 1px solid rgba(250, 251, 255,0.10);">
         <div style="background: #143A45; padding: 40px 32px; display: flex; flex-direction: column; min-height: 300px;">
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 28px;">Pay</div>
-          <h3 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; color: #FFFBF2; margin: 0 0 14px;">The Mac gets paid.</h3>
-          <p style="font-size: 14.5px; line-height: 1.6; color: rgba(255, 251, 242,0.72); margin: 0;">70¢ of every dollar goes to the person whose Mac ran the prompt, in USDC.</p>
-          <div style="margin-top: auto; padding-top: 24px; font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #FFFBF2; letter-spacing: -0.02em;">70¢ <span style="color: rgba(255, 251, 242,0.5);">of every $1</span></div>
+          <h3 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; color: #FAFBFF; margin: 0 0 14px;">The Mac gets paid.</h3>
+          <p style="font-size: 14.5px; line-height: 1.6; color: rgba(250, 251, 255,0.72); margin: 0;">70¢ of every dollar goes to the person whose Mac ran the prompt, in USDC.</p>
+          <div style="margin-top: auto; padding-top: 24px; font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #FAFBFF; letter-spacing: -0.02em;">70¢ <span style="color: rgba(250, 251, 255,0.5);">of every $1</span></div>
         </div>
         <div style="background: #143A45; padding: 40px 32px; display: flex; flex-direction: column; min-height: 300px;">
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FF6E5B; margin-bottom: 28px;">Burn</div>
-          <h3 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; color: #FFFBF2; margin: 0 0 14px;">Supply shrinks.</h3>
-          <p style="font-size: 14.5px; line-height: 1.6; color: rgba(255, 251, 242,0.72); margin: 0;">18¢ buys $MALIBU on the open market and burns it. Every prompt leaves fewer tokens in circulation.</p>
-          <div style="margin-top: auto; padding-top: 24px; font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #FF6E5B; letter-spacing: -0.02em;">18¢ <span style="color: rgba(255, 110, 91,0.55);">burned</span></div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #F76B57; margin-bottom: 28px;">Burn</div>
+          <h3 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; color: #FAFBFF; margin: 0 0 14px;">Supply shrinks.</h3>
+          <p style="font-size: 14.5px; line-height: 1.6; color: rgba(250, 251, 255,0.72); margin: 0;">18¢ buys $MALIBU on the open market and burns it. Every prompt leaves fewer tokens in circulation.</p>
+          <div style="margin-top: auto; padding-top: 24px; font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #F76B57; letter-spacing: -0.02em;">18¢ <span style="color: rgba(247, 107, 87,0.55);">burned</span></div>
         </div>
         <div style="background: #143A45; padding: 40px 32px; display: flex; flex-direction: column; min-height: 300px;">
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 28px;">Back</div>
-          <h3 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; color: #FFFBF2; margin: 0 0 14px;">The floor rises.</h3>
-          <p style="font-size: 14.5px; line-height: 1.6; color: rgba(255, 251, 242,0.72); margin: 0;">12¢ goes into a reserve that backs every new $MALIBU. Macs keeping the network up earn the new tokens.</p>
+          <h3 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; color: #FAFBFF; margin: 0 0 14px;">The floor rises.</h3>
+          <p style="font-size: 14.5px; line-height: 1.6; color: rgba(250, 251, 255,0.72); margin: 0;">12¢ goes into a reserve that backs every new $MALIBU. Macs keeping the network up earn the new tokens.</p>
           <div style="margin-top: auto; padding-top: 24px; font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #FFC629; letter-spacing: -0.02em;">12¢ <span style="color: rgba(255, 198, 41,0.55);">to reserve</span></div>
         </div>
       </div>
-      <div style="display: flex; align-items: baseline; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 32px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.04em; color: rgba(255, 251, 242,0.62);">
-        <span>70¢ + 18¢ + 12¢ = <span style="color: #FFFBF2;">$1</span></span>
-        <span aria-hidden="true" style="color: rgba(255, 251, 242,0.25);">·</span>
+      <div style="display: flex; align-items: baseline; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 32px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.04em; color: rgba(250, 251, 255,0.62);">
+        <span>70¢ + 18¢ + 12¢ = <span style="color: #FAFBFF;">$1</span></span>
+        <span aria-hidden="true" style="color: rgba(250, 251, 255,0.25);">·</span>
         <span>Burn beats reserve every day the network is used</span>
       </div>
     </div>
   </section>
 
   <!-- FOOTER -->
-  <footer data-screen-label="Footer" style="position: relative; overflow: hidden; background: #143A45; color: #FFFBF2; padding: clamp(96px, 12vh, 140px) clamp(28px, 5vw, 80px) 48px;">
+  <footer data-screen-label="Footer" style="position: relative; overflow: hidden; background: #143A45; color: #FAFBFF; padding: clamp(96px, 12vh, 140px) clamp(28px, 5vw, 80px) 48px;">
     <picture>
       <source srcset="/images/brand/footer-pacific-night.avif" type="image/avif" />
       <source srcset="/images/brand/footer-pacific-night.webp" type="image/webp" />
@@ -337,15 +334,15 @@
     <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 58, 69,0.55) 0%, rgba(20, 58, 69,0.4) 35%, rgba(20, 58, 69,0.85) 100%); pointer-events: none;"></div>
     <div style="position: relative; max-width: 1280px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 96px;">
-        <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(80px, 13vw, 192px); line-height: 0.9; letter-spacing: -0.035em; color: #FFFBF2;">
-          Malibu<span style="color: #FF6E5B;">.</span>
+        <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(80px, 13vw, 192px); line-height: 0.9; letter-spacing: -0.035em; color: #FAFBFF;">
+          Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span>
         </div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; color: rgba(255, 251, 242,0.45); margin-top: 18px;">— made on the coast —</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; color: rgba(250, 251, 255,0.45); margin-top: 18px;">— made on the coast —</div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap; padding-top: 56px; border-top: 1px solid rgba(255, 251, 242,0.1);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap; padding-top: 56px; border-top: 1px solid rgba(250, 251, 255,0.1);">
         <div>
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
-          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
             <a href="/console/">Console</a>
             <a href="/host/">Host a model</a>
             <a href="/network/">Network</a>
@@ -354,7 +351,7 @@
         </div>
         <div>
           <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Learn</div>
-          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
             <a href="/blog/">Blog</a>
             <a href="https://malibu.tech/docs">Docs</a>
             <a href="https://malibu.tech/docs/litepaper">Litepaper</a>
@@ -362,11 +359,11 @@
           </div>
         </div>
       </div>
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 80px; padding-top: 32px; border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5);">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 80px; padding-top: 32px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.5);">
         <div style="display: flex; align-items: center; gap: 14px;">
           <svg width="32" height="22" viewBox="0 0 44 32" aria-hidden="true">
-            <line x1="2" y1="22" x2="42" y2="22" stroke="rgba(255, 251, 242,0.6)" stroke-width="1.4" stroke-linecap="round"/>
-            <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="rgba(255, 251, 242,0.6)"/>
+            <line x1="2" y1="22" x2="42" y2="22" stroke="rgba(250, 251, 255,0.6)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="rgba(250, 251, 255,0.6)"/>
           </svg>
           <span>© 2026 Malibu AI, Inc.</span>
         </div>

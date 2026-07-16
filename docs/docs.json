@@ -5,7 +5,7 @@
   "description": "Distributed Apple Silicon inference network — verifiable, OpenAI-compatible, USDC-settled.",
   "colors": {
     "primary": "#143A45",
-    "light": "#FF6E5B",
+    "light": "#F76B57",
     "dark": "#143A45"
   },
   "icons": {

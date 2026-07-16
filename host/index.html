@@ -11,9 +11,9 @@
   <link rel="stylesheet" href="/src/styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    html, body { margin: 0; padding: 0; background: #143A45; color: #FFFBF2; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+    html, body { margin: 0; padding: 0; background: #143A45; color: #FAFBFF; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
     * { box-sizing: border-box; }
-    ::selection { background: #FF6E5B; color: #FFFBF2; }
+    ::selection { background: #F76B57; color: #FAFBFF; }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
     img { display: block; max-width: 100%; }
@@ -21,7 +21,7 @@
 
     @keyframes pillPulse { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
     @keyframes copyOk { 0% { transform: scale(1); } 30% { transform: scale(1.04); } 100% { transform: scale(1); } }
-    @keyframes dlGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(255, 110, 91,0); } 50% { box-shadow: 0 0 0 6px rgba(255, 110, 91,0.12); } }
+    @keyframes dlGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(247, 107, 87,0); } 50% { box-shadow: 0 0 0 6px rgba(247, 107, 87,0.12); } }
 
     nav[data-nav-pill] {
       position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100;
@@ -29,82 +29,82 @@
       background: #143A45; border-radius: 9999px;
       box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);
     }
-    nav .mark { display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(255, 251, 242,0.12); }
-    nav .mark span.dot { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #0C3A45; }
-    nav .mark span.name { font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FFFBF2; line-height: 1; }
-    nav .links { display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(255, 251, 242,0.72); }
+    nav .mark { display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid var(--ice-white-12); }
+    nav .mark .dot { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ocean-night-deep); }
+    nav .mark span.name { font-family: 'Hanken Grotesk', sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: #FAFBFF; line-height: 1; }
+    nav .links { display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(250, 251, 255,0.72); }
     nav .links a { transition: color 180ms ease; }
-    nav .links a:hover { color: #FFFBF2; }
-    nav .cta:hover { background: #C2543A; color: #FFFBF2; }
+    nav .links a:hover { color: #FAFBFF; }
+    nav .cta:hover { background: #E05A48; color: #FAFBFF; }
 
     .hero { padding: clamp(120px, 18vh, 180px) clamp(28px, 5vw, 64px) clamp(56px, 10vh, 96px); text-align: center; max-width: 1080px; margin: 0 auto; }
-    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: rgba(255, 251, 242,0.06); border: 1px solid rgba(255, 198, 41,0.42); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #FFFBF2; margin-bottom: 28px; }
-    .pill .b { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #FF6E5B; color: #FFFBF2; font-size: 12px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; background: rgba(250, 251, 255,0.06); border: 1px solid rgba(255, 198, 41,0.42); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #FAFBFF; margin-bottom: 28px; }
+    .pill .b { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #F76B57; color: #FAFBFF; font-size: 12px; }
     .pill .d { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #FFC629; animation: pillPulse 2.4s ease-in-out infinite; }
-    h1 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(54px, 8vw, 108px); line-height: 0.94; letter-spacing: -0.035em; color: #FFFBF2; margin: 0 0 22px; text-wrap: balance; }
-    h1 .dot { color: #FF6E5B; }
-    .sub { font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.8vw, 22px); line-height: 1.5; color: rgba(255, 251, 242,0.82); margin: 0 auto 44px; max-width: 60ch; }
+    h1 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(54px, 8vw, 108px); line-height: 0.94; letter-spacing: -0.035em; color: #FAFBFF; margin: 0 0 22px; text-wrap: balance; }
+    h1 .dot { color: #F76B57; }
+    .sub { font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.8vw, 22px); line-height: 1.5; color: rgba(250, 251, 255,0.82); margin: 0 auto 44px; max-width: 60ch; }
 
-    .download-card { max-width: 520px; margin: 0 auto 40px; padding: clamp(28px, 5vw, 36px); background: linear-gradient(165deg, rgba(255, 251, 242,0.08) 0%, rgba(255, 251, 242,0.03) 100%); border: 1px solid rgba(255, 251, 242,0.14); border-radius: 22px; box-shadow: 0 28px 70px -28px rgba(12, 58, 69,0.85), inset 0 1px 0 rgba(255, 251, 242,0.10); text-align: center; }
-    .download-card .app-icon { width: 88px; height: 88px; margin: 0 auto 20px; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 32px -8px rgba(0,0,0,0.45), 0 0 0 1px rgba(255, 251, 242,0.08); animation: dlGlow 4s ease-in-out infinite; }
-    .download-card h2 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.02em; color: #FFFBF2; margin: 0 0 8px; }
-    .download-card .tagline { font-size: 15px; line-height: 1.45; color: rgba(255, 251, 242,0.68); margin: 0 0 24px; }
-    .dl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 240px; padding: 14px 28px; background: #FFFBF2; color: #143A45; border-radius: 12px; font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; text-decoration: none; transition: transform 180ms cubic-bezier(.2,.7,.3,1), box-shadow 180ms ease, background 140ms ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(20, 58, 69,0.08), 0 1px 2px rgba(12, 58, 69,0.18), 0 8px 24px -6px rgba(12, 58, 69,0.35); }
+    .download-card { max-width: 520px; margin: 0 auto 40px; padding: clamp(28px, 5vw, 36px); background: linear-gradient(165deg, rgba(250, 251, 255,0.08) 0%, rgba(250, 251, 255,0.03) 100%); border: 1px solid rgba(250, 251, 255,0.14); border-radius: 22px; box-shadow: 0 28px 70px -28px rgba(12, 58, 69,0.85), inset 0 1px 0 rgba(250, 251, 255,0.10); text-align: center; }
+    .download-card .app-icon { width: 88px; height: 88px; margin: 0 auto 20px; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 32px -8px rgba(0,0,0,0.45), 0 0 0 1px rgba(250, 251, 255,0.08); animation: dlGlow 4s ease-in-out infinite; }
+    .download-card h2 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.02em; color: #FAFBFF; margin: 0 0 8px; }
+    .download-card .tagline { font-size: 15px; line-height: 1.45; color: rgba(250, 251, 255,0.68); margin: 0 0 24px; }
+    .dl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 240px; padding: 14px 28px; background: #FAFBFF; color: #143A45; border-radius: 12px; font-family: 'Hanken Grotesk', sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; text-decoration: none; transition: transform 180ms cubic-bezier(.2,.7,.3,1), box-shadow 180ms ease, background 140ms ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(20, 58, 69,0.08), 0 1px 2px rgba(12, 58, 69,0.18), 0 8px 24px -6px rgba(12, 58, 69,0.35); }
     .dl-btn:hover { transform: translateY(-2px); background: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(20, 58, 69,0.06), 0 2px 4px rgba(12, 58, 69,0.14), 0 14px 36px -8px rgba(12, 58, 69,0.42); }
     .dl-btn:active { transform: translateY(0); }
     .dl-btn svg { flex-shrink: 0; }
-    .dl-meta { margin-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255, 251, 242,0.48); line-height: 1.6; }
+    .dl-meta { margin-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(250, 251, 255,0.48); line-height: 1.6; }
     .dl-meta .ver { color: rgba(255, 198, 41,0.9); }
-    .dl-sha { margin: 10px auto 0; max-width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: rgba(255, 251, 242,0.42); line-height: 1.5; word-break: break-all; }
-    .dl-sha code { font-family: inherit; font-size: inherit; color: rgba(255, 251, 242,0.58); background: none; padding: 0; }
-    .terminal-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 16px; padding: 8px 14px; border-radius: 9999px; border: 1px solid rgba(255, 251, 242,0.14); background: rgba(255, 251, 242,0.04); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255, 251, 242,0.62); transition: color 160ms ease, border-color 160ms ease, background 160ms ease; }
-    .terminal-toggle:hover { color: #FFFBF2; border-color: rgba(255, 110, 91,0.45); background: rgba(255, 251, 242,0.06); }
-    .terminal-toggle[aria-expanded="true"] { color: #FFFBF2; border-color: rgba(255, 198, 41,0.45); }
+    .dl-sha { margin: 10px auto 0; max-width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: rgba(250, 251, 255,0.42); line-height: 1.5; word-break: break-all; }
+    .dl-sha code { font-family: inherit; font-size: inherit; color: rgba(250, 251, 255,0.58); background: none; padding: 0; }
+    .terminal-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 16px; padding: 8px 14px; border-radius: 9999px; border: 1px solid rgba(250, 251, 255,0.14); background: rgba(250, 251, 255,0.04); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(250, 251, 255,0.62); transition: color 160ms ease, border-color 160ms ease, background 160ms ease; }
+    .terminal-toggle:hover { color: #FAFBFF; border-color: rgba(247, 107, 87,0.45); background: rgba(250, 251, 255,0.06); }
+    .terminal-toggle[aria-expanded="true"] { color: #FAFBFF; border-color: rgba(255, 198, 41,0.45); }
     .install-wrap { max-width: 880px; margin: 0 auto; }
-    .troubleshoot-link { display: inline-block; margin-top: 18px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 110, 91,0.85); transition: color 160ms ease; }
-    .troubleshoot-link:hover { color: #FF6E5B; }
-    .dl-steps { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(255, 251, 242,0.08); font-size: 12.5px; color: rgba(255, 251, 242,0.62); }
+    .troubleshoot-link { display: inline-block; margin-top: 18px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(247, 107, 87,0.85); transition: color 160ms ease; }
+    .troubleshoot-link:hover { color: #F76B57; }
+    .dl-steps { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(250, 251, 255,0.08); font-size: 12.5px; color: rgba(250, 251, 255,0.62); }
     .dl-steps span { display: inline-flex; align-items: center; gap: 6px; }
-    .dl-steps .n { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: rgba(255, 110, 91,0.22); color: #FF6E5B; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; }
-    .dl-steps .sep { color: rgba(255, 251, 242,0.28); user-select: none; }
+    .dl-steps .n { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: rgba(247, 107, 87,0.22); color: #F76B57; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; }
+    .dl-steps .sep { color: rgba(250, 251, 255,0.28); user-select: none; }
 
-    .alt-divider { max-width: 880px; margin: 0 auto 20px; display: flex; align-items: center; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.42); }
-    .alt-divider::before, .alt-divider::after { content: ""; flex: 1; height: 1px; background: rgba(255, 251, 242,0.10); }
+    .alt-divider { max-width: 880px; margin: 0 auto 20px; display: flex; align-items: center; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.42); }
+    .alt-divider::before, .alt-divider::after { content: ""; flex: 1; height: 1px; background: rgba(250, 251, 255,0.10); }
 
-    .install { max-width: 880px; margin: 0 auto; background: #0C3A45; border: 1px solid rgba(255, 251, 242,0.10); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px -22px rgba(12, 58, 69,0.7); }
-    .install-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(255, 251, 242,0.08); }
+    .install { max-width: 880px; margin: 0 auto; background: #0C3A45; border: 1px solid rgba(250, 251, 255,0.10); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px -22px rgba(12, 58, 69,0.7); }
+    .install-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgba(250, 251, 255,0.08); }
     .install-head .dots { display: flex; gap: 7px; }
     .install-head .dots span { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-    .install-head .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); }
+    .install-head .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.5); }
     .install-body { display: flex; align-items: center; gap: 14px; padding: 22px 22px; flex-wrap: wrap; }
-    .install-body code { flex: 1 1 auto; min-width: 0; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: clamp(13px, 1.5vw, 17px); font-weight: 500; line-height: 1.5; color: #FFFBF2; white-space: nowrap; }
-    .install-body code .prompt { color: rgba(255, 251, 242,0.45); margin-right: 10px; }
+    .install-body code { flex: 1 1 auto; min-width: 0; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: clamp(13px, 1.5vw, 17px); font-weight: 500; line-height: 1.5; color: #FAFBFF; white-space: nowrap; }
+    .install-body code .prompt { color: rgba(250, 251, 255,0.45); margin-right: 10px; }
     .install-body code .cmd { color: #FFC629; }
-    .install-body code .url { color: #FFFBF2; }
-    .copy { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: #FF6E5B; color: #FFFBF2; border-radius: 10px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: -0.005em; transition: background 140ms ease, transform 200ms ease; }
-    .copy:hover { background: #C2543A; }
+    .install-body code .url { color: #FAFBFF; }
+    .copy { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: #F76B57; color: #FAFBFF; border-radius: 10px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: -0.005em; transition: background 140ms ease, transform 200ms ease; }
+    .copy:hover { background: #E05A48; }
     .copy.ok { background: #28A56C; animation: copyOk 360ms ease; }
-    .install-foot { padding: 12px 22px; border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .install-foot { padding: 12px 22px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.5); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .install-foot .verify { color: rgba(255, 198, 41,0.85); }
 
     .steps { max-width: 1080px; margin: clamp(56px, 10vw, 96px) auto 0; padding: 0 clamp(28px, 5vw, 64px); display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
-    .step { padding: 28px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; }
+    .step { padding: 28px 26px; background: rgba(250, 251, 255,0.04); border: 1px solid rgba(250, 251, 255,0.10); border-radius: 14px; }
     .step .n { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 16px; }
-    .step h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 22px; line-height: 1.2; letter-spacing: -0.01em; color: #FFFBF2; margin: 0 0 10px; }
-    .step p { font-size: 14.5px; line-height: 1.55; color: rgba(255, 251, 242,0.72); margin: 0; }
+    .step h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 22px; line-height: 1.2; letter-spacing: -0.01em; color: #FAFBFF; margin: 0 0 10px; }
+    .step p { font-size: 14.5px; line-height: 1.55; color: rgba(250, 251, 255,0.72); margin: 0; }
 
     .specs { max-width: 1080px; margin: clamp(56px, 10vw, 96px) auto clamp(80px, 12vh, 140px); padding: 0 clamp(28px, 5vw, 64px); display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .specs-card { padding: 28px 26px; background: rgba(255, 251, 242,0.04); border: 1px solid rgba(255, 251, 242,0.10); border-radius: 14px; }
+    .specs-card { padding: 28px 26px; background: rgba(250, 251, 255,0.04); border: 1px solid rgba(250, 251, 255,0.10); border-radius: 14px; }
     .specs-card .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 14px; }
-    .specs-card h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 18px; margin: 0 0 14px; color: #FFFBF2; }
-    .specs-card ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.7; color: rgba(255, 251, 242,0.78); }
+    .specs-card h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 18px; margin: 0 0 14px; color: #FAFBFF; }
+    .specs-card ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.7; color: rgba(250, 251, 255,0.78); }
     .specs-card .earn { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 12px; }
-    .specs-card .earn .v { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 28px; color: #FFFBF2; line-height: 1; }
-    .specs-card .earn .u { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 251, 242,0.55); margin-top: 6px; display: block; }
-    .specs-card .earn .v.coral { color: #FF6E5B; }
+    .specs-card .earn .v { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 28px; color: #FAFBFF; line-height: 1; }
+    .specs-card .earn .u { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(250, 251, 255,0.55); margin-top: 6px; display: block; }
+    .specs-card .earn .v.coral { color: #F76B57; }
 
-    .footer { padding: 48px clamp(28px, 5vw, 64px); border-top: 1px solid rgba(255, 251, 242,0.08); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5); }
-    .footer a:hover { color: #FFFBF2; }
+    .footer { padding: 48px clamp(28px, 5vw, 64px); border-top: 1px solid rgba(250, 251, 255,0.08); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.5); }
+    .footer a:hover { color: #FAFBFF; }
 
     @media (max-width: 720px) {
       .specs { grid-template-columns: 1fr; }
@@ -119,13 +119,10 @@
 
 <nav data-nav-pill aria-label="Primary navigation">
   <a href="/" class="mark" aria-label="Malibu home">
-    <span class="dot">
-      <svg width="18" height="13" viewBox="0 0 44 32" aria-hidden="true">
-        <line x1="2" y1="22" x2="42" y2="22" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/>
-        <path d="M10 22 a12 12 0 0 1 24 0 Z" fill="#FFFBF2"/>
-      </svg>
+    <span class="brand-mark-circle dot">
+      <img src="/logo-mark.svg" width="18" height="13" alt="" aria-hidden="true" />
     </span>
-    <span class="name">malibu</span>
+    <span class="brand-wordmark">Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span></span>
   </a>
   <button type="button" data-nav-toggle aria-expanded="false" aria-controls="host-nav-menu" aria-label="Menu" class="nav-toggle">
     <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -151,15 +148,15 @@
       <span class="b">$</span>
       <span>Provider · earn USDC + $MALIBU</span>
     </div>
-    <h1>Put your Mac to work<span class="dot">.</span></h1>
+    <h1>Put your Mac to work<span class="brand-period brand-period--square" aria-hidden="true"></span></h1>
     <p class="sub">Host open AI models on your Apple Silicon Mac. Earn USDC for every prompt — plus $MALIBU for uptime, latency, and stake. Download the app, click Launch Provider, done.</p>
 
     <div class="download-card" role="region" aria-label="Download Malibu for macOS">
       <div class="app-icon" aria-hidden="true">
         <svg width="88" height="88" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
           <rect width="64" height="64" rx="14" fill="#143A45"/>
-          <line x1="10" y1="42" x2="54" y2="42" stroke="#FFFBF2" stroke-width="3.4" stroke-linecap="round"/>
-          <path d="M19 42 a13 13 0 0 1 26 0 Z" fill="#FF6E5B"/>
+          <line x1="10" y1="42" x2="54" y2="42" stroke="#FAFBFF" stroke-width="3.4" stroke-linecap="round"/>
+          <path d="M19 42 a13 13 0 0 1 26 0 Z" fill="#F76B57"/>
         </svg>
       </div>
       <h2>Malibu for Mac</h2>
@@ -186,9 +183,9 @@
     <div class="install" role="region" aria-label="Install command">
       <div class="install-head">
         <div class="dots">
-          <span style="background:#FF6E5B"></span>
+          <span style="background:#F76B57"></span>
           <span style="background:#FFC629"></span>
-          <span style="background:#4FBFD4"></span>
+          <span style="background:#4BB8D0"></span>
         </div>
         <div class="label">CLI · advanced</div>
         <div style="width: 38px;"></div>
@@ -250,17 +247,17 @@
           <div class="u">$MALIBU emitted</div>
         </div>
       </div>
-      <p style="font-size: 13.5px; line-height: 1.55; color: rgba(255, 251, 242,0.68); margin: 18px 0 0;">USDC pays you for the work. $MALIBU pays you for being excellent — uptime, latency, and time-locked stake.</p>
+      <p style="font-size: 13.5px; line-height: 1.55; color: rgba(250, 251, 255,0.68); margin: 18px 0 0;">USDC pays you for the work. $MALIBU pays you for being excellent — uptime, latency, and time-locked stake.</p>
     </div>
   </section>
 </main>
 
-<footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FFFBF2; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
+<footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FAFBFF; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
   <div style="position: relative; max-width: 1240px; margin: 0 auto;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap;">
       <div>
         <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
-        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
           <a href="/console/">Console</a>
           <a href="/host/">Host a model</a>
           <a href="/host/troubleshoot/">Troubleshoot</a>
@@ -270,7 +267,7 @@
       </div>
       <div>
         <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Learn</div>
-        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(255, 251, 242,0.78);">
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
           <a href="/blog/">Blog</a>
           <a href="https://malibu.tech/docs">Docs</a>
           <a href="https://malibu.tech/docs/litepaper">Litepaper</a>
@@ -278,7 +275,7 @@
         </div>
       </div>
     </div>
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(255, 251, 242,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255, 251, 242,0.5);">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.5);">
       <div>© 2026 Malibu AI, Inc.</div>
       <a href="/">Back to malibu →</a>
     </div>
