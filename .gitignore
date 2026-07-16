@@ -10,3 +10,5 @@ dist/
 node_modules/
 public/images/brand/alts/
 public/images/brand/v1-archive/
+.env
+.env.local
