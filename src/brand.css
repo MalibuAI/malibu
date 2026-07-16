@@ -24,9 +24,15 @@
   --malibu-gold-15: rgba(255, 198, 41, 0.15);
   --radius-pill: 9999px;
   --radius-btn: 12px;
+  /* Square period ~¼ lowercase height, baseline-aligned */
+  --brand-period-size: 0.26em;
+  --brand-period-gap: 0.03em;
 }
 
 .brand-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
   font-family: 'Hanken Grotesk', sans-serif;
   font-size: 17px;
   font-weight: 500;
@@ -35,14 +41,20 @@
   line-height: 1;
 }
 
+.brand-wordmark-line {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
 .brand-period {
-  display: inline-block;
-  width: 0.28em;
-  height: 0.28em;
-  margin-left: 0.04em;
+  flex-shrink: 0;
+  display: block;
+  width: var(--brand-period-size);
+  height: var(--brand-period-size);
+  margin-left: var(--brand-period-gap);
   background: var(--sunset-coral);
-  vertical-align: baseline;
-  transform: translateY(-0.06em);
+  border-radius: 1px;
 }
 
 .brand-period--round { border-radius: 50%; }
@@ -74,10 +86,10 @@
 
 .brand-heading-accent { color: var(--sunset-coral); }
 
-h1 .brand-period,
-.home-strip h2 .brand-period {
-  width: 0.12em;
-  height: 0.12em;
-  margin-left: 0.08em;
-  transform: translateY(-0.14em);
+/* Display headings — period scales with type but stays period-sized */
+h1.brand-hero-title,
+h1 .brand-wordmark-line,
+.home-strip h2 .brand-wordmark-line {
+  --brand-period-size: 0.16em;
+  --brand-period-gap: 0.028em;
 }
