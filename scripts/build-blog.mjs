@@ -294,7 +294,8 @@ function loadPosts() {
 const HEAD_ASSETS = `  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="512x512" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="alternate" type="application/rss+xml" title="Malibu · Blog" href="/blog/feed.xml" />
   <link rel="stylesheet" href="/src/styles.css" />`;
 
@@ -421,7 +422,7 @@ function jsonLd(post) {
     publisher: {
       '@type': 'Organization',
       name: 'Malibu AI, Inc.',
-      logo: { '@type': 'ImageObject', url: `${SITE}/favicon.svg` },
+      logo: { '@type': 'ImageObject', url: `${SITE}/favicon.png` },
     },
     mainEntityOfPage: { '@type': 'WebPage', '@id': post.canonical },
   };
@@ -662,7 +663,7 @@ function indexJsonLd(posts) {
     publisher: {
       '@type': 'Organization',
       name: 'Malibu AI, Inc.',
-      logo: { '@type': 'ImageObject', url: `${SITE}/favicon.svg` },
+      logo: { '@type': 'ImageObject', url: `${SITE}/favicon.png` },
     },
     blogPost: posts.map((p) => ({
       '@type': 'BlogPosting',
