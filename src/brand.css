@@ -72,7 +72,16 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--ocean-night-deep);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.brand-mark-circle img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .brand-lockup {
