@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "malibu-referral-edge",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-07-18",
+  "workers_dev": false,
+  "observability": {
+    "enabled": false
+  },
+  "routes": [
+    {
+      "pattern": "malibu.tech/j/*",
+      "zone_name": "malibu.tech"
+    },
+    {
+      "pattern": "www.malibu.tech/j/*",
+      "zone_name": "malibu.tech"
+    }
+  ],
+  "vars": {
+    "COORDINATOR_ORIGIN": "https://coordinator.streamvc.live"
+  }
+}
