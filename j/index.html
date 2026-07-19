@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Malibu invitation</title>
+    <link rel="stylesheet" href="./join.css" />
+    <script type="module" src="./join.mjs"></script>
+  </head>
+  <body>
+    <main>
+      <section class="shell" aria-labelledby="title">
+        <div class="mark" aria-hidden="true"><span></span></div>
+        <p class="eyebrow" id="status">Malibu pre-beta</p>
+        <h1 id="title">Checking invite</h1>
+        <p class="message" id="message">One moment while Malibu verifies this invitation.</p>
+
+        <div class="invite" id="invite" hidden>
+          <span>Invite code</span>
+          <code id="invite-code"></code>
+        </div>
+
+        <div class="actions" id="actions" hidden>
+          <button class="primary" id="copy" type="button">1. Copy invite code</button>
+          <a id="download" target="_blank" rel="noopener">2. Download Malibu</a>
+        </div>
+        <p class="copy-status" id="copy-status" aria-live="polite"></p>
+        <button class="retry" id="retry" type="button" hidden>Try invite check again</button>
+        <a class="request-access" id="request-access" hidden>Request a new invite</a>
+        <p class="footnote" id="next-step" hidden>3. Open Malibu and paste the invite code when asked. You choose when to launch the provider.</p>
+      </section>
+    </main>
+  </body>
+</html>

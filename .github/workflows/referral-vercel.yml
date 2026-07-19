@@ -1,0 +1,50 @@
+name: Referral landing
+
+on:
+  pull_request:
+    paths:
+      - "j/**"
+      - "test/referral-fragment.test.mjs"
+      - "vercel.json"
+      - "vite.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "docs/**"
+      - "scripts/build-docs.mjs"
+      - "scripts/verify-referral-download.mjs"
+      - ".github/workflows/referral-vercel.yml"
+      - ".github/workflows/referral-edge.yml"
+      - "edge/referral-worker/**"
+  push:
+    branches: [main]
+    paths:
+      - "j/**"
+      - "test/referral-fragment.test.mjs"
+      - "vercel.json"
+      - "vite.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "docs/**"
+      - "scripts/build-docs.mjs"
+      - "scripts/verify-referral-download.mjs"
+      - ".github/workflows/referral-vercel.yml"
+      - ".github/workflows/referral-edge.yml"
+      - "edge/referral-worker/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run test:referral
+      - run: npm run build
