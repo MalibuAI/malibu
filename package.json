@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "prebuild": "node scripts/verify-referral-download.mjs",
     "build": "npm run blog:build && vite build && npm run docs:build",
+    "test:referral": "node --test test/referral-fragment.test.mjs",
     "blog:build": "node scripts/build-blog.mjs",
     "blog:stats": "node scripts/blog-stats.mjs",
     "blog:lint": "node scripts/blog-lint.mjs",

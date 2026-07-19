@@ -68,6 +68,7 @@ export default defineConfig({
         widget: resolve(__dirname, 'widget/index.html'),
         host: resolve(__dirname, 'host/index.html'),
         hostTroubleshoot: resolve(__dirname, 'host/troubleshoot/index.html'),
+        join: resolve(__dirname, 'j/index.html'),
         network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
         ...blogInputs(),
