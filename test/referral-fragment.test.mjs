@@ -120,7 +120,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.43/Malibu-v1.8.43.dmg',
+    'https://download.malibu.tech/Malibu-v1.8.43.dmg',
   );
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
   assert.match(runtime, /credentials: 'omit'/);
@@ -134,6 +134,22 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.doesNotMatch(html, /analytics|googletagmanager|google-analytics|fonts\.googleapis|<iframe/i);
   assert.ok(html.indexOf('id="copy"') < html.indexOf('id="download"'));
   assert.match(html, /Open Malibu and paste the invite code when asked/);
+  assert.match(html, /href="\/favicon\.png"/);
+  assert.match(html, /href="\/favicon-32\.png"/);
+  assert.match(html, /src="\/logo-mark\.png"/);
+
+  const joinCSS = await readFile(new URL('../j/join.css', import.meta.url), 'utf8');
+  assert.ok(joinCSS.includes('url("/images/brand/hero-malibu-bay.webp")'));
+  assert.ok(joinCSS.includes('width: calc(100vw - 40px)'));
+  assert.ok(joinCSS.includes('max-width: 620px'));
+  const inviteHeaderRoutes = new Set(['/j', '/j/', '/j/:path*']);
+  const inviteHeaders = config.headers.filter(({ source }) => inviteHeaderRoutes.has(source));
+  assert.equal(inviteHeaders.length, inviteHeaderRoutes.size);
+  for (const { headers } of inviteHeaders) {
+    const csp = headers.find(({ key }) => key === 'Content-Security-Policy')?.value ?? '';
+    assert.match(csp, /img-src 'self'/);
+    assert.doesNotMatch(csp, /img-src 'none'/);
+  }
 });
 
 test('production download gate binds immutable metadata, manifest, checksum, and DMG bytes', async () => {
@@ -141,7 +157,8 @@ test('production download gate binds immutable metadata, manifest, checksum, and
   const dmgAsset = 'Malibu-v1.8.43.dmg';
   const checksumAsset = `${dmgAsset}.sha256`;
   const manifestAsset = 'candidate-manifest.json';
-  const downloadBase = MALIBU_DOWNLOAD_URL.slice(0, -dmgAsset.length);
+  const githubDownloadBase =
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.43/';
   const dmg = new Uint8Array([1, 2, 3, 4]);
   const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
   const dmgSHA = digest(dmg);
@@ -174,7 +191,7 @@ test('production download gate binds immutable metadata, manifest, checksum, and
     target_commitish: sourceCommit,
     assets: [...bodies].map(([name, bytes]) => ({
       name,
-      browser_download_url: downloadBase + name,
+      browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest(bytes)}`,
     })),
   };
@@ -184,7 +201,8 @@ test('production download gate binds immutable metadata, manifest, checksum, and
         headers: { 'content-type': 'application/json' },
       });
     }
-    const name = url.slice(downloadBase.length);
+    if (url === MALIBU_DOWNLOAD_URL) return new Response(dmg);
+    const name = url.slice(githubDownloadBase.length);
     return new Response(bodies.get(name) ?? null, {
       status: bodies.has(name) ? 200 : 404,
     });
@@ -204,7 +222,8 @@ test('production download gate binds immutable metadata, manifest, checksum, and
   tampered.set(dmgAsset, new Uint8Array([9, 9, 9]));
   await assert.rejects(() => verifyReferralDownload(async (url) => {
     if (url.includes('/releases/tags/v1.8.43')) return fetchFixture(url);
-    const name = url.slice(downloadBase.length);
+    if (url === MALIBU_DOWNLOAD_URL) return new Response(tampered.get(dmgAsset));
+    const name = url.slice(githubDownloadBase.length);
     return new Response(tampered.get(name) ?? null, {
       status: tampered.has(name) ? 200 : 404,
     });

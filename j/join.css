@@ -14,7 +14,8 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at 50% -15%, rgba(255, 112, 91, 0.22), transparent 34rem),
+    linear-gradient(180deg, rgba(7, 17, 21, 0.46), rgba(7, 17, 21, 0.8)),
+    url("/images/brand/hero-malibu-bay.webp") center / cover no-repeat,
     #0b1114;
 }
 
@@ -26,7 +27,9 @@ main {
 }
 
 .shell {
-  width: min(100%, 620px);
+  width: calc(100vw - 40px);
+  max-width: 620px;
+  min-width: 0;
   padding: clamp(30px, 7vw, 56px);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 28px;
@@ -35,22 +38,15 @@ main {
 }
 
 .mark {
-  display: grid;
   width: 52px;
   height: 52px;
-  place-items: center;
   margin-bottom: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  background: #123843;
 }
 
-.mark span {
-  width: 28px;
-  height: 12px;
-  border-bottom: 3px solid #e8f1ef;
-  border-radius: 50%;
-  background: #ff705b;
+.mark img {
+  display: block;
+  width: 52px;
+  height: 52px;
 }
 
 .eyebrow,
