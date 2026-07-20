@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
@@ -11,7 +10,7 @@ import {
   validationView,
 } from '../j/referral-fragment.mjs';
 import {
-  verifyReferralDownload,
+  validateReferralRelease,
 } from '../scripts/verify-referral-download.mjs';
 import { MALIBU_DOWNLOAD_URL } from '../j/release.mjs';
 
@@ -120,7 +119,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://download.malibu.tech/Malibu-v1.8.43.dmg',
+    'https://download.malibu.tech/sha256/e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1/Malibu-v1.8.53.dmg',
   );
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
   assert.match(runtime, /credentials: 'omit'/);
@@ -152,80 +151,57 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   }
 });
 
-test('production download gate binds immutable metadata, manifest, checksum, and DMG bytes', async () => {
-  const sourceCommit = 'a'.repeat(40);
-  const dmgAsset = 'Malibu-v1.8.43.dmg';
-  const checksumAsset = `${dmgAsset}.sha256`;
-  const manifestAsset = 'candidate-manifest.json';
+test('production download gate accepts only the frozen commit and asset digests', () => {
+  const sourceCommit = 'bc543c0fc7d423b0252f747b5ecb491db919e404';
+  const dmgAsset = 'Malibu-v1.8.53.dmg';
+  const checksumAsset = 'checksums.txt';
+  const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.43/';
-  const dmg = new Uint8Array([1, 2, 3, 4]);
-  const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
-  const dmgSHA = digest(dmg);
-  const checksum = new TextEncoder().encode(`${dmgSHA}  ${dmgAsset}\n`);
-  const manifest = new TextEncoder().encode(`${JSON.stringify({
-    schema_version: 1,
-    repository: 'Augustas11/macprovider',
-    source_commit: sourceCommit,
-    malibu_version: '1.8.43',
-    malibu_build: 43,
-    bundle_identifier: 'tech.malibu.app',
-    team_id: 'YF7XNRJUG4',
-    cli_tag: 'v1.8.49',
-    cli_version: '1.8.49',
-    dmg_asset: dmgAsset,
-    dmg_sha256: dmgSHA,
-    notarization: 'accepted',
-    stapling: 'validated',
-  })}\n`);
-  const bodies = new Map([
-    [dmgAsset, dmg],
-    [checksumAsset, checksum],
-    [manifestAsset, manifest],
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.53/';
+  const acceptedDigests = new Map([
+    [dmgAsset, 'e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1'],
+    [checksumAsset, 'a2b3823c04de09ce4f0b5d7c9259da3e3d5a4e17302e9a36d56fc1b26679c95f'],
+    [provenanceAsset, '0c0ac0a2715f19251fde7a021ebc2a4fcce7e45d4f906a6150a6418a8f7b239c'],
   ]);
   const release = {
-    tag_name: 'v1.8.43',
+    tag_name: 'v1.8.53',
     draft: false,
     prerelease: false,
     immutable: true,
     target_commitish: sourceCommit,
-    assets: [...bodies].map(([name, bytes]) => ({
+    assets: [...acceptedDigests].map(([name, digest]) => ({
       name,
       browser_download_url: githubDownloadBase + name,
-      digest: `sha256:${digest(bytes)}`,
-    })),
-  };
-  const fetchFixture = async (url) => {
-    if (url.includes('/releases/tags/v1.8.43')) {
-      return new Response(JSON.stringify(release), {
-        headers: { 'content-type': 'application/json' },
-      });
-    }
-    if (url === MALIBU_DOWNLOAD_URL) return new Response(dmg);
-    const name = url.slice(githubDownloadBase.length);
-    return new Response(bodies.get(name) ?? null, {
-      status: bodies.has(name) ? 200 : 404,
-    });
+      digest: `sha256:${digest}`,
+    })).concat({
+      name: 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+      browser_download_url:
+        githubDownloadBase + 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+      digest: `sha256:${'b'.repeat(64)}`,
+    }),
   };
 
-  await verifyReferralDownload(fetchFixture);
+  validateReferralRelease(release);
 
-  const mutableRelease = { ...release, immutable: false };
-  await assert.rejects(() => verifyReferralDownload(async (url) => {
-    if (url.includes('/releases/tags/v1.8.43')) {
-      return new Response(JSON.stringify(mutableRelease));
-    }
-    return fetchFixture(url);
-  }), /not public, immutable, and source-bound/);
+  assert.throws(
+    () => validateReferralRelease({
+      ...release,
+      target_commitish: 'd'.repeat(40),
+    }),
+    /does not match the accepted immutable source/,
+  );
 
-  const tampered = new Map(bodies);
-  tampered.set(dmgAsset, new Uint8Array([9, 9, 9]));
-  await assert.rejects(() => verifyReferralDownload(async (url) => {
-    if (url.includes('/releases/tags/v1.8.43')) return fetchFixture(url);
-    if (url === MALIBU_DOWNLOAD_URL) return new Response(tampered.get(dmgAsset));
-    const name = url.slice(githubDownloadBase.length);
-    return new Response(tampered.get(name) ?? null, {
-      status: tampered.has(name) ? 200 : 404,
-    });
-  }), /digest mismatch/);
+  for (const name of acceptedDigests.keys()) {
+    assert.throws(
+      () => validateReferralRelease({
+        ...release,
+        assets: release.assets.map((asset) => (
+          asset.name === name
+            ? { ...asset, digest: `sha256:${'0'.repeat(64)}` }
+            : asset
+        )),
+      }),
+      new RegExp(`digest is not accepted for ${name.replace('.', '\\.')}`),
+    );
+  }
 });

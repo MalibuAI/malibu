@@ -5,16 +5,24 @@ import { pathToFileURL } from 'node:url';
 
 import { MALIBU_DOWNLOAD_URL } from '../j/release.mjs';
 
-const VERSION = '1.8.43';
+const VERSION = '1.8.53';
 const TAG = `v${VERSION}`;
 const DMG_ASSET = `Malibu-v${VERSION}.dmg`;
-const CHECKSUM_ASSET = `${DMG_ASSET}.sha256`;
-const MANIFEST_ASSET = 'candidate-manifest.json';
+const CHECKSUM_ASSET = 'checksums.txt';
+const PROVENANCE_ASSET = 'release-provenance.json';
 const RELEASE_API_URL =
   `https://api.github.com/repos/Augustas11/macprovider/releases/tags/${TAG}`;
 const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
-const EXPECTED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, MANIFEST_ASSET];
+const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, PROVENANCE_ASSET];
+const ACCEPTED_SOURCE_COMMIT = 'bc543c0fc7d423b0252f747b5ecb491db919e404';
+const ACCEPTED_ASSET_SHA256 = Object.freeze({
+  [DMG_ASSET]: 'e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1',
+  [CHECKSUM_ASSET]: 'a2b3823c04de09ce4f0b5d7c9259da3e3d5a4e17302e9a36d56fc1b26679c95f',
+  [PROVENANCE_ASSET]: '0c0ac0a2715f19251fde7a021ebc2a4fcce7e45d4f906a6150a6418a8f7b239c',
+});
+const ACCEPTED_DOWNLOAD_URL =
+  `https://download.malibu.tech/sha256/${ACCEPTED_ASSET_SHA256[DMG_ASSET]}/${DMG_ASSET}`;
 const TRUSTED_API_HOSTS = new Set(['api.github.com']);
 const TRUSTED_DOWNLOAD_HOSTS = new Set([
   'download.malibu.tech',
@@ -83,8 +91,8 @@ function decodeJSON(bytes, label) {
   }
 }
 
-function validateRelease(release) {
-  if (MALIBU_DOWNLOAD_URL !== `https://download.malibu.tech/${DMG_ASSET}`) {
+export function validateReferralRelease(release) {
+  if (MALIBU_DOWNLOAD_URL !== ACCEPTED_DOWNLOAD_URL) {
     throw new Error('Malibu landing download URL drifted from the release gate');
   }
   if (
@@ -92,27 +100,26 @@ function validateRelease(release) {
     || release?.draft !== false
     || release?.prerelease !== false
     || release?.immutable !== true
-    || !/^[0-9a-f]{40}$/.test(release?.target_commitish ?? '')
+    || release?.target_commitish !== ACCEPTED_SOURCE_COMMIT
     || !Array.isArray(release?.assets)
   ) {
-    throw new Error('Malibu release is not public, immutable, and source-bound');
+    throw new Error('Malibu release does not match the accepted immutable source');
   }
 
   const assets = new Map(release.assets.map((asset) => [asset?.name, asset]));
   if (
-    release.assets.length !== EXPECTED_ASSETS.length ||
-    assets.size !== EXPECTED_ASSETS.length
-    || EXPECTED_ASSETS.some((name) => !assets.has(name))
+    assets.size !== release.assets.length
+    || REQUIRED_ASSETS.some((name) => !assets.has(name))
   ) {
-    throw new Error('Malibu immutable release asset set is not exact');
+    throw new Error('Malibu immutable release assets are missing or ambiguous');
   }
-  for (const name of EXPECTED_ASSETS) {
+  for (const name of REQUIRED_ASSETS) {
     const asset = assets.get(name);
     if (
       asset.browser_download_url !== GITHUB_DOWNLOAD_BASE + name
-      || !/^sha256:[0-9a-f]{64}$/.test(asset.digest ?? '')
+      || asset.digest !== `sha256:${ACCEPTED_ASSET_SHA256[name]}`
     ) {
-      throw new Error(`Malibu immutable release metadata is invalid for ${name}`);
+      throw new Error(`Malibu immutable release digest is not accepted for ${name}`);
     }
   }
   return assets;
@@ -136,9 +143,9 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
     'application/vnd.github+json',
   );
   const release = decodeJSON(releaseBytes, 'release');
-  const assets = validateRelease(release);
+  const assets = validateReferralRelease(release);
 
-  const [dmgBytes, checksumBytes, manifestBytes] = await Promise.all([
+  const [dmgBytes, checksumBytes, provenanceBytes] = await Promise.all([
     fetchBounded(
       fetchImpl,
       MALIBU_DOWNLOAD_URL,
@@ -150,44 +157,37 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
       fetchImpl,
       GITHUB_DOWNLOAD_BASE + CHECKSUM_ASSET,
       TRUSTED_DOWNLOAD_HOSTS,
-      16 * 1024,
+      128 * 1024,
       'text/plain',
     ),
     fetchBounded(
       fetchImpl,
-      GITHUB_DOWNLOAD_BASE + MANIFEST_ASSET,
+      GITHUB_DOWNLOAD_BASE + PROVENANCE_ASSET,
       TRUSTED_DOWNLOAD_HOSTS,
-      64 * 1024,
+      128 * 1024,
       'application/json',
     ),
   ]);
 
   const dmgSHA = verifyAssetDigest(DMG_ASSET, dmgBytes, assets);
   verifyAssetDigest(CHECKSUM_ASSET, checksumBytes, assets);
-  verifyAssetDigest(MANIFEST_ASSET, manifestBytes, assets);
+  verifyAssetDigest(PROVENANCE_ASSET, provenanceBytes, assets);
 
   const checksum = new TextDecoder('utf-8', { fatal: true }).decode(checksumBytes);
-  if (checksum !== `${dmgSHA}  ${DMG_ASSET}\n`) {
-    throw new Error('Malibu checksum sidecar does not bind the public DMG');
+  if (!checksum.trimEnd().split('\n').includes(`${dmgSHA}  ${DMG_ASSET}`)) {
+    throw new Error('Malibu checksum list does not bind the public DMG');
   }
 
-  const manifest = decodeJSON(manifestBytes, 'candidate manifest');
+  const provenance = decodeJSON(provenanceBytes, 'release provenance');
   if (
-    manifest.schema_version !== 1
-    || manifest.repository !== 'Augustas11/macprovider'
-    || manifest.source_commit !== release.target_commitish
-    || manifest.malibu_version !== VERSION
-    || manifest.malibu_build !== 43
-    || manifest.bundle_identifier !== 'tech.malibu.app'
-    || manifest.team_id !== 'YF7XNRJUG4'
-    || manifest.cli_tag !== 'v1.8.49'
-    || manifest.cli_version !== '1.8.49'
-    || manifest.dmg_asset !== DMG_ASSET
-    || manifest.dmg_sha256 !== dmgSHA
-    || manifest.notarization !== 'accepted'
-    || manifest.stapling !== 'validated'
+    provenance.schema_version !== 1
+    || provenance.repository !== 'Augustas11/macprovider'
+    || provenance.commit !== release.target_commitish
+    || provenance.tag !== TAG
+    || provenance.prerelease !== false
+    || provenance.assets?.[DMG_ASSET] !== dmgSHA
   ) {
-    throw new Error('Malibu candidate manifest does not bind the expected release');
+    throw new Error('Malibu release provenance does not bind the expected release');
   }
 }
 
