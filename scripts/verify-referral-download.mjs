@@ -12,11 +12,12 @@ const CHECKSUM_ASSET = `${DMG_ASSET}.sha256`;
 const MANIFEST_ASSET = 'candidate-manifest.json';
 const RELEASE_API_URL =
   `https://api.github.com/repos/Augustas11/macprovider/releases/tags/${TAG}`;
-const DOWNLOAD_BASE =
+const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
 const EXPECTED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, MANIFEST_ASSET];
 const TRUSTED_API_HOSTS = new Set(['api.github.com']);
 const TRUSTED_DOWNLOAD_HOSTS = new Set([
+  'download.malibu.tech',
   'github.com',
   'release-assets.githubusercontent.com',
 ]);
@@ -83,7 +84,7 @@ function decodeJSON(bytes, label) {
 }
 
 function validateRelease(release) {
-  if (MALIBU_DOWNLOAD_URL !== DOWNLOAD_BASE + DMG_ASSET) {
+  if (MALIBU_DOWNLOAD_URL !== `https://download.malibu.tech/${DMG_ASSET}`) {
     throw new Error('Malibu landing download URL drifted from the release gate');
   }
   if (
@@ -108,7 +109,7 @@ function validateRelease(release) {
   for (const name of EXPECTED_ASSETS) {
     const asset = assets.get(name);
     if (
-      asset.browser_download_url !== DOWNLOAD_BASE + name
+      asset.browser_download_url !== GITHUB_DOWNLOAD_BASE + name
       || !/^sha256:[0-9a-f]{64}$/.test(asset.digest ?? '')
     ) {
       throw new Error(`Malibu immutable release metadata is invalid for ${name}`);
@@ -147,14 +148,14 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
     ),
     fetchBounded(
       fetchImpl,
-      DOWNLOAD_BASE + CHECKSUM_ASSET,
+      GITHUB_DOWNLOAD_BASE + CHECKSUM_ASSET,
       TRUSTED_DOWNLOAD_HOSTS,
       16 * 1024,
       'text/plain',
     ),
     fetchBounded(
       fetchImpl,
-      DOWNLOAD_BASE + MANIFEST_ASSET,
+      GITHUB_DOWNLOAD_BASE + MANIFEST_ASSET,
       TRUSTED_DOWNLOAD_HOSTS,
       64 * 1024,
       'application/json',
