@@ -15,6 +15,14 @@ const RELEASE_API_URL =
 const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
 const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, PROVENANCE_ASSET];
+const ACCEPTED_SOURCE_COMMIT = 'bc543c0fc7d423b0252f747b5ecb491db919e404';
+const ACCEPTED_ASSET_SHA256 = Object.freeze({
+  [DMG_ASSET]: 'e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1',
+  [CHECKSUM_ASSET]: 'a2b3823c04de09ce4f0b5d7c9259da3e3d5a4e17302e9a36d56fc1b26679c95f',
+  [PROVENANCE_ASSET]: '0c0ac0a2715f19251fde7a021ebc2a4fcce7e45d4f906a6150a6418a8f7b239c',
+});
+const ACCEPTED_DOWNLOAD_URL =
+  `https://download.malibu.tech/sha256/${ACCEPTED_ASSET_SHA256[DMG_ASSET]}/${DMG_ASSET}`;
 const TRUSTED_API_HOSTS = new Set(['api.github.com']);
 const TRUSTED_DOWNLOAD_HOSTS = new Set([
   'download.malibu.tech',
@@ -83,8 +91,8 @@ function decodeJSON(bytes, label) {
   }
 }
 
-function validateRelease(release) {
-  if (MALIBU_DOWNLOAD_URL !== `https://download.malibu.tech/${DMG_ASSET}`) {
+export function validateReferralRelease(release) {
+  if (MALIBU_DOWNLOAD_URL !== ACCEPTED_DOWNLOAD_URL) {
     throw new Error('Malibu landing download URL drifted from the release gate');
   }
   if (
@@ -92,25 +100,26 @@ function validateRelease(release) {
     || release?.draft !== false
     || release?.prerelease !== false
     || release?.immutable !== true
-    || !/^[0-9a-f]{40}$/.test(release?.target_commitish ?? '')
+    || release?.target_commitish !== ACCEPTED_SOURCE_COMMIT
     || !Array.isArray(release?.assets)
   ) {
-    throw new Error('Malibu release is not public, immutable, and source-bound');
+    throw new Error('Malibu release does not match the accepted immutable source');
   }
 
   const assets = new Map(release.assets.map((asset) => [asset?.name, asset]));
   if (
-    REQUIRED_ASSETS.some((name) => !assets.has(name))
+    assets.size !== release.assets.length
+    || REQUIRED_ASSETS.some((name) => !assets.has(name))
   ) {
-    throw new Error('Malibu immutable release is missing required assets');
+    throw new Error('Malibu immutable release assets are missing or ambiguous');
   }
   for (const name of REQUIRED_ASSETS) {
     const asset = assets.get(name);
     if (
       asset.browser_download_url !== GITHUB_DOWNLOAD_BASE + name
-      || !/^sha256:[0-9a-f]{64}$/.test(asset.digest ?? '')
+      || asset.digest !== `sha256:${ACCEPTED_ASSET_SHA256[name]}`
     ) {
-      throw new Error(`Malibu immutable release metadata is invalid for ${name}`);
+      throw new Error(`Malibu immutable release digest is not accepted for ${name}`);
     }
   }
   return assets;
@@ -134,7 +143,7 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
     'application/vnd.github+json',
   );
   const release = decodeJSON(releaseBytes, 'release');
-  const assets = validateRelease(release);
+  const assets = validateReferralRelease(release);
 
   const [dmgBytes, checksumBytes, provenanceBytes] = await Promise.all([
     fetchBounded(
