@@ -120,7 +120,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://download.malibu.tech/Malibu-v1.8.43.dmg',
+    'https://download.malibu.tech/Malibu-v1.8.53.dmg',
   );
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
   assert.match(runtime, /credentials: 'omit'/);
@@ -152,39 +152,37 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   }
 });
 
-test('production download gate binds immutable metadata, manifest, checksum, and DMG bytes', async () => {
+test('production download gate binds immutable metadata, provenance, checksum, and DMG bytes', async () => {
   const sourceCommit = 'a'.repeat(40);
-  const dmgAsset = 'Malibu-v1.8.43.dmg';
-  const checksumAsset = `${dmgAsset}.sha256`;
-  const manifestAsset = 'candidate-manifest.json';
+  const dmgAsset = 'Malibu-v1.8.53.dmg';
+  const checksumAsset = 'checksums.txt';
+  const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.43/';
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.53/';
   const dmg = new Uint8Array([1, 2, 3, 4]);
   const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
   const dmgSHA = digest(dmg);
-  const checksum = new TextEncoder().encode(`${dmgSHA}  ${dmgAsset}\n`);
-  const manifest = new TextEncoder().encode(`${JSON.stringify({
+  const checksum = new TextEncoder().encode(
+    `${'b'.repeat(64)}  macprovider-cli-v1.8.53-darwin-arm64.tar.gz\n`
+    + `${dmgSHA}  ${dmgAsset}\n`,
+  );
+  const provenance = new TextEncoder().encode(`${JSON.stringify({
     schema_version: 1,
     repository: 'Augustas11/macprovider',
-    source_commit: sourceCommit,
-    malibu_version: '1.8.43',
-    malibu_build: 43,
-    bundle_identifier: 'tech.malibu.app',
-    team_id: 'YF7XNRJUG4',
-    cli_tag: 'v1.8.49',
-    cli_version: '1.8.49',
-    dmg_asset: dmgAsset,
-    dmg_sha256: dmgSHA,
-    notarization: 'accepted',
-    stapling: 'validated',
+    commit: sourceCommit,
+    tag: 'v1.8.53',
+    prerelease: false,
+    assets: {
+      [dmgAsset]: dmgSHA,
+    },
   })}\n`);
   const bodies = new Map([
     [dmgAsset, dmg],
     [checksumAsset, checksum],
-    [manifestAsset, manifest],
+    [provenanceAsset, provenance],
   ]);
   const release = {
-    tag_name: 'v1.8.43',
+    tag_name: 'v1.8.53',
     draft: false,
     prerelease: false,
     immutable: true,
@@ -193,10 +191,15 @@ test('production download gate binds immutable metadata, manifest, checksum, and
       name,
       browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest(bytes)}`,
-    })),
+    })).concat({
+      name: 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+      browser_download_url:
+        githubDownloadBase + 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+      digest: `sha256:${'b'.repeat(64)}`,
+    }),
   };
   const fetchFixture = async (url) => {
-    if (url.includes('/releases/tags/v1.8.43')) {
+    if (url.includes('/releases/tags/v1.8.53')) {
       return new Response(JSON.stringify(release), {
         headers: { 'content-type': 'application/json' },
       });
@@ -212,7 +215,7 @@ test('production download gate binds immutable metadata, manifest, checksum, and
 
   const mutableRelease = { ...release, immutable: false };
   await assert.rejects(() => verifyReferralDownload(async (url) => {
-    if (url.includes('/releases/tags/v1.8.43')) {
+    if (url.includes('/releases/tags/v1.8.53')) {
       return new Response(JSON.stringify(mutableRelease));
     }
     return fetchFixture(url);
@@ -221,7 +224,7 @@ test('production download gate binds immutable metadata, manifest, checksum, and
   const tampered = new Map(bodies);
   tampered.set(dmgAsset, new Uint8Array([9, 9, 9]));
   await assert.rejects(() => verifyReferralDownload(async (url) => {
-    if (url.includes('/releases/tags/v1.8.43')) return fetchFixture(url);
+    if (url.includes('/releases/tags/v1.8.53')) return fetchFixture(url);
     if (url === MALIBU_DOWNLOAD_URL) return new Response(tampered.get(dmgAsset));
     const name = url.slice(githubDownloadBase.length);
     return new Response(tampered.get(name) ?? null, {
