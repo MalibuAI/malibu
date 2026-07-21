@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Terms of Service for Malibu — the contract between Malibu AI, Inc. and users of the Malibu network, console, and provider app." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://malibu.tech/terms/" />
+  <meta property="og:title" content="Malibu · Terms of Service" />
+  <meta property="og:description" content="The contract between Malibu AI, Inc. and users of the Malibu Services." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://malibu.tech/terms/" />
+  <title>Malibu · Terms of Service</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="512x512" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="/src/styles.css" />
+  <style>
+    .legal-prose { font-family: 'Hanken Grotesk', sans-serif; color: rgba(250, 251, 255,0.82); font-size: 16px; line-height: 1.65; }
+    .legal-prose h2 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2; letter-spacing: -0.015em; color: #FAFBFF; margin: 56px 0 12px; }
+    .legal-prose h2 .n { display: inline-block; margin-right: 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; vertical-align: 0.32em; font-weight: 500; }
+    .legal-prose h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 17px; letter-spacing: -0.005em; color: #FAFBFF; margin: 28px 0 8px; }
+    .legal-prose p { margin: 0 0 16px; max-width: 68ch; }
+    .legal-prose ul { margin: 0 0 16px; padding-left: 22px; max-width: 68ch; }
+    .legal-prose li { margin-bottom: 6px; }
+    .legal-prose a { color: #FFC7B8; border-bottom: 1px solid rgba(255, 198, 41,0.35); }
+    .legal-prose a:hover { color: #FAFBFF; border-bottom-color: #F76B57; }
+    .legal-callout { margin: 20px 0 24px; padding: 18px 22px; border-left: 3px solid #F76B57; background: rgba(247, 107, 87,0.06); border-radius: 0 12px 12px 0; font-size: 15.5px; color: rgba(250, 251, 255,0.9); }
+    .legal-callout strong { color: #FAFBFF; }
+    .legal-emph { font-family: 'Hanken Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.02em; font-weight: 600; color: #FAFBFF; }
+    .legal-meta { display: flex; gap: 22px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(250, 251, 255,0.55); margin-top: 22px; }
+    .legal-meta strong { font-weight: 500; color: #FFC629; margin-right: 8px; }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background: #143A45; color: #FAFBFF; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh;">
+
+<!-- ============ FLOATING NAV ============ -->
+<nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
+  <a href="/" class="brand-lockup" style="padding-right: 10px; border-right: 1px solid rgba(250, 251, 255,0.12);">
+    <span class="brand-mark-circle">
+      <img src="/logo-mark.png" width="28" height="28" alt="" aria-hidden="true" />
+    </span>
+    <span class="brand-wordmark">Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span></span>
+  </a>
+  <button type="button" data-nav-toggle aria-expanded="false" aria-controls="terms-nav-menu" aria-label="Menu" class="nav-toggle">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <div data-nav-menu id="terms-nav-menu" class="nav-menu">
+    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(250, 251, 255,0.72);">
+      <a href="/network/">Network</a>
+      <a href="/blog/">Blog</a>
+      <a href="/#token">$MALIBU</a>
+      <a href="https://malibu.tech/docs">Docs</a>
+      <a href="/console/">Console</a>
+    </div>
+    <a href="/host/" class="nav-cta">
+      Host a model
+      <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<main id="top" style="background: #143A45; color: #FAFBFF; min-height: 100vh;">
+
+  <!-- ============ HEADER ============ -->
+  <section style="position: relative; padding: clamp(120px, 18vh, 200px) clamp(20px, 5vw, 80px) clamp(32px, 5vh, 56px);">
+    <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 260px; background: radial-gradient(ellipse at top, rgba(247, 107, 87,0.18), transparent 70%); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 900px; margin: 0 auto;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">Legal &middot; Terms</div>
+      <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(52px, 8vw, 112px); line-height: 0.9; letter-spacing: -0.035em; color: #FAFBFF; margin: 0;">
+        Terms of <em style="font-style: normal; color: #F76B57;">service.</em>
+      </h1>
+      <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; color: rgba(250, 251, 255,0.72); margin: 22px 0 0; max-width: 60ch;">
+        The agreement between Malibu AI, Inc. and everyone who uses the Malibu network, console, or provider app.
+      </p>
+      <div class="legal-meta">
+        <div><strong>Last updated</strong> July 21, 2026</div>
+        <div><strong>Effective</strong> July 21, 2026</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTENT ============ -->
+  <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(96px, 14vh, 160px);">
+    <div class="legal-prose" style="position: relative; max-width: 900px; margin: 0 auto;">
+
+      <h2><span class="n">01</span>Agreement to these terms</h2>
+      <p>These Terms of Service (the &ldquo;Terms&rdquo;) are a binding agreement between you and Malibu AI, Inc. (&ldquo;Malibu,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;). They govern your access to and use of malibu.tech, the Malibu console at console.malibu.tech, the Malibu provider desktop application for macOS, and any related APIs, websites, and community channels operated by Malibu (collectively, the &ldquo;Services&rdquo;).</p>
+      <p>By accessing or using the Services, you agree to be bound by these Terms and by our <a href="/privacy/">Privacy Policy</a>. If you do not agree, do not use the Services.</p>
+
+      <h2><span class="n">02</span>What Malibu is</h2>
+      <p>Malibu is a network that connects buyers of AI inference with independent providers who host open-source models on their own hardware (primarily Apple Silicon Macs). Buyer usage is currently metered as a daily quota against paid or granted allowance. Providers are settled in USDC when their inference receipts pass verified-model settlement. Prepaid credit balances, USDC top-ups, and on-chain $MALIBU rewards for provider activity are on the roadmap and will become subject to these Terms when they launch. Malibu operates the coordination layer, the console, and the provider desktop app; Malibu does not itself run inference on your prompts &mdash; providers do.</p>
+      <div class="legal-callout"><strong>The Services are pre-1.0.</strong> Features, rate cards, verification rules, token mechanics, and available payment rails are actively evolving. What runs today versus what is planned is tracked on the public status page in the Malibu docs.</div>
+
+      <h2><span class="n">03</span>Eligibility and accounts</h2>
+      <p>You must be at least 18 years old and legally able to enter into a contract to use the Services. If you use the Services on behalf of an entity, you represent that you have authority to bind that entity to these Terms.</p>
+      <p>Some features (such as the console) require you to authenticate, currently via GitHub OAuth. You are responsible for the security of your account credentials and for all activity that occurs under your account. Notify us promptly at <a href="mailto:team@malibu.tech">team@malibu.tech</a> if you suspect unauthorized use.</p>
+
+      <h2><span class="n">04</span>Using the Services as a buyer</h2>
+      <h3>API keys and billing</h3>
+      <p>Buyers use API keys issued through the console to submit inference requests. You are responsible for keeping your API keys confidential and for any usage attributable to them.</p>
+      <p>Buyer usage today is metered as a daily quota against a paid or granted allowance, based on model, input tokens, output tokens, and the applicable rate card at the time of the request. Prepaid credit balances, USDC top-ups, and fiat top-ups through a third-party payment processor are on the roadmap; when they become available, consumption will continue to be metered against them per request under these Terms.</p>
+      <h3>Your prompts and outputs</h3>
+      <p>You retain all rights in the prompts you submit and the model outputs you receive through the Services. Malibu does not claim ownership of your prompts or outputs.</p>
+      <p>Prompt content flows through Malibu&rsquo;s gateway and coordinator to route your request, meter usage, and enable settlement and verification. The independent provider selected to serve your request receives your prompt in plaintext on its hardware and generates the output there. Providers can technically observe the prompts and outputs that route through their machine.</p>
+      <div class="legal-callout"><strong>The Services are not private-inference infrastructure.</strong> Do not submit content you would not be willing to share with an independent provider. A self-hosted coordinator for buyers who need local-only trust is on the roadmap.</div>
+      <h3>No warranty on outputs</h3>
+      <p>Model outputs are generated by third-party open-source models running on independent providers. Outputs may be inaccurate, incomplete, offensive, or unsuitable for your use case. You are responsible for evaluating outputs before relying on them, and for complying with the license of any model you use.</p>
+
+      <h2><span class="n">05</span>Using the Services as a provider</h2>
+      <p><span class="legal-emph">Providers are independent operators</span> &mdash; not employees, agents, contractors, or partners of Malibu. You choose whether to run the provider app, when to be online, which supported models to host, and on what hardware.</p>
+      <p>By operating a provider node, you represent that:</p>
+      <ul>
+        <li>You own or are authorized to use the hardware you connect to the network</li>
+        <li>You will not attempt to circumvent the network&rsquo;s metering, verification, or settlement systems</li>
+        <li>You will not intentionally return fabricated, cached, or model-substituted responses in place of genuine inference</li>
+        <li>You are responsible for any taxes owed on your earnings and for compliance with the laws of your jurisdiction, including any rules governing crypto assets</li>
+      </ul>
+      <p>Currently, USDC provider earnings are settled to a public wallet address you provide, driven by verified-model settlement on your inference receipts. $MALIBU-denominated rewards and reward multipliers are planned and will follow the network rules described in the docs and the provider app once on-chain emission is live. Malibu may adjust verification requirements, rate cards, reward parameters, and other network rules from time to time to keep the network working correctly.</p>
+
+      <h2><span class="n">06</span>Payments and on-chain transactions</h2>
+      <p>Today, provider USDC settlement follows verified-model settlement: a provider is debited or credited based on the verdict returned by the inference-receipt verifier for each request. Prepaid credit balances, direct USDC top-ups for buyers, and fiat top-ups through a third-party payment processor are on the roadmap; when they become available, they will be governed by these Terms.</p>
+      <p>On-chain $MALIBU rewards for provider activity are planned (currently &ldquo;Planned v0&rdquo; on the public status page). Once emission is live, $MALIBU rewards will be settled on-chain to the wallet address you provide, according to the network rules described in the docs and provider app at that time.</p>
+      <div class="legal-callout"><strong>On-chain transactions are final.</strong> Once a transaction is confirmed on a public blockchain, it cannot be reversed by Malibu.</div>
+      <p>You are responsible for the accuracy of any wallet address you provide. Malibu is not responsible for funds sent to a wrong or otherwise incorrect address, for network congestion, for gas fees, for token price movements, or for the availability of any third-party bridge, wallet, exchange, or payment processor.</p>
+
+      <h2><span class="n">07</span>Wallets, keys, and security</h2>
+      <p>The Services are non-custodial with respect to your crypto assets: Malibu does not hold your private keys and cannot recover them. If you lose access to a wallet you use with the Services, we cannot restore access, undo transactions, or reissue funds routed through that wallet.</p>
+
+      <h2><span class="n">08</span>Blockchain risks</h2>
+      <p>Using the Services involves interacting with public blockchain networks. You acknowledge that:</p>
+      <ul>
+        <li>Blockchain networks are experimental and subject to bugs, forks, congestion, and consensus changes outside of Malibu&rsquo;s control</li>
+        <li>Transactions and account balances are public and permanent</li>
+        <li>$MALIBU and other tokens may fluctuate in value or become illiquid, and no return is promised</li>
+        <li>Regulatory treatment of tokens, providers, and inference-as-a-service is unsettled in many jurisdictions and may change without notice</li>
+      </ul>
+
+      <h2><span class="n">09</span>Acceptable use</h2>
+      <p>You agree not to use the Services to:</p>
+      <ul>
+        <li>Violate any applicable law, regulation, or third-party right</li>
+        <li>Generate, request, or transmit content that sexually exploits or endangers minors, incites violence, harasses or defames a specific person, or promotes terrorism</li>
+        <li>Attempt to identify a natural person from a wallet address, IP address, or other pseudonymous identifier without a lawful basis</li>
+        <li>Reverse engineer, decompile, or attempt to derive the source of any non-open-source component of the Services</li>
+        <li>Interfere with, overload, or attack the Services, or bypass rate limits, authentication, or metering</li>
+        <li>Use the Services to build or train a directly competing inference network by scraping or systematically re-selling outputs beyond ordinary end-use</li>
+      </ul>
+      <p>We may suspend or terminate access, revoke API keys, disable provider nodes, or withhold undistributed rewards where we reasonably believe these Terms have been violated.</p>
+
+      <h2><span class="n">10</span>Third-party models and content</h2>
+      <p>The Services route requests to open-source models operated by independent providers. Those models are licensed by their respective authors under their own terms. You are responsible for reviewing and complying with the license of any model you use, including any restrictions on commercial use, output attribution, or redistribution.</p>
+
+      <h2><span class="n">11</span>Intellectual property</h2>
+      <p>Malibu, the Malibu name, the Malibu logo, malibu.tech, the console, the provider app, and all associated code, designs, and documentation are owned by Malibu AI, Inc. or its licensors. Except for open-source components released under their own licenses, nothing in these Terms grants you any right in Malibu&rsquo;s trademarks or proprietary code.</p>
+      <p>If you send us feedback, suggestions, or bug reports, you grant Malibu a perpetual, worldwide, royalty-free license to use them without restriction. You warrant that you have the right to share what you send.</p>
+
+      <h2><span class="n">12</span>Disclaimer of warranties</h2>
+      <p class="legal-emph" style="max-width:68ch;">The Services are provided &ldquo;as is&rdquo; and &ldquo;as available.&rdquo; To the fullest extent permitted by law, Malibu disclaims all warranties, express or implied, including merchantability, fitness for a particular purpose, non-infringement, uninterrupted or error-free operation, and the accuracy or reliability of any model outputs, price, receipt, or on-chain state.</p>
+      <p>We do not warrant that any model, provider, or portion of the network will be available at any particular time or performance level, nor that any specific reward, price, or refund will result from your use of the Services.</p>
+
+      <h2><span class="n">13</span>Limitation of liability</h2>
+      <p class="legal-emph" style="max-width:68ch;">To the fullest extent permitted by law, Malibu will not be liable for any indirect, incidental, special, consequential, exemplary, or punitive damages, or for lost profits, revenue, goodwill, data, or crypto-asset value, arising out of or related to the Services, whether based in contract, tort, statute, or otherwise, and even if Malibu has been advised of the possibility of such damages.</p>
+      <p class="legal-emph" style="max-width:68ch;">Malibu&rsquo;s aggregate liability for any claim arising out of or related to the Services is limited to the greater of (a) the total fees you paid to Malibu in the three months preceding the event giving rise to the claim, or (b) one hundred U.S. dollars ($100).</p>
+
+      <h2><span class="n">14</span>Indemnification</h2>
+      <p>You agree to defend, indemnify, and hold harmless Malibu AI, Inc. and its officers, directors, employees, and agents from any claim, loss, or expense (including reasonable attorneys&rsquo; fees) arising out of your use of the Services, your content, your operation of a provider node, or your violation of these Terms, applicable law, or any third-party right.</p>
+
+      <h2><span class="n">15</span>Termination</h2>
+      <p>You may stop using the Services at any time. We may suspend or terminate your access to the Services, revoke API keys, disable provider nodes, or refuse settlement of contested amounts if we reasonably believe you have violated these Terms, created legal or security risk for Malibu or other users, or become unavailable to us for a period we determine impracticable to continue serving.</p>
+      <p>Sections that by their nature should survive termination &mdash; including intellectual property, disclaimer of warranties, limitation of liability, indemnification, and any accrued payment obligations &mdash; will survive.</p>
+
+      <h2><span class="n">16</span>Dispute resolution</h2>
+      <p>The parties will attempt in good faith to resolve any dispute informally by writing to <a href="mailto:team@malibu.tech">team@malibu.tech</a> before starting a formal proceeding. If a dispute is not resolved within thirty (30) days, either party may proceed under applicable law.</p>
+
+      <h2><span class="n">17</span>Changes to these terms</h2>
+      <p>We may update these Terms from time to time. The &ldquo;Last updated&rdquo; date above reflects the effective date of the current version. If a change is material we will make reasonable efforts to notify active users through the console, the provider app, or by email. Continued use of the Services after an update constitutes acceptance of the revised Terms.</p>
+
+      <h2><span class="n">18</span>Contact</h2>
+      <p>Questions about these Terms can be sent to <a href="mailto:team@malibu.tech">team@malibu.tech</a>.</p>
+
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FAFBFF; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap;">
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+            <a href="/console/">Console</a>
+            <a href="/host/">Host a model</a>
+            <a href="/network/">Network</a>
+            <a href="/#token">$MALIBU</a>
+          </div>
+        </div>
+        <div style="display: flex; gap: 48px 64px; flex-wrap: wrap;">
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Learn</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+              <a href="/blog/">Blog</a>
+              <a href="https://malibu.tech/docs">Docs</a>
+              <a href="https://malibu.tech/docs/litepaper">Litepaper</a>
+            </div>
+          </div>
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Social</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+              <a href="https://x.com/malibuonbase" target="_blank" rel="noopener">X</a>
+              <a href="https://github.com/MalibuAI/malibu" target="_blank" rel="noopener">GitHub</a>
+              <a href="mailto:team@malibu.tech">Contact</a>
+            </div>
+          </div>
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Legal</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+              <a href="/privacy/">Privacy Policy</a>
+              <a href="/terms/" style="color: #FAFBFF;">Terms of Service</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.66);">
+        <div>&copy; 2026 Malibu AI, Inc.</div>
+        <a href="/">Back to Malibu &rarr;</a>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<script type="module" src="/src/nav.js"></script>
+</body>
+</html>

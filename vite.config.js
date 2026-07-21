@@ -71,6 +71,8 @@ export default defineConfig({
         join: resolve(__dirname, 'j/index.html'),
         network: resolve(__dirname, 'network/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
+        privacy: resolve(__dirname, 'privacy/index.html'),
+        terms: resolve(__dirname, 'terms/index.html'),
         ...blogInputs(),
       },
     },

@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="How Malibu collects, uses, and protects personal data across malibu.tech, the Malibu console, the provider app, and community channels." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://malibu.tech/privacy/" />
+  <meta property="og:title" content="Malibu · Privacy Policy" />
+  <meta property="og:description" content="How Malibu collects, uses, and protects personal data across our Services." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://malibu.tech/privacy/" />
+  <title>Malibu · Privacy Policy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="512x512" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="stylesheet" href="/src/styles.css" />
+  <style>
+    .legal-prose { font-family: 'Hanken Grotesk', sans-serif; color: rgba(250, 251, 255,0.82); font-size: 16px; line-height: 1.65; }
+    .legal-prose h2 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2; letter-spacing: -0.015em; color: #FAFBFF; margin: 56px 0 12px; }
+    .legal-prose h2 .n { display: inline-block; margin-right: 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; vertical-align: 0.32em; font-weight: 500; }
+    .legal-prose h3 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: 17px; letter-spacing: -0.005em; color: #FAFBFF; margin: 28px 0 8px; }
+    .legal-prose p { margin: 0 0 16px; max-width: 68ch; }
+    .legal-prose ul { margin: 0 0 16px; padding-left: 22px; max-width: 68ch; }
+    .legal-prose li { margin-bottom: 6px; }
+    .legal-prose a { color: #FFC7B8; border-bottom: 1px solid rgba(255, 198, 41,0.35); }
+    .legal-prose a:hover { color: #FAFBFF; border-color: #F76B57; }
+    .legal-callout { margin: 20px 0 24px; padding: 18px 22px; border-left: 3px solid #F76B57; background: rgba(247, 107, 87,0.06); border-radius: 0 12px 12px 0; font-size: 15.5px; color: rgba(250, 251, 255,0.9); }
+    .legal-callout strong { color: #FAFBFF; }
+    .legal-meta { display: flex; gap: 22px; flex-wrap: wrap; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(250, 251, 255,0.55); margin-top: 22px; }
+    .legal-meta strong { font-weight: 500; color: #FFC629; margin-right: 8px; }
+    .region-tabs { display: inline-flex; align-items: center; gap: 4px; margin-top: 32px; padding: 4px; background: rgba(250, 251, 255,0.05); border: 1px solid rgba(250, 251, 255,0.10); border-radius: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; }
+    .region-tabs button { padding: 10px 18px; border-radius: 8px; color: rgba(250, 251, 255,0.55); font: inherit; letter-spacing: inherit; text-transform: inherit; transition: background 160ms ease, color 160ms ease; cursor: pointer; }
+    .region-tabs button:hover { color: rgba(250, 251, 255,0.85); }
+    .region-tabs button[aria-selected="true"] { background: rgba(247, 107, 87,0.14); color: #FAFBFF; box-shadow: inset 0 0 0 1px rgba(247, 107, 87,0.35); }
+    .legal-prose table { width: 100%; margin: 4px 0 20px; border-collapse: collapse; font-size: 14.5px; }
+    .legal-prose thead th { text-align: left; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; font-weight: 500; border-bottom: 1px solid rgba(250, 251, 255,0.12); }
+    .legal-prose tbody td { padding: 14px; border-bottom: 1px solid rgba(250, 251, 255,0.08); vertical-align: top; color: rgba(250, 251, 255,0.82); }
+    .legal-prose tbody tr:last-child td { border-bottom: 0; }
+    .legal-prose tbody td:nth-child(2) { color: rgba(250, 251, 255,0.7); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; letter-spacing: 0.02em; }
+    @media (max-width: 640px) {
+      .legal-prose table, .legal-prose thead, .legal-prose tbody, .legal-prose tr, .legal-prose td, .legal-prose th { display: block; }
+      .legal-prose thead { display: none; }
+      .legal-prose tbody tr { padding: 12px 0; border-bottom: 1px solid rgba(250, 251, 255,0.08); }
+      .legal-prose tbody td { padding: 4px 0; border: 0; white-space: normal !important; }
+      .legal-prose tbody td:nth-child(2) { font-size: 11.5px; color: #FFC629; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background: #143A45; color: #FAFBFF; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh;">
+
+<!-- ============ FLOATING NAV ============ -->
+<nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
+  <a href="/" class="brand-lockup" style="padding-right: 10px; border-right: 1px solid rgba(250, 251, 255,0.12);">
+    <span class="brand-mark-circle">
+      <img src="/logo-mark.png" width="28" height="28" alt="" aria-hidden="true" />
+    </span>
+    <span class="brand-wordmark">Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span></span>
+  </a>
+  <button type="button" data-nav-toggle aria-expanded="false" aria-controls="privacy-nav-menu" aria-label="Menu" class="nav-toggle">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <div data-nav-menu id="privacy-nav-menu" class="nav-menu">
+    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(250, 251, 255,0.72);">
+      <a href="/network/">Network</a>
+      <a href="/blog/">Blog</a>
+      <a href="/#token">$MALIBU</a>
+      <a href="https://malibu.tech/docs">Docs</a>
+      <a href="/console/">Console</a>
+    </div>
+    <a href="/host/" class="nav-cta">
+      Host a model
+      <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<main id="top" style="background: #143A45; color: #FAFBFF; min-height: 100vh;">
+
+  <!-- ============ HEADER ============ -->
+  <section style="position: relative; padding: clamp(120px, 18vh, 200px) clamp(20px, 5vw, 80px) clamp(32px, 5vh, 56px);">
+    <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 260px; background: radial-gradient(ellipse at top, rgba(247, 107, 87,0.18), transparent 70%); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 900px; margin: 0 auto;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">Legal · Privacy</div>
+      <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(52px, 8vw, 112px); line-height: 0.9; letter-spacing: -0.035em; color: #FAFBFF; margin: 0;">
+        Privacy <em style="font-style: normal; color: #F76B57;">policy.</em>
+      </h1>
+      <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; color: rgba(250, 251, 255,0.72); margin: 22px 0 0; max-width: 60ch;">
+        How Malibu collects, uses, and protects personal data across malibu.tech, the console, the provider app, and community channels.
+      </p>
+      <div class="legal-meta">
+        <div><strong>Last updated</strong> July 21, 2026</div>
+        <div><strong>Effective</strong> July 21, 2026</div>
+      </div>
+      <div class="region-tabs" role="tablist" aria-label="Policy region">
+        <button type="button" role="tab" id="tab-global" aria-selected="true" aria-controls="region-global" data-region-tab="global">Global</button>
+        <button type="button" role="tab" id="tab-eu" aria-selected="false" aria-controls="region-eu" data-region-tab="eu">EU / EEA</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTENT · GLOBAL ============ -->
+  <section id="region-global" role="tabpanel" aria-labelledby="tab-global" data-region-panel="global" style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(96px, 14vh, 160px);">
+    <div class="legal-prose" style="position: relative; max-width: 900px; margin: 0 auto;">
+
+      <h2><span class="n">01</span>Introduction</h2>
+      <p>Malibu (&ldquo;Malibu,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) is operated by Malibu AI, Inc. This Privacy Policy describes how we collect, use, disclose, and protect personal data in connection with our online interfaces and activities, including:</p>
+      <ul>
+        <li>The informational website at malibu.tech and its subdomains</li>
+        <li>The Malibu console at console.malibu.tech</li>
+        <li>The Malibu provider desktop application for macOS</li>
+        <li>Community communication channels administered by Malibu, including forums, GitHub Discussions, and messaging platforms</li>
+        <li>Analytics, support, and technical tools associated with the foregoing (collectively, the &ldquo;Services&rdquo;)</li>
+      </ul>
+      <p>This Privacy Policy does not apply to third-party websites, public blockchain networks not controlled by Malibu, or activities conducted entirely outside the Services.</p>
+
+      <h2><span class="n">02</span>Important notice regarding blockchain technology</h2>
+      <div class="legal-callout"><strong>Transactions conducted on public blockchain networks are public, immutable, and irreversible.</strong></div>
+      <p>When you interact with the Services &mdash; for example by verifying an inference receipt on-chain, or (once available) paying for inference in USDC or receiving $MALIBU rewards as a provider &mdash; certain information may be recorded on a public blockchain, including:</p>
+      <ul>
+        <li>Wallet addresses and public blockchain identifiers</li>
+        <li>Transaction hashes, receipts, and related metadata</li>
+        <li>Timestamps and protocol-level interaction data</li>
+      </ul>
+      <p>Malibu does not control public blockchain networks and cannot modify, obscure, anonymize, or delete information recorded on-chain. Any personal data written to a public blockchain or otherwise disclosed through on-chain activity may remain permanently accessible and may be processed by third parties outside Malibu&rsquo;s control.</p>
+      <p>This Privacy Policy applies only to personal data collected off-chain through the Services. It does not apply to information publicly available on blockchain networks.</p>
+
+      <h2><span class="n">03</span>Personal data we collect</h2>
+
+      <h3>(a) Information you provide voluntarily</h3>
+      <ul>
+        <li>Email address or other contact information you choose to provide</li>
+        <li>Content you submit through forms, email, support requests, or community platforms</li>
+        <li>GitHub account information (such as username, email address, and avatar) if you sign in to the console with GitHub OAuth</li>
+        <li>Community usernames, profile information, or other content you voluntarily disclose in Malibu-administered forums</li>
+      </ul>
+
+      <h3>(b) Blockchain-related information</h3>
+      <ul>
+        <li>Public wallet addresses you connect to the Services</li>
+        <li>Transaction hashes and other publicly available blockchain data associated with those wallets</li>
+        <li>Receipts, refunds, and settlement metadata connected to inference activity</li>
+      </ul>
+      <p>Malibu does not control how public blockchain data is recorded, displayed, or indexed. Malibu does not associate wallet addresses with real-world identities unless such information is voluntarily provided by you.</p>
+
+      <h3>(c) Service usage information</h3>
+      <p>For buyers, we may process:</p>
+      <ul>
+        <li>API keys, daily-quota consumption, and usage history. Prepaid credit balances and USDC top-up history are on the roadmap; when they become available we will process the same billing information about them.</li>
+        <li>Prompt routing metadata (such as the model requested, token counts, response latency, and provider assignment)</li>
+        <li>Prompt inputs and model outputs, in transit through Malibu&rsquo;s gateway and coordinator, for the purposes of routing your request, metering usage, settling payments, and verifying inference receipts. Prompt content is also processed as plaintext by the independent provider selected to serve your request (see Section 07). Beyond what is needed for these purposes, and beyond what you explicitly save in the console, Malibu does not retain prompt content or model outputs.</li>
+        <li>Console session state, feature usage, and support interactions</li>
+      </ul>
+      <div class="legal-callout"><strong>The Services are not private-inference infrastructure.</strong> Buyer prompts and model outputs are processed as plaintext on independent provider hardware, and providers can technically observe what routes through their machine. Do not submit content you would not share with an independent provider. A self-hosted coordinator for buyers who need local-only trust is on the roadmap.</div>
+      <p>For providers running the Malibu Mac application, we may process:</p>
+      <ul>
+        <li>The public wallet address used to receive earnings</li>
+        <li>Hardware and OS characteristics your node reports (such as chip family, memory, and macOS version) for scheduling and eligibility</li>
+        <li>Uptime, latency, throughput, and other node-performance metadata</li>
+        <li>Verification data submitted for verified-model settlement</li>
+      </ul>
+
+      <h3>(d) Automatically collected information</h3>
+      <p>When you access the Services, we may automatically collect:</p>
+      <ul>
+        <li>IP address</li>
+        <li>Browser type and version</li>
+        <li>Operating system</li>
+        <li>Device identifiers</li>
+        <li>Pages viewed and interaction data</li>
+        <li>Referring URLs and timestamps</li>
+      </ul>
+
+      <h3>(e) Aggregated or de-identified information</h3>
+      <p>We may create aggregated or de-identified information for analytical and operational purposes. Such information does not identify, and cannot reasonably be used to identify, an individual.</p>
+
+      <h2><span class="n">04</span>Information we do not collect</h2>
+      <p>Malibu does not intentionally collect:</p>
+      <ul>
+        <li>Government-issued identification numbers</li>
+        <li>Social Security numbers</li>
+        <li>Payment card or bank account information</li>
+        <li>Biometric identifiers</li>
+        <li>Precise geolocation data</li>
+        <li>Health or medical information</li>
+      </ul>
+      <p>The Services are non-custodial with respect to your crypto assets. Fiat top-ups, where offered, are handled by third-party payment processors; Malibu does not itself store card or bank data.</p>
+
+      <h2><span class="n">05</span>How we use personal data</h2>
+      <p>We use personal data for the following purposes:</p>
+      <ul>
+        <li>To operate, maintain, and improve the Services</li>
+        <li>To route inference requests, meter usage, and settle payments between buyers and providers under the currently live billing model, and under any additional payment rails (such as prepaid credits and USDC top-ups) when those become available</li>
+        <li>To distribute $MALIBU rewards to providers once on-chain $MALIBU emission is live (currently planned; not yet in production)</li>
+        <li>To respond to inquiries and communications</li>
+        <li>To monitor, analyze, and improve system performance and security</li>
+        <li>To prevent fraud, abuse, and unauthorized activity</li>
+        <li>To comply with applicable legal and regulatory obligations</li>
+      </ul>
+      <p>Malibu does not use personal data for targeted advertising.</p>
+
+      <h2><span class="n">06</span>Cookies and analytics</h2>
+      <p>The Services currently use only strictly necessary storage &mdash; such as session and API-key state on the console &mdash; required to keep you signed in and to operate features you have requested. We do not use third-party analytics or advertising cookies.</p>
+      <p>If we introduce non-essential cookies or similar technologies in the future, we will update this section, provide notice, and (where required by applicable law) obtain your consent before setting them.</p>
+      <p>You may disable cookies through your browser settings. Certain features of the Services may not function properly if you do.</p>
+
+      <h2><span class="n">07</span>How we share information</h2>
+      <p>Personal data may be disclosed:</p>
+      <ul>
+        <li>To the independent Mac provider selected to serve your inference request. Prompt inputs and model outputs pass through the provider&rsquo;s hardware in plaintext for the purpose of generating and returning results. Providers can technically observe the prompts and outputs that route through their machine.</li>
+        <li>To service providers that support hosting, analytics, security, communications, or infrastructure</li>
+        <li>To professional advisors, including legal and accounting firms</li>
+        <li>To comply with applicable law, regulation, subpoena, or legal process</li>
+        <li>To protect the rights, safety, and integrity of Malibu, our contributors, users, or others</li>
+      </ul>
+      <p>Malibu does not sell personal data. Malibu does not share personal data for cross-context behavioral advertising.</p>
+
+      <h2><span class="n">08</span>Data retention</h2>
+      <p>We retain personal data only for as long as reasonably necessary to:</p>
+      <ul>
+        <li>Fulfill the purposes described in this Privacy Policy</li>
+        <li>Comply with applicable legal obligations</li>
+        <li>Resolve disputes</li>
+        <li>Enforce agreements</li>
+      </ul>
+      <p>Public blockchain data is retained indefinitely by the applicable blockchain networks and is not subject to our retention controls.</p>
+
+      <h2><span class="n">09</span>Your privacy rights</h2>
+      <p>Depending on your jurisdiction, you may have certain rights regarding personal data we process, including the right to:</p>
+      <ul>
+        <li>Request access to personal data we maintain about you</li>
+        <li>Request correction of inaccurate personal data</li>
+        <li>Request deletion of certain personal data</li>
+        <li>Opt out of certain data-processing activities, where applicable</li>
+      </ul>
+      <p>These rights may not apply to:</p>
+      <ul>
+        <li>Publicly available blockchain data</li>
+        <li>Information that Malibu does not control</li>
+        <li>Information required for legal or regulatory compliance</li>
+        <li>Data necessary to maintain the security or functionality of the Services</li>
+      </ul>
+      <p>Requests may be submitted using the contact information provided below.</p>
+
+      <h2><span class="n">10</span>Children&rsquo;s information</h2>
+      <p>The Services are not intended for individuals under the age of 18. Malibu does not knowingly collect personal data from children.</p>
+
+      <h2><span class="n">11</span>Data security</h2>
+      <p>We implement reasonable administrative, technical, and organizational safeguards designed to protect personal data against unauthorized access, disclosure, alteration, or destruction. These safeguards are intended to reflect the nature of the Services and the categories of personal data we process.</p>
+      <p>However, no system, network, or method of electronic transmission is completely secure. While we seek to protect personal data, we cannot guarantee its absolute security, particularly where information is transmitted over the internet or interacts with decentralized networks beyond Malibu&rsquo;s control.</p>
+
+      <h2><span class="n">12</span>Global data processing</h2>
+      <p>The Services rely on globally distributed infrastructure and service providers. As a result, personal data processed in connection with the Services may be transferred to, stored in, or accessed from jurisdictions with data-protection laws that may differ from those of your home jurisdiction. By accessing the Services, you acknowledge that such cross-border processing may occur.</p>
+
+      <h2><span class="n">13</span>Changes to this Privacy Policy</h2>
+      <p>We may update this Privacy Policy from time to time. The &ldquo;Last updated&rdquo; date above reflects the effective date of the current version. For material changes, we will provide reasonable notice through the console, the provider app, or by email, and we encourage you to review updates when notified.</p>
+
+      <h2><span class="n">14</span>Contact</h2>
+      <p>Questions about this Privacy Policy, or requests regarding your personal data, can be sent to <a href="mailto:team@malibu.tech">team@malibu.tech</a>.</p>
+
+    </div>
+  </section>
+
+  <!-- ============ CONTENT · EU / EEA ============ -->
+  <section id="region-eu" role="tabpanel" aria-labelledby="tab-eu" data-region-panel="eu" hidden style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(96px, 14vh, 160px);">
+    <div class="legal-prose" style="position: relative; max-width: 900px; margin: 0 auto;">
+
+      <h2><span class="n">01</span>Introduction</h2>
+      <p>This notice applies specifically to individuals located in the European Union, European Economic Area, and Switzerland.</p>
+      <p>This Privacy Notice describes how Malibu, operated by Malibu AI, Inc. (&ldquo;Malibu,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;), processes personal data of individuals located in the European Union, European Economic Area, and Switzerland (&ldquo;EU Users&rdquo;) in accordance with Regulation (EU) 2016/679 (the &ldquo;General Data Protection Regulation&rdquo; or &ldquo;GDPR&rdquo;).</p>
+      <p>This Privacy Notice applies when EU Users interact with:</p>
+      <ul>
+        <li>The informational website at malibu.tech and its subdomains</li>
+        <li>The Malibu console at console.malibu.tech</li>
+        <li>The Malibu provider desktop application for macOS</li>
+        <li>Community channels administered by Malibu</li>
+        <li>Analytics, support, and technical tools associated with the foregoing (collectively, the &ldquo;Services&rdquo;)</li>
+      </ul>
+      <p>For purposes of this Privacy Notice, &ldquo;process&rdquo; has the meaning given in Article 4(2) GDPR and includes the collection, use, disclosure, storage, and other handling of personal data.</p>
+      <p>This Privacy Notice does not apply to:</p>
+      <ul>
+        <li>Third-party websites, applications, or services not operated by Malibu</li>
+        <li>Public blockchain networks or protocols not controlled by Malibu</li>
+        <li>Activities conducted entirely outside the Services</li>
+      </ul>
+
+      <h2><span class="n">02</span>Data controller</h2>
+      <p>For the purposes of the GDPR, the data controller is:</p>
+      <p style="margin: 4px 0 16px;">Malibu AI, Inc.<br /><a href="mailto:team@malibu.tech">team@malibu.tech</a></p>
+
+      <h2><span class="n">03</span>Important notice regarding blockchain technology</h2>
+      <div class="legal-callout"><strong>Transactions conducted on public blockchain networks are public, immutable, and irreversible.</strong></div>
+      <p>When you interact with the Services &mdash; for example by verifying an inference receipt on-chain, or (once available) paying for inference in USDC or receiving $MALIBU rewards as a provider &mdash; certain information may be recorded on a public blockchain, including:</p>
+      <ul>
+        <li>Wallet addresses and public blockchain identifiers</li>
+        <li>Transaction hashes, receipts, and related metadata</li>
+        <li>Timestamps and protocol-level interaction data</li>
+      </ul>
+      <p>Malibu does not control public blockchain networks and cannot modify, obscure, anonymize, or delete information recorded on-chain. Any personal data written to a public blockchain or otherwise disclosed through on-chain activity may remain permanently accessible and may be processed by third parties outside Malibu&rsquo;s control.</p>
+      <p>This Privacy Notice applies only to personal data collected and processed off-chain through the Services and does not apply to information that is publicly available on blockchain networks or other decentralized systems.</p>
+
+      <h2><span class="n">04</span>Categories of personal data processed</h2>
+      <p>Depending on how you interact with the Services, Malibu may process the following categories of personal data:</p>
+      <ul>
+        <li>Contact information voluntarily provided by you, such as an email address</li>
+        <li>GitHub account information (username, email address, avatar) if you sign in to the console with GitHub OAuth</li>
+        <li>Communications and correspondence submitted to Malibu</li>
+        <li>Public wallet addresses and other blockchain identifiers you connect to the Services</li>
+        <li>API keys, daily-quota consumption, and usage history. Prepaid credit balances and USDC top-up history are on the roadmap; when they become available we will process the same billing information about them.</li>
+        <li>Prompt routing metadata (model requested, token counts, response latency, provider assignment)</li>
+        <li>Prompt inputs and model outputs, processed in transit through Malibu&rsquo;s gateway and coordinator, and processed as plaintext by the independent provider selected to serve the request (see Section 07)</li>
+        <li>Node telemetry from the provider app, including hardware and OS characteristics, uptime, latency, and throughput</li>
+        <li>Technical data, including IP address, browser type and version, operating system, device identifiers, access times, and usage logs</li>
+      </ul>
+      <div class="legal-callout"><strong>The Services are not private-inference infrastructure.</strong> Prompt and output content is processed as plaintext on independent provider hardware, and providers can technically observe what routes through their machine. Do not submit content you would not share with an independent provider. A self-hosted coordinator for buyers who need local-only trust is on the roadmap.</div>
+      <p>Malibu does not intentionally process special categories of personal data under Article 9 GDPR. If you submit special-category information within a prompt, it will be processed as part of that prompt through the flows described above.</p>
+
+      <h2><span class="n">05</span>Purposes of processing and legal bases</h2>
+      <p>Malibu processes personal data for the purposes and lawful bases described below:</p>
+      <table>
+        <thead>
+          <tr><th>Purpose</th><th>Legal basis</th><th>Interest, where applicable</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Operation and maintenance of the Services, including delivery of inference requests between buyers and providers</td><td>Legitimate interests (Art. 6(1)(f))</td><td>Operating a functional inference marketplace</td></tr>
+          <tr><td>Metering usage and settling payments between buyers and providers (including verified-model settlement, and, when available, prepaid credits and USDC top-ups)</td><td>Contract (Art. 6(1)(b)) where you are a buyer or provider; otherwise legitimate interests (Art. 6(1)(f))</td><td>Ensuring providers are paid for verified work and buyers are billed for what they used</td></tr>
+          <tr><td>Distribution of $MALIBU rewards to providers, when on-chain emission becomes available (currently planned)</td><td>Legitimate interests (Art. 6(1)(f))</td><td>Aligning provider incentives with the health and growth of the network</td></tr>
+          <tr><td>Responding to inquiries and communications</td><td>Consent (Art. 6(1)(a)) where you initiate contact; otherwise legitimate interests (Art. 6(1)(f))</td><td>Providing support and responding to users who contact us</td></tr>
+          <tr><td>Analytics, performance monitoring, fraud prevention, and security</td><td>Legitimate interests (Art. 6(1)(f))</td><td>Network security, fraud prevention, and service reliability</td></tr>
+          <tr><td>Compliance with applicable legal obligations</td><td>Legal obligation (Art. 6(1)(c))</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+      <p>Where processing is based on consent, you may withdraw your consent at any time. Where processing is based on legitimate interests, you may object under Article 21 GDPR; we will assess objections on a case-by-case basis in line with GDPR requirements.</p>
+
+      <h2><span class="n">06</span>Cookies and similar technologies</h2>
+      <p>The Services currently use only strictly necessary storage &mdash; such as session and API-key state on the console &mdash; required to keep you signed in and to operate features you have requested. We do not use third-party analytics or advertising cookies, and the Services do not currently display a consent banner because no consent is required for the storage in use.</p>
+      <p>If we introduce non-essential cookies or similar technologies in the future, we will provide notice and obtain your consent, where required by applicable law, before setting them. You may manage storage through your browser settings; certain features of the Services may not function properly if you do.</p>
+
+      <h2><span class="n">07</span>Data recipients</h2>
+      <p>Personal data may be disclosed to:</p>
+      <ul>
+        <li>The independent Mac provider selected to serve your inference request &mdash; prompt inputs and model outputs are transmitted to and processed as plaintext on the provider&rsquo;s hardware in order to generate and return results</li>
+        <li>Infrastructure, hosting, analytics, and security service providers</li>
+        <li>Professional advisors, including legal and accounting firms</li>
+        <li>Public authorities or regulators where required by law</li>
+      </ul>
+      <p>Malibu does not sell personal data and does not engage in targeted advertising.</p>
+
+      <h2><span class="n">08</span>International data transfers</h2>
+      <p>Personal data may be transferred to, stored in, or accessed from jurisdictions outside the European Union or European Economic Area that may not provide an equivalent level of data protection.</p>
+      <p>Where GDPR Chapter V applies, we require subprocessors that handle EU personal data outside the EEA to be bound by a lawful transfer mechanism, such as:</p>
+      <ul>
+        <li>European Commission Standard Contractual Clauses</li>
+        <li>Another lawful transfer mechanism recognized under applicable law</li>
+      </ul>
+
+      <h2><span class="n">09</span>Data retention</h2>
+      <p>Personal data is retained only for as long as reasonably necessary to fulfill the purposes described in this Privacy Notice, including compliance with legal obligations and resolution of disputes.</p>
+      <p>Information recorded on public blockchain networks is retained permanently by those networks and is not subject to Malibu&rsquo;s retention controls.</p>
+
+      <h2><span class="n">10</span>Your GDPR rights</h2>
+      <p>EU Users have the following rights under the GDPR:</p>
+      <ul>
+        <li>Right of access (Article 15)</li>
+        <li>Right to rectification (Article 16)</li>
+        <li>Right to erasure in certain circumstances (Article 17)</li>
+        <li>Right to restriction of processing (Article 18)</li>
+        <li>Right to data portability (Article 20)</li>
+        <li>Right to object to processing based on legitimate interests (Article 21)</li>
+        <li>Right to withdraw consent at any time, where applicable</li>
+      </ul>
+      <p>These rights do not apply to publicly available blockchain data or information outside Malibu&rsquo;s technical control. Requests may be submitted to <a href="mailto:team@malibu.tech">team@malibu.tech</a>.</p>
+
+      <h2><span class="n">11</span>Right to lodge a complaint</h2>
+      <p>You have the right to lodge a complaint with a supervisory authority in the European Union Member State of your habitual residence, place of work, or place of the alleged infringement.</p>
+
+      <h2><span class="n">12</span>Data security</h2>
+      <p>We implement reasonable administrative, technical, and organizational safeguards designed to protect personal data against unauthorized access, disclosure, alteration, or destruction. These safeguards are intended to reflect the nature of the Services and the categories of personal data we process.</p>
+      <p>However, no system, network, or method of electronic transmission is completely secure. While we seek to protect personal data, we cannot guarantee its absolute security, particularly where information is transmitted over the internet or interacts with decentralized networks beyond Malibu&rsquo;s control.</p>
+
+      <h2><span class="n">13</span>Changes to this Privacy Notice</h2>
+      <p>We may update this Privacy Notice from time to time. The &ldquo;Last updated&rdquo; date above reflects the effective date of the current version. For material changes, we will provide reasonable notice through the console, the provider app, or by email, and we encourage you to review updates when notified.</p>
+
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="position: relative; overflow: hidden; background: #0C3A45; color: #FAFBFF; padding: clamp(64px, 8vh, 96px) clamp(28px, 5vw, 80px) 48px;">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 48px 32px; flex-wrap: wrap;">
+        <div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Product</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+            <a href="/console/">Console</a>
+            <a href="/host/">Host a model</a>
+            <a href="/network/">Network</a>
+            <a href="/#token">$MALIBU</a>
+          </div>
+        </div>
+        <div style="display: flex; gap: 48px 64px; flex-wrap: wrap;">
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Learn</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+              <a href="/blog/">Blog</a>
+              <a href="https://malibu.tech/docs">Docs</a>
+              <a href="https://malibu.tech/docs/litepaper">Litepaper</a>
+            </div>
+          </div>
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Social</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+              <a href="https://x.com/malibuonbase" target="_blank" rel="noopener">X</a>
+              <a href="https://github.com/MalibuAI/malibu" target="_blank" rel="noopener">GitHub</a>
+              <a href="mailto:team@malibu.tech">Contact</a>
+            </div>
+          </div>
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 22px;">Legal</div>
+            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
+              <a href="/privacy/" style="color: #FAFBFF;">Privacy Policy</a>
+              <a href="/terms/">Terms of Service</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.66);">
+        <div>&copy; 2026 Malibu AI, Inc.</div>
+        <a href="/">Back to Malibu &rarr;</a>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<script type="module" src="/src/nav.js"></script>
+<script>
+  (function(){
+    var tabs = document.querySelectorAll('[data-region-tab]');
+    var panels = document.querySelectorAll('[data-region-panel]');
+    function select(region){
+      tabs.forEach(function(t){
+        var on = t.getAttribute('data-region-tab') === region;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      panels.forEach(function(p){
+        var on = p.getAttribute('data-region-panel') === region;
+        if (on) p.removeAttribute('hidden'); else p.setAttribute('hidden','');
+      });
+      if (history.replaceState) {
+        history.replaceState(null, '', region === 'eu' ? '#eu' : location.pathname);
+      }
+    }
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){ select(t.getAttribute('data-region-tab')); });
+    });
+    if (location.hash === '#eu') select('eu');
+  })();
+</script>
+</body>
+</html>
