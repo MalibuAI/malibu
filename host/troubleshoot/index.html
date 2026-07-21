@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Troubleshoot Malibu for Mac — Gatekeeper, login items, model downloads, and uninstall." />
+  <meta name="description" content="Troubleshoot Malibu for Mac — invites, Gatekeeper, login items, model downloads, and uninstall." />
   <title>Malibu · Host troubleshoot</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -64,9 +64,19 @@
   <a href="/host/" class="back">← Back to host</a>
   <div class="pill"><span class="b">?</span> Provider setup</div>
   <h1>Troubleshoot Malibu</h1>
-  <p class="sub">Most installs are one click. If something stalls, start here — then reach us from the in-app support link or GitHub issues.</p>
+  <p class="sub">Private pre-beta onboarding needs an invite. If install or registration stalls, start here — then reach us from the in-app support link or GitHub issues.</p>
 
   <div class="topics">
+    <article class="topic">
+      <h2>Asked for an invite code</h2>
+      <p>Fresh providers cannot finish registration without a valid invite. The public <a href="/host/" style="color:rgba(255,198,41,0.92);text-decoration:underline;">/host</a> download still works, but Malibu will ask for your code before admitting a new Mac.</p>
+      <ul>
+        <li>Open the invite link you were sent (<code>malibu.tech/j#/…</code>), copy the code, and paste it when Malibu asks.</li>
+        <li>If you landed here without an invite, ask the person who referred you — or wait for the next seed wave. There is no open self-serve join right now.</li>
+        <li>Already-running providers do not need a new invite for updates or restarts.</li>
+      </ul>
+    </article>
+
     <article class="topic">
       <h2>Gatekeeper blocked the download</h2>
       <p>Malibu ships signed and notarized. macOS should open it without extra steps. If you see “Malibu can’t be opened”:</p>
