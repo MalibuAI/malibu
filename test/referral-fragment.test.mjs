@@ -119,9 +119,11 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://download.malibu.tech/sha256/e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1/Malibu-v1.8.53.dmg',
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.56/Malibu-v1.8.56.dmg',
   );
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
+  assert.doesNotMatch(runtime, /Malibu-v1\.8\.53\.dmg/);
+  assert.doesNotMatch(runtime, /Malibu-v1\.8\.43\.dmg/);
   assert.match(runtime, /credentials: 'omit'/);
   assert.match(runtime, /redirect: 'error'/);
   assert.match(runtime, /isCanonicalLandingLocation\(window\.location\)/);
@@ -152,19 +154,19 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
 });
 
 test('production download gate accepts only the frozen commit and asset digests', () => {
-  const sourceCommit = 'bc543c0fc7d423b0252f747b5ecb491db919e404';
-  const dmgAsset = 'Malibu-v1.8.53.dmg';
+  const sourceCommit = '0937d230cb7bbfe779480ffb72dbb6ea78d0a14b';
+  const dmgAsset = 'Malibu-v1.8.56.dmg';
   const checksumAsset = 'checksums.txt';
   const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.53/';
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.56/';
   const acceptedDigests = new Map([
-    [dmgAsset, 'e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1'],
-    [checksumAsset, 'a2b3823c04de09ce4f0b5d7c9259da3e3d5a4e17302e9a36d56fc1b26679c95f'],
-    [provenanceAsset, '0c0ac0a2715f19251fde7a021ebc2a4fcce7e45d4f906a6150a6418a8f7b239c'],
+    [dmgAsset, 'b5889de597363b2ecb1df823da93a5ecc555e91d75f8e5eb7208917071f1867b'],
+    [checksumAsset, '89d1c4be78a6af75d60e5766eb43c0e6baef0a239bddaa86742cb6367c52a263'],
+    [provenanceAsset, '8f3c69469b21991666abe0c030bec8afe4b79b30cc44e1f2e4355bfc0273b1da'],
   ]);
   const release = {
-    tag_name: 'v1.8.53',
+    tag_name: 'v1.8.56',
     draft: false,
     prerelease: false,
     immutable: true,
@@ -174,9 +176,9 @@ test('production download gate accepts only the frozen commit and asset digests'
       browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest}`,
     })).concat({
-      name: 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+      name: 'macprovider-cli-v1.8.56-darwin-arm64.tar.gz',
       browser_download_url:
-        githubDownloadBase + 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+        githubDownloadBase + 'macprovider-cli-v1.8.56-darwin-arm64.tar.gz',
       digest: `sha256:${'b'.repeat(64)}`,
     }),
   };

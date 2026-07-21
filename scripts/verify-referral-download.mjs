@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 
 import { MALIBU_DOWNLOAD_URL } from '../j/release.mjs';
 
-const VERSION = '1.8.53';
+const VERSION = '1.8.56';
 const TAG = `v${VERSION}`;
 const DMG_ASSET = `Malibu-v${VERSION}.dmg`;
 const CHECKSUM_ASSET = 'checksums.txt';
@@ -15,14 +15,13 @@ const RELEASE_API_URL =
 const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
 const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, PROVENANCE_ASSET];
-const ACCEPTED_SOURCE_COMMIT = 'bc543c0fc7d423b0252f747b5ecb491db919e404';
+const ACCEPTED_SOURCE_COMMIT = '0937d230cb7bbfe779480ffb72dbb6ea78d0a14b';
 const ACCEPTED_ASSET_SHA256 = Object.freeze({
-  [DMG_ASSET]: 'e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1',
-  [CHECKSUM_ASSET]: 'a2b3823c04de09ce4f0b5d7c9259da3e3d5a4e17302e9a36d56fc1b26679c95f',
-  [PROVENANCE_ASSET]: '0c0ac0a2715f19251fde7a021ebc2a4fcce7e45d4f906a6150a6418a8f7b239c',
+  [DMG_ASSET]: 'b5889de597363b2ecb1df823da93a5ecc555e91d75f8e5eb7208917071f1867b',
+  [CHECKSUM_ASSET]: '89d1c4be78a6af75d60e5766eb43c0e6baef0a239bddaa86742cb6367c52a263',
+  [PROVENANCE_ASSET]: '8f3c69469b21991666abe0c030bec8afe4b79b30cc44e1f2e4355bfc0273b1da',
 });
-const ACCEPTED_DOWNLOAD_URL =
-  `https://download.malibu.tech/sha256/${ACCEPTED_ASSET_SHA256[DMG_ASSET]}/${DMG_ASSET}`;
+const ACCEPTED_DOWNLOAD_URL = GITHUB_DOWNLOAD_BASE + DMG_ASSET;
 const TRUSTED_API_HOSTS = new Set(['api.github.com']);
 const TRUSTED_DOWNLOAD_HOSTS = new Set([
   'download.malibu.tech',
