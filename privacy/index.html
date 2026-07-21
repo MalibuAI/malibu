@@ -39,13 +39,13 @@
     .legal-prose thead th { text-align: left; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; font-weight: 500; border-bottom: 1px solid rgba(250, 251, 255,0.12); }
     .legal-prose tbody td { padding: 14px; border-bottom: 1px solid rgba(250, 251, 255,0.08); vertical-align: top; color: rgba(250, 251, 255,0.82); }
     .legal-prose tbody tr:last-child td { border-bottom: 0; }
-    .legal-prose tbody td:last-child { white-space: nowrap; color: rgba(250, 251, 255,0.7); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; letter-spacing: 0.02em; }
+    .legal-prose tbody td:nth-child(2) { color: rgba(250, 251, 255,0.7); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; letter-spacing: 0.02em; }
     @media (max-width: 640px) {
       .legal-prose table, .legal-prose thead, .legal-prose tbody, .legal-prose tr, .legal-prose td, .legal-prose th { display: block; }
       .legal-prose thead { display: none; }
       .legal-prose tbody tr { padding: 12px 0; border-bottom: 1px solid rgba(250, 251, 255,0.08); }
       .legal-prose tbody td { padding: 4px 0; border: 0; white-space: normal !important; }
-      .legal-prose tbody td:last-child { font-size: 11.5px; color: #FFC629; }
+      .legal-prose tbody td:nth-child(2) { font-size: 11.5px; color: #FFC629; }
     }
   </style>
 </head>
@@ -148,10 +148,12 @@
       <h3>(c) Service usage information</h3>
       <p>For buyers, we may process:</p>
       <ul>
-        <li>API keys, credit balances, and top-up history</li>
-        <li>Prompt routing metadata (such as the model requested, token counts, response latency, and provider assignment) &mdash; not the contents of your prompts unless you have explicitly saved them</li>
+        <li>API keys, daily-quota consumption, and usage history. Prepaid credit balances and USDC top-up history are on the roadmap; when they become available we will process the same billing information about them.</li>
+        <li>Prompt routing metadata (such as the model requested, token counts, response latency, and provider assignment)</li>
+        <li>Prompt inputs and model outputs, in transit through Malibu&rsquo;s gateway and coordinator, for the purposes of routing your request, metering usage, settling payments, and verifying inference receipts. Prompt content is also processed as plaintext by the independent provider selected to serve your request (see Section 07). Beyond what is needed for these purposes, and beyond what you explicitly save in the console, Malibu does not retain prompt content or model outputs.</li>
         <li>Console session state, feature usage, and support interactions</li>
       </ul>
+      <div class="legal-callout"><strong>The Services are not private-inference infrastructure.</strong> Buyer prompts and model outputs are processed as plaintext on independent provider hardware, and providers can technically observe what routes through their machine. Do not submit content you would not share with an independent provider. A self-hosted coordinator for buyers who need local-only trust is on the roadmap.</div>
       <p>For providers running the Malibu Mac application, we may process:</p>
       <ul>
         <li>The public wallet address used to receive earnings</li>
@@ -190,8 +192,8 @@
       <p>We use personal data for the following purposes:</p>
       <ul>
         <li>To operate, maintain, and improve the Services</li>
-        <li>To route inference requests, meter usage, and settle payments between buyers and providers</li>
-        <li>To distribute $MALIBU rewards according to network rules</li>
+        <li>To route inference requests, meter usage, and settle payments between buyers and providers under the currently live billing model, and under any additional payment rails (such as prepaid credits and USDC top-ups) when those become available</li>
+        <li>To distribute $MALIBU rewards to providers once on-chain $MALIBU emission is live (currently planned; not yet in production)</li>
         <li>To respond to inquiries and communications</li>
         <li>To monitor, analyze, and improve system performance and security</li>
         <li>To prevent fraud, abuse, and unauthorized activity</li>
@@ -211,6 +213,7 @@
       <h2><span class="n">07</span>How we share information</h2>
       <p>Personal data may be disclosed:</p>
       <ul>
+        <li>To the independent Mac provider selected to serve your inference request. Prompt inputs and model outputs pass through the provider&rsquo;s hardware in plaintext for the purpose of generating and returning results. Providers can technically observe the prompts and outputs that route through their machine.</li>
         <li>To service providers that support hosting, analytics, security, communications, or infrastructure</li>
         <li>To professional advisors, including legal and accounting firms</li>
         <li>To comply with applicable law, regulation, subpoena, or legal process</li>
@@ -293,7 +296,7 @@
 
       <h2><span class="n">03</span>Important notice regarding blockchain technology</h2>
       <div class="legal-callout"><strong>Transactions conducted on public blockchain networks are public, immutable, and irreversible.</strong></div>
-      <p>When you interact with the Services &mdash; for example by paying for inference in USDC, receiving $MALIBU rewards as a provider, or verifying an inference receipt on-chain &mdash; certain information may be recorded on a public blockchain, including:</p>
+      <p>When you interact with the Services &mdash; for example by verifying an inference receipt on-chain, or (once available) paying for inference in USDC or receiving $MALIBU rewards as a provider &mdash; certain information may be recorded on a public blockchain, including:</p>
       <ul>
         <li>Wallet addresses and public blockchain identifiers</li>
         <li>Transaction hashes, receipts, and related metadata</li>
@@ -309,28 +312,30 @@
         <li>GitHub account information (username, email address, avatar) if you sign in to the console with GitHub OAuth</li>
         <li>Communications and correspondence submitted to Malibu</li>
         <li>Public wallet addresses and other blockchain identifiers you connect to the Services</li>
-        <li>Prompt routing metadata (model requested, token counts, response latency, provider assignment) &mdash; not the contents of your prompts unless you have explicitly saved them</li>
+        <li>Prompt routing metadata (model requested, token counts, response latency, provider assignment)</li>
+        <li>Prompt inputs and model outputs, processed in transit through Malibu&rsquo;s gateway and coordinator, and processed as plaintext by the independent provider selected to serve the request (see Section 07)</li>
         <li>Node telemetry from the provider app, including hardware and OS characteristics, uptime, latency, and throughput</li>
         <li>Technical data, including IP address, browser type and version, operating system, device identifiers, access times, and usage logs</li>
       </ul>
-      <p>Malibu does not intentionally process special categories of personal data under Article 9 GDPR.</p>
+      <div class="legal-callout"><strong>The Services are not private-inference infrastructure.</strong> Prompt and output content is processed as plaintext on independent provider hardware, and providers can technically observe what routes through their machine. Do not submit content you would not share with an independent provider. A self-hosted coordinator for buyers who need local-only trust is on the roadmap.</div>
+      <p>Malibu does not intentionally process special categories of personal data under Article 9 GDPR. If you submit special-category information within a prompt, it will be processed as part of that prompt through the flows described above.</p>
 
       <h2><span class="n">05</span>Purposes of processing and legal bases</h2>
       <p>Malibu processes personal data for the purposes and lawful bases described below:</p>
       <table>
         <thead>
-          <tr><th>Purpose</th><th>Legal basis</th></tr>
+          <tr><th>Purpose</th><th>Legal basis</th><th>Interest, where applicable</th></tr>
         </thead>
         <tbody>
-          <tr><td>Operation and maintenance of the Services</td><td>Legitimate interests (Art. 6(1)(f))</td></tr>
-          <tr><td>Routing inference requests, metering usage, and settling payments between buyers and providers</td><td>Contract (Art. 6(1)(b)) or legitimate interests (Art. 6(1)(f))</td></tr>
-          <tr><td>Distribution of $MALIBU rewards according to network rules</td><td>Legitimate interests (Art. 6(1)(f))</td></tr>
-          <tr><td>Responding to inquiries and communications</td><td>Consent (Art. 6(1)(a)) or legitimate interests</td></tr>
-          <tr><td>Analytics, performance monitoring, and security</td><td>Legitimate interests (Art. 6(1)(f))</td></tr>
-          <tr><td>Compliance with applicable legal obligations</td><td>Legal obligation (Art. 6(1)(c))</td></tr>
+          <tr><td>Operation and maintenance of the Services, including delivery of inference requests between buyers and providers</td><td>Legitimate interests (Art. 6(1)(f))</td><td>Operating a functional inference marketplace</td></tr>
+          <tr><td>Metering usage and settling payments between buyers and providers (including verified-model settlement, and, when available, prepaid credits and USDC top-ups)</td><td>Contract (Art. 6(1)(b)) where you are a buyer or provider; otherwise legitimate interests (Art. 6(1)(f))</td><td>Ensuring providers are paid for verified work and buyers are billed for what they used</td></tr>
+          <tr><td>Distribution of $MALIBU rewards to providers, when on-chain emission becomes available (currently planned)</td><td>Legitimate interests (Art. 6(1)(f))</td><td>Aligning provider incentives with the health and growth of the network</td></tr>
+          <tr><td>Responding to inquiries and communications</td><td>Consent (Art. 6(1)(a)) where you initiate contact; otherwise legitimate interests (Art. 6(1)(f))</td><td>Providing support and responding to users who contact us</td></tr>
+          <tr><td>Analytics, performance monitoring, fraud prevention, and security</td><td>Legitimate interests (Art. 6(1)(f))</td><td>Network security, fraud prevention, and service reliability</td></tr>
+          <tr><td>Compliance with applicable legal obligations</td><td>Legal obligation (Art. 6(1)(c))</td><td>&mdash;</td></tr>
         </tbody>
       </table>
-      <p>Where processing is based on consent, you may withdraw your consent at any time.</p>
+      <p>Where processing is based on consent, you may withdraw your consent at any time. Where processing is based on legitimate interests, you may object under Article 21 GDPR; we will assess objections on a case-by-case basis in line with GDPR requirements.</p>
 
       <h2><span class="n">06</span>Cookies and similar technologies</h2>
       <p>The Services may use cookies and similar technologies to:</p>
@@ -344,6 +349,7 @@
       <h2><span class="n">07</span>Data recipients</h2>
       <p>Personal data may be disclosed to:</p>
       <ul>
+        <li>The independent Mac provider selected to serve your inference request &mdash; prompt inputs and model outputs are transmitted to and processed as plaintext on the provider&rsquo;s hardware in order to generate and return results</li>
         <li>Infrastructure, hosting, analytics, and security service providers</li>
         <li>Professional advisors, including legal and accounting firms</li>
         <li>Public authorities or regulators where required by law</li>
