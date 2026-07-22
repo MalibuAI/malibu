@@ -183,7 +183,9 @@ fast-paced world", "it's important to note that", "at the end of the day",
 - **Pre-publish leakage check.** Before opening the PR, search the draft for
   `streamvc`, `MacProvider`, and any internal hostname. If any appears, a research
   source leaked into the copy — remove it and re-cite from a public source.
-- Company/legal name: **Malibu AI, Inc.**
+- Brand name: **Malibu**. Legal/operating entity: **Superposition Technologies Pte. Ltd.**
+  (Singapore). Marketing surfaces (footers, brand copy) use Malibu; Privacy, Terms, and
+  Organization JSON-LD (`name` + `legalName`) carry Superposition. Contact: `team@malibu.tech`.
 
 ## 6. Honesty and data (this is what makes it "expert content")
 
