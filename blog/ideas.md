@@ -15,7 +15,7 @@ Prefer High rows first. `⚑` = needs extra review before shipping; see notes.
 
 | Priority | Status | Working title | Search intent / primary keyword | Malibu-only angle | Data / sources |
 |---|---|---|---|---|---|
-| High | idea | What a verifiable inference receipt is (and why your API doesn't have one) | "verifiable AI inference", "how do I know which model served my request" | Signed Ed25519 receipt on every response; `malibu-verify`; TOPLOC. Malibu's sharpest differentiator | Litepaper, TOPLOC paper (WebFetch), receipt field list |
+| High | drafting | The signed receipt your inference API doesn't ship | "verifiable AI inference", "how do I know which model served my request" | Signed Ed25519 receipt on every response; `malibu-verify`; TOPLOC. Malibu's sharpest differentiator | Litepaper, TOPLOC paper (WebFetch), receipt field list |
 | High | idea | Why every decentralized-compute network stalled, and the one change that unlocks it | "decentralized AI compute", "why decentralized GPU failed" | The bootstrap wall; "mining state is serving state" as the fix | Manifesto; competitor post-mortems (WebFetch) ⚑ |
 | High | idea | Apple Silicon vs datacenter GPUs for inference, per watt | "apple silicon vs GPU inference", "M-series inference efficiency" | The per-watt efficiency story, honestly benchmarked — where Macs win and where they don't | Primary benchmarks (WebFetch); verify every number before asserting |
 | High | idea | Can a Mac run large language models? | "run LLM on Mac", "apple silicon LLM inference" | Unified memory + MLX make M-series genuinely good at serving 100B+ open models; Malibu turns that into paid capacity | `blog:stats`, MLX docs, model cards |
