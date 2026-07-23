@@ -719,6 +719,15 @@ function renderIndex(posts) {
   <meta property="og:description" content="Writing from the Malibu team — network updates, engineering notes, and the ideas behind the network." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="${SITE}/blog/" />
+  <meta property="og:image" content="${SITE}/images/brand/og-card.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Malibu — open AI on real Macs" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@malibuonbase" />
+  <meta name="twitter:title" content="Malibu · Blog" />
+  <meta name="twitter:description" content="Writing from the Malibu team — network updates, engineering notes, and the ideas behind the network." />
+  <meta name="twitter:image" content="${SITE}/images/brand/og-card.jpg" />
   <title>Malibu Blog · Apple Silicon AI inference and network notes</title>
 ${HEAD_ASSETS}
 ${indexJsonLd(posts)}
