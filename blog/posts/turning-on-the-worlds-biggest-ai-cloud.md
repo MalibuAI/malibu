@@ -74,7 +74,7 @@ curl https://api.malibu.tech/v1/chat/completions \
 
 Every response comes back with an `X-Malibu-Receipt` header. You can hand that receipt to `malibu-verify` and prove — cryptographically, without trusting us — that the response ran on the model it claims to have run on, from the provider it claims to have come from. No swap. No silent quantization. No cache substitution.
 
-This has never been standard in commercial AI inference. On Malibu it is the default.
+This has never been standard in commercial AI inference. On Malibu it is the default. For the field list, verification workflow, and the honest scope of what a signed receipt proves, see [the signed receipt your inference API doesn't ship](/blog/signed-inference-receipt/).
 
 ## What this means if you own a Mac
 
