@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No commercial inference API does that. Here is what changes." />
+  <meta name="description" content="Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No other commercial inference API ships one." />
   <meta name="keywords" content="verifiable inference, signed inference receipt, ed25519 receipt, ai audit trail, inference verification" />
   <link rel="canonical" href="https://malibu.tech/blog/signed-inference-receipt/" />
   <meta property="og:title" content="The signed receipt your inference API doesn't ship" />
@@ -32,7 +32,7 @@
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "The signed receipt your inference API doesn't ship",
-  "description": "Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No commercial inference API does that. Here is what changes.",
+  "description": "Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No other commercial inference API ships one.",
   "image": "https://malibu.tech/images/brand/blog-hero-macbook-sunset-mesh.jpg",
   "datePublished": "2026-07-23",
   "dateModified": "2026-07-23",
@@ -251,7 +251,8 @@ receipt = raw.headers.get("X-Malibu-Receipt")
   --json
 </code></pre>
 <p>Exit <code>0</code> means valid. Exit <code>1</code> means invalid, either the signature didn't check out or the canonicalization didn't match or the key rotated outside the operator's grace window. Exit <code>2</code> means inconclusive, usually because the pubkey was unresolvable when you ran the verifier. Full contract: <a href="https://malibu.tech/docs/cli/malibu-verify" rel="noopener">Docs — CLI: <code>malibu-verify</code></a>.</p>
-<p>Most buyers don't verify on every request. Per-request verification adds a round trip, and receipts stay verifiable forever. The pragmatic pattern is a nightly job: batch a day's receipts, run <code>malibu-verify</code> over the lot, keep the verdicts alongside your usage logs for dispute resolution.</p>
+<p>These names are standardizing across the network as it rolls out. If you are on an early provider build, confirm the exact receipt header and verifier command from your onboarding before you script against them.</p>
+<p>Most buyers don't verify on every request. Per-request verification adds a round trip, and receipts stay verifiable forever. The pragmatic pattern is a nightly job: batch a day's receipts, run <code>malibu-verify</code> over the lot, keep the verdicts alongside your <a href="https://malibu.tech/console" rel="noopener">usage logs</a> for dispute resolution.</p>
 <h2 id="why-no-other-api-ships-one">Why no other API ships one</h2>
 <p>Nothing about signing a receipt is technically hard. Ed25519 signatures are cheap, hashing is cheap, and the fields already exist inside every serving stack. The reason commercial inference APIs don't attach one is closer to a business decision than an engineering one.</p>
 <ul>
@@ -259,7 +260,7 @@ receipt = raw.headers.get("X-Malibu-Receipt")
 <li>A signed <code>output_hash</code> makes it trivial for a buyer to prove, after the fact, that a specific response came out of a specific request. That is exactly the artifact you want when disputing a bill and exactly the artifact a vendor doesn't want you to have.</li>
 <li>A signed <code>provider_pubkey</code> names the machine that served the request. In a hyperscaler's fleet the machine is an implementation detail; on Malibu it is a settlement primitive.</li>
 </ul>
-<p>Every one of those properties is a feature for the buyer and a liability for a vendor whose margins depend on the ambiguity. Malibu's incentive model runs the other way. The network is designed to pay providers only when receipts verify, and the settlement pipeline that turns receipt verdicts into buyer debits and provider credits is the design's next milestone — a stricter v0.4 receipt profile is already going into the settlement ledger today, with the money-movement leg on top of it landing behind <a href="https://malibu.tech/docs/operations/verified-model-settlement" rel="noopener">verified model settlement</a> and the <a href="https://malibu.tech/docs/status" rel="noopener">USDC-on-Base payout pipeline</a>.</p>
+<p>Every one of those properties is a feature for the buyer and a liability for a vendor whose margins depend on the ambiguity. Malibu's incentive model runs the other way. The network is designed to pay providers only when receipts verify, and the settlement pipeline that turns receipt verdicts into buyer debits and provider credits is the design's next milestone — a stricter v0.4 receipt profile is already going into the settlement ledger today, with the money-movement leg on top of it landing behind <a href="https://malibu.tech/docs/operations/verified-model-settlement" rel="noopener">verified model settlement</a> and the USDC-on-Base payout rail.</p>
 <h2 id="what-changes-when-receipts-are-the-default">What changes when receipts are the default</h2>
 <p>A signed receipt on every response reshapes a handful of things at once.</p>
 <ul>
@@ -270,7 +271,7 @@ receipt = raw.headers.get("X-Malibu-Receipt")
 </ul>
 <p>The bigger the model you're paying for, the more each of those is worth. When you're routing serious volume against a frontier open-source model, a signed attestation is the only way to know the endpoint ran the weights you paid for and not a cheaper stand-in. Signed receipts are the same idea, one layer down.</p>
 <h2 id="what-comes-next-forward-pass-attestation">What comes next: forward-pass attestation</h2>
-<p>Signed receipts are the live primitive. Per-request forward-pass attestation — closing the gap between "the provider signed this" and "the provider ran this" — is the next companion protocol on the road to the v1 marketplace. The design pattern follows TOPLOC (Prime Intellect, 2025), which verifies at roughly one percent of serving cost that a claimed forward pass over the claimed weights actually happened. When it ships, forward-pass verdicts route alongside receipt verdicts through the same settlement pipeline, and buyer-visible status distinguishes receipt-only <code>valid</code> from forward-pass-attested <code>valid</code>. Design in <a href="https://malibu.tech/docs/network/toploc" rel="noopener">Docs — Forward-pass attestation</a>.</p>
+<p>Signed receipts are the live primitive. Per-request forward-pass attestation, which closes the gap between "the provider signed this" and "the provider ran this," is the next companion protocol on the road to the v1 marketplace. The design pattern follows TOPLOC (Prime Intellect, 2025), which verifies at roughly one percent of serving cost that a claimed forward pass over the claimed weights actually happened. When it ships, forward-pass verdicts route alongside receipt verdicts through the same settlement pipeline, and buyer-visible status distinguishes receipt-only <code>valid</code> from forward-pass-attested <code>valid</code>. Design in <a href="https://malibu.tech/docs/network/toploc" rel="noopener">Docs — Forward-pass attestation</a>.</p>
 <p>Receipts today, forward-pass attestation next, both cheap enough to run on every request.</p>
 <h2 id="the-one-line-version">The one-line version</h2>
 <p>Every commercial inference API asks you to trust a <code>model</code> field. Malibu hands you a signature over the model, the prompt, the output, and the machine. You can verify it yourself. That's the difference.</p>
@@ -329,12 +330,13 @@ receipt = raw.headers.get("X-Malibu-Receipt")
             <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
               <a href="/privacy/">Privacy Policy</a>
               <a href="/terms/">Terms of Service</a>
+              <a href="/company/">Company</a>
             </div>
           </div>
         </div>
       </div>
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.66);">
-        <div>© 2026 Malibu</div>
+        <div>© Superposition Technologies Pte. Ltd. (UEN 201721187N) — operator of Malibu. All rights reserved.</div>
         <a href="/">Back to Malibu →</a>
       </div>
     </div>

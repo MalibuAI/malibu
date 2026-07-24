@@ -12,7 +12,7 @@
       <link>https://malibu.tech/blog/signed-inference-receipt/</link>
       <guid isPermaLink="true">https://malibu.tech/blog/signed-inference-receipt/</guid>
       <pubDate>Thu, 23 Jul 2026 00:00:00 GMT</pubDate>
-      <description>Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No commercial inference API does that. Here is what changes.</description>
+      <description>Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No other commercial inference API ships one.</description>
     </item>
     <item>
       <title>Turning on the world&apos;s biggest AI cloud</title>

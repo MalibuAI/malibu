@@ -3,7 +3,7 @@ title: The signed receipt your inference API doesn't ship
 headline: The signed receipt your inference API doesn't ship.
 category: Engineering
 date: 2026-07-23
-description: Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No commercial inference API does that. Here is what changes.
+description: Every Malibu response carries a nine-field Ed25519 receipt you can verify offline with an open-source CLI. No other commercial inference API ships one.
 ogTitle: The signed receipt your inference API doesn't ship
 ogDescription: Every Malibu response carries a signed cryptographic receipt. Nine fields, Ed25519, verifiable offline. Here is what that changes for buyers.
 lede: Your inference API returns some tokens and a model field that says whatever the vendor wants it to say. There is no signed statement, from the machine that actually ran the request, tying the output you got to the model you paid for. Malibu attaches one to every response, and you can verify it in a second without trusting Malibu.
@@ -74,7 +74,9 @@ malibu-verify \
 
 Exit `0` means valid. Exit `1` means invalid, either the signature didn't check out or the canonicalization didn't match or the key rotated outside the operator's grace window. Exit `2` means inconclusive, usually because the pubkey was unresolvable when you ran the verifier. Full contract: [Docs — CLI: `malibu-verify`](https://malibu.tech/docs/cli/malibu-verify).
 
-Most buyers don't verify on every request. Per-request verification adds a round trip, and receipts stay verifiable forever. The pragmatic pattern is a nightly job: batch a day's receipts, run `malibu-verify` over the lot, keep the verdicts alongside your usage logs for dispute resolution.
+These names are standardizing across the network as it rolls out. If you are on an early provider build, confirm the exact receipt header and verifier command from your onboarding before you script against them.
+
+Most buyers don't verify on every request. Per-request verification adds a round trip, and receipts stay verifiable forever. The pragmatic pattern is a nightly job: batch a day's receipts, run `malibu-verify` over the lot, keep the verdicts alongside your [usage logs](https://malibu.tech/console) for dispute resolution.
 
 ## Why no other API ships one
 
@@ -84,7 +86,7 @@ Nothing about signing a receipt is technically hard. Ed25519 signatures are chea
 - A signed `output_hash` makes it trivial for a buyer to prove, after the fact, that a specific response came out of a specific request. That is exactly the artifact you want when disputing a bill and exactly the artifact a vendor doesn't want you to have.
 - A signed `provider_pubkey` names the machine that served the request. In a hyperscaler's fleet the machine is an implementation detail; on Malibu it is a settlement primitive.
 
-Every one of those properties is a feature for the buyer and a liability for a vendor whose margins depend on the ambiguity. Malibu's incentive model runs the other way. The network is designed to pay providers only when receipts verify, and the settlement pipeline that turns receipt verdicts into buyer debits and provider credits is the design's next milestone — a stricter v0.4 receipt profile is already going into the settlement ledger today, with the money-movement leg on top of it landing behind [verified model settlement](https://malibu.tech/docs/operations/verified-model-settlement) and the [USDC-on-Base payout pipeline](https://malibu.tech/docs/status).
+Every one of those properties is a feature for the buyer and a liability for a vendor whose margins depend on the ambiguity. Malibu's incentive model runs the other way. The network is designed to pay providers only when receipts verify, and the settlement pipeline that turns receipt verdicts into buyer debits and provider credits is the design's next milestone — a stricter v0.4 receipt profile is already going into the settlement ledger today, with the money-movement leg on top of it landing behind [verified model settlement](https://malibu.tech/docs/operations/verified-model-settlement) and the USDC-on-Base payout rail.
 
 ## What changes when receipts are the default
 
@@ -99,7 +101,7 @@ The bigger the model you're paying for, the more each of those is worth. When yo
 
 ## What comes next: forward-pass attestation
 
-Signed receipts are the live primitive. Per-request forward-pass attestation — closing the gap between "the provider signed this" and "the provider ran this" — is the next companion protocol on the road to the v1 marketplace. The design pattern follows TOPLOC (Prime Intellect, 2025), which verifies at roughly one percent of serving cost that a claimed forward pass over the claimed weights actually happened. When it ships, forward-pass verdicts route alongside receipt verdicts through the same settlement pipeline, and buyer-visible status distinguishes receipt-only `valid` from forward-pass-attested `valid`. Design in [Docs — Forward-pass attestation](https://malibu.tech/docs/network/toploc).
+Signed receipts are the live primitive. Per-request forward-pass attestation, which closes the gap between "the provider signed this" and "the provider ran this," is the next companion protocol on the road to the v1 marketplace. The design pattern follows TOPLOC (Prime Intellect, 2025), which verifies at roughly one percent of serving cost that a claimed forward pass over the claimed weights actually happened. When it ships, forward-pass verdicts route alongside receipt verdicts through the same settlement pipeline, and buyer-visible status distinguishes receipt-only `valid` from forward-pass-attested `valid`. Design in [Docs — Forward-pass attestation](https://malibu.tech/docs/network/toploc).
 
 Receipts today, forward-pass attestation next, both cheap enough to run on every request.
 
