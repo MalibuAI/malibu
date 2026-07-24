@@ -73,6 +73,7 @@ export default defineConfig({
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
         privacy: resolve(__dirname, 'privacy/index.html'),
         terms: resolve(__dirname, 'terms/index.html'),
+        company: resolve(__dirname, 'company/index.html'),
         ...blogInputs(),
       },
     },

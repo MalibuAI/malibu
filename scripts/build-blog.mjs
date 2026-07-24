@@ -781,7 +781,7 @@ ${footer()}
 // ---------------------------------------------------------------------------
 
 function renderSitemap(posts) {
-  const staticRoutes = ['/', '/blog/', '/network/', '/host/'];
+  const staticRoutes = ['/', '/blog/', '/network/', '/host/', '/company/'];
   const urls = [
     ...staticRoutes.map((path) => `  <url>\n    <loc>${escXml(SITE + path)}</loc>\n  </url>`),
     ...posts.map(
