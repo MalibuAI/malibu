@@ -366,6 +366,7 @@ const footer = () => `  <footer style="position: relative; overflow: hidden; bac
             <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
               <a href="/privacy/">Privacy Policy</a>
               <a href="/terms/">Terms of Service</a>
+              <a href="/company/">Company</a>
             </div>
           </div>
         </div>
@@ -780,7 +781,7 @@ ${footer()}
 // ---------------------------------------------------------------------------
 
 function renderSitemap(posts) {
-  const staticRoutes = ['/', '/blog/', '/network/', '/host/'];
+  const staticRoutes = ['/', '/blog/', '/network/', '/host/', '/company/'];
   const urls = [
     ...staticRoutes.map((path) => `  <url>\n    <loc>${escXml(SITE + path)}</loc>\n  </url>`),
     ...posts.map(
