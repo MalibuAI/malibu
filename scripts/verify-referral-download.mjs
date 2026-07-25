@@ -3,9 +3,13 @@
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 
-import { MALIBU_DOWNLOAD_URL } from '../j/release.mjs';
+import {
+  MALIBU_DMG_SHA256,
+  MALIBU_DOWNLOAD_URL,
+  MALIBU_RELEASE_TAG,
+} from '../j/release.mjs';
 
-const VERSION = '1.8.53';
+const VERSION = '1.8.61';
 const TAG = `v${VERSION}`;
 const DMG_ASSET = `Malibu-v${VERSION}.dmg`;
 const CHECKSUM_ASSET = 'checksums.txt';
@@ -15,17 +19,15 @@ const RELEASE_API_URL =
 const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
 const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, PROVENANCE_ASSET];
-const ACCEPTED_SOURCE_COMMIT = 'bc543c0fc7d423b0252f747b5ecb491db919e404';
+const ACCEPTED_SOURCE_COMMIT = '6a2278f4f678abcc91361d0d6f008649e63b6fc3';
 const ACCEPTED_ASSET_SHA256 = Object.freeze({
-  [DMG_ASSET]: 'e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1',
-  [CHECKSUM_ASSET]: 'a2b3823c04de09ce4f0b5d7c9259da3e3d5a4e17302e9a36d56fc1b26679c95f',
-  [PROVENANCE_ASSET]: '0c0ac0a2715f19251fde7a021ebc2a4fcce7e45d4f906a6150a6418a8f7b239c',
+  [DMG_ASSET]: '469a9d167ba69a2445f5ffd3b73032cb6f3ae76f63e26ff4bac78c0c26853f44',
+  [CHECKSUM_ASSET]: 'd7f77cf6904da9ed053b264860044621d7379db65a3f676430f71020e46b095e',
+  [PROVENANCE_ASSET]: '8634bb334998a9a4de865ed0e14f6e920587053c3122f1e20da135ac743bd29e',
 });
-const ACCEPTED_DOWNLOAD_URL =
-  `https://download.malibu.tech/sha256/${ACCEPTED_ASSET_SHA256[DMG_ASSET]}/${DMG_ASSET}`;
+const ACCEPTED_DOWNLOAD_URL = GITHUB_DOWNLOAD_BASE + DMG_ASSET;
 const TRUSTED_API_HOSTS = new Set(['api.github.com']);
 const TRUSTED_DOWNLOAD_HOSTS = new Set([
-  'download.malibu.tech',
   'github.com',
   'release-assets.githubusercontent.com',
 ]);
@@ -92,7 +94,11 @@ function decodeJSON(bytes, label) {
 }
 
 export function validateReferralRelease(release) {
-  if (MALIBU_DOWNLOAD_URL !== ACCEPTED_DOWNLOAD_URL) {
+  if (
+    MALIBU_DOWNLOAD_URL !== ACCEPTED_DOWNLOAD_URL
+    || MALIBU_RELEASE_TAG !== TAG
+    || MALIBU_DMG_SHA256 !== ACCEPTED_ASSET_SHA256[DMG_ASSET]
+  ) {
     throw new Error('Malibu landing download URL drifted from the release gate');
   }
   if (
