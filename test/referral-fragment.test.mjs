@@ -12,7 +12,11 @@ import {
 import {
   validateReferralRelease,
 } from '../scripts/verify-referral-download.mjs';
-import { MALIBU_DOWNLOAD_URL } from '../j/release.mjs';
+import {
+  MALIBU_DMG_SHA256,
+  MALIBU_DOWNLOAD_URL,
+  MALIBU_RELEASE_TAG,
+} from '../j/release.mjs';
 
 const code = `MAL1-S-key_1-issuer_1-${'A'.repeat(26)}`;
 const challenge = 'a'.repeat(64);
@@ -119,7 +123,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://download.malibu.tech/sha256/e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1/Malibu-v1.8.53.dmg',
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.61/Malibu-v1.8.61.dmg',
   );
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
   assert.match(runtime, /credentials: 'omit'/);
@@ -152,19 +156,19 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
 });
 
 test('production download gate accepts only the frozen commit and asset digests', () => {
-  const sourceCommit = 'bc543c0fc7d423b0252f747b5ecb491db919e404';
-  const dmgAsset = 'Malibu-v1.8.53.dmg';
+  const sourceCommit = '6a2278f4f678abcc91361d0d6f008649e63b6fc3';
+  const dmgAsset = 'Malibu-v1.8.61.dmg';
   const checksumAsset = 'checksums.txt';
   const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.53/';
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.61/';
   const acceptedDigests = new Map([
-    [dmgAsset, 'e9180145835297ccf2d74721a66d6810fd0c57f44fdb1709cd7c880072d55af1'],
-    [checksumAsset, 'a2b3823c04de09ce4f0b5d7c9259da3e3d5a4e17302e9a36d56fc1b26679c95f'],
-    [provenanceAsset, '0c0ac0a2715f19251fde7a021ebc2a4fcce7e45d4f906a6150a6418a8f7b239c'],
+    [dmgAsset, '469a9d167ba69a2445f5ffd3b73032cb6f3ae76f63e26ff4bac78c0c26853f44'],
+    [checksumAsset, 'd7f77cf6904da9ed053b264860044621d7379db65a3f676430f71020e46b095e'],
+    [provenanceAsset, '8634bb334998a9a4de865ed0e14f6e920587053c3122f1e20da135ac743bd29e'],
   ]);
   const release = {
-    tag_name: 'v1.8.53',
+    tag_name: 'v1.8.61',
     draft: false,
     prerelease: false,
     immutable: true,
@@ -174,9 +178,9 @@ test('production download gate accepts only the frozen commit and asset digests'
       browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest}`,
     })).concat({
-      name: 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+      name: 'macprovider-cli-v1.8.61-darwin-arm64.tar.gz',
       browser_download_url:
-        githubDownloadBase + 'macprovider-cli-v1.8.53-darwin-arm64.tar.gz',
+        githubDownloadBase + 'macprovider-cli-v1.8.61-darwin-arm64.tar.gz',
       digest: `sha256:${'b'.repeat(64)}`,
     }),
   };
@@ -204,4 +208,23 @@ test('production download gate accepts only the frozen commit and asset digests'
       new RegExp(`digest is not accepted for ${name.replace('.', '\\.')}`),
     );
   }
+});
+
+test('host download button, version, and digest all serve the pinned release', async () => {
+  const host = await readFile(new URL('../host/index.html', import.meta.url), 'utf8');
+
+  // The button once pointed at the mutable download.malibu.tech/latest.dmg while
+  // the page rendered a version and SHA-256 fetched live from the GitHub API, so
+  // it advertised a digest that did not match the bytes it delivered.
+  assert.doesNotMatch(host, /download\.malibu\.tech/);
+  assert.doesNotMatch(host, /api\.github\.com/);
+
+  const href = host.match(/id="mac-download"[^>]*href="([^"]+)"/)?.[1];
+  assert.equal(href, MALIBU_DOWNLOAD_URL);
+  assert.match(
+    host,
+    new RegExp(`id="mac-version">${MALIBU_RELEASE_TAG.replace(/\./g, '\\.')}<`),
+  );
+  assert.match(host, new RegExp(`id="mac-sha256">${MALIBU_DMG_SHA256}<`));
+  assert.ok(MALIBU_DOWNLOAD_URL.includes(`/${MALIBU_RELEASE_TAG}/`));
 });
