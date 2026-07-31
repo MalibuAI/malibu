@@ -123,7 +123,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.67/Malibu-v1.8.67.dmg',
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.69/Malibu-v1.8.69.dmg',
   );
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
   assert.match(runtime, /credentials: 'omit'/);
@@ -156,19 +156,19 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
 });
 
 test('production download gate accepts only the frozen commit and asset digests', () => {
-  const sourceCommit = 'a6d6a4a6d00e56cd2c76d647551557d91d870bd1';
-  const dmgAsset = 'Malibu-v1.8.67.dmg';
+  const sourceCommit = '5adef03633e1a8599b13c23d495c66dce1144c90';
+  const dmgAsset = 'Malibu-v1.8.69.dmg';
   const checksumAsset = 'checksums.txt';
   const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.67/';
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.69/';
   const acceptedDigests = new Map([
-    [dmgAsset, '0ebf55c17a357e3c3978956170632145818775afe08f4ac7447da8e309fdade3'],
-    [checksumAsset, '3bf15a8cf640e531caefef95a52560de60d4c06334b9a18328233ff17badd91f'],
-    [provenanceAsset, '86e77b632af8ccbf435a793b1d9ad93aee4e89d052623a0e7e6c6345a6c532ff'],
+    [dmgAsset, '34f316b2cced53f2ddceb6e5e50e5cb9b721e18d08266879523e2082d88c6c7f'],
+    [checksumAsset, '513fa07ba4ec9f647c4376ea4d490ff586c8882b6b2deb961d20179ba82d0e1a'],
+    [provenanceAsset, '6c84544decc7aa30b83a6c0320ece758529301d0338a4493761792550d79123f'],
   ]);
   const release = {
-    tag_name: 'v1.8.67',
+    tag_name: 'v1.8.69',
     draft: false,
     prerelease: false,
     immutable: true,
@@ -178,9 +178,9 @@ test('production download gate accepts only the frozen commit and asset digests'
       browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest}`,
     })).concat({
-      name: 'macprovider-cli-v1.8.67-darwin-arm64.tar.gz',
+      name: 'macprovider-cli-v1.8.69-darwin-arm64.tar.gz',
       browser_download_url:
-        githubDownloadBase + 'macprovider-cli-v1.8.67-darwin-arm64.tar.gz',
+        githubDownloadBase + 'macprovider-cli-v1.8.69-darwin-arm64.tar.gz',
       digest: `sha256:${'b'.repeat(64)}`,
     }),
   };
