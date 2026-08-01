@@ -43,3 +43,5 @@ Malibu is in private pre-beta, and the first wave is filling by invite. That is 
 The thesis is two hundred million Macs. The reality is the first few, live, serving traffic, with the next wave going out now. If you have an Apple Silicon Mac, claim your place in it: request an invite on the [host page](/host/), drop in your code, and your machine joins the same network as the ones already online. If you want the full argument for why this works, start with the [manifesto](/blog/turning-on-the-worlds-biggest-ai-cloud/).
 
 The first Macs are on. The loop is closing. This is the part you want to be early for.
+
+To get an invite, DM [https://x.com/\_aug11\_](https://x.com/_aug11_) and we will send you the invite link.
