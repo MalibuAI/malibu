@@ -8,45 +8,38 @@ description: Malibu's private pre-beta is rolling out to its first Apple Silicon
 heroImage: /images/brand/blog-hero-pre-beta.svg
 heroAlt: A stylized Malibu sunrise over the ocean; a scattered constellation of Mac nodes sits above the horizon with the first few lit in coral and wired to the rising sun, while the rest wait dim — the first providers coming online, one at a time.
 ogImage: /images/brand/blog-hero-macbook-sunset-mesh.jpg
-lede: The case for Malibu rests on two hundred million idle Apple Silicon Macs. That is the opportunity. The proof is much smaller and already running: a handful of Macs, owned by ordinary people, are serving real inference on the network today, before it has paid any of them a cent.
 keywords: [malibu providers, apple silicon inference node, decentralized ai, run llm on mac]
 draft: false
 ---
 
-The world's biggest AI cloud is still a thesis. The proof that it works is already here, and it is small on purpose.
+The world's biggest AI cloud is not a someday. It is booting up right now, and a small group of people got there first.
 
-As of August 1, 2026, four provider Macs were online, serving three open-source models. Between them they have handled 13,344 requests and served 4,806,891 tokens, about 360 tokens per request. Four machines is not a swarm, and it is not meant to be one yet. It is enough to show the mechanism runs end to end: real hardware, real models, real buyers, real responses. Everything after this is the same loop, repeated.
+Four provider Macs. Three open-source models. 13,344 requests already served, and 4,806,891 tokens pushed across real hardware to real buyers. Four machines is not a swarm, and it is not trying to be one yet. It is proof the whole thing runs end to end, and every wave from here makes it bigger. The hard part was never the two-hundred-millionth Mac. It was the first one. That part is done.
 
-This is one of those four machines.
+This is one of the Macs that did it.
 
-## Zero yen and an idle Mac
+## The guy who started from zero
 
-His handle is @Zeroyen_jp. The display name on the account translates from Japanese as "starting crypto from zero yen," and that is close to how he arrived: no budget, one idle Mac in Japan, and a question about what it could do while he wasn't using it. He installed Malibu, and within a day his machine was quietly serving requests for a small open model, `meta-llama/llama-3.2-3b-instruct`, in the background.
+His handle is @Zeroyen_jp. The name on the account translates from Japanese as "starting crypto from zero yen," and that is exactly how he showed up: no budget, one idle Mac in Japan, and the nerve to turn it on before anyone told him it was safe. Within a day his machine was serving live requests for an open model, `meta-llama/llama-3.2-3b-instruct`, in the background while he got on with his day.
 
-He joined, in his own words, to get off "a balance of 0 yen."
+He put it plainly. He joined to get off "a balance of 0 yen."
 
-The first thing he did after setting up was find bugs. He hit rough edges during install, wrote them up, and sent the feedback to the team. The issues were fixed quickly, and he was tipped for the report. He has been candid in public about where things stand: the operators responded fast and left him with a good impression, the network is still small, and he does not expect much in the way of rewards yet. He plans to keep his Mac running and report on how it goes.
+Then he did the thing the early ones always do. He found bugs, wrote them up, and sent them straight to the team. They shipped fixes fast and tipped him for the catch. He is public and clear about where it stands: the operators move quickly, the network is small, and it is early. He is staying online and reporting back as it grows. That is not a spectator. That is someone who wanted to be first.
 
-None of that is a pitch. It is a person trying a new thing early, poking at it, and telling other people what he finds. That is exactly what the first days of a real network look like.
+## Why the early ones turn it on now
 
-## Why turn it on before it pays
+Be clear-eyed about the timing. Settlement in USDC on Base is still being switched on, so the counter is barely moving. That is not the catch. That is the window.
 
-Here is the part worth being straight about: the payout rails are not switched on. Providers are compensated in USDC on Base for the compute they contribute, and that settlement is still being brought online. Right now the counter on a provider's screen reads close to zero.
+The people running Macs today are not here for week-one numbers. They are here because they can watch the loop close in real time: a host comes online, serves real traffic, hits a rough edge, reports it, the edge gets fixed, and the network gets stronger. Every turn of that loop pulls it closer to the two-hundred-million-Mac version. The providers online now will have been here since it was four nodes and a signed receipt. You do not get that moment back.
 
-So why run a Mac on Malibu at all?
+## Every response already carries proof
 
-Because the interesting thing was never the first week's numbers. It was whether the loop closes: a host comes online, serves real requests, hits a rough edge, reports it, the edge gets fixed, and the network gets a little more real. That loop is running now, with actual people on the other end of it. The providers online today are the ones who wanted to see it work before it was obviously going to, and who will have been here since the first four nodes.
+Here is what four nodes already do that no major inference API will: every response comes back with a signed receipt binding the model, the output, and the provider that served it. Not at scale, not someday — since request one. Small network, full guarantee. For what a receipt proves and what it does not, see [the signed receipt your inference API doesn't ship](/blog/signed-inference-receipt/).
 
-## What every response already carries
+## Get in while it is early
 
-Even at four nodes, one thing holds that no major inference API offers: every response comes back with a signed receipt binding the model, the output, and the provider that served it. Small network, same guarantee. The verification is not something switched on later at scale; it has been the default since request one. For what a receipt does and does not prove, see [the signed receipt your inference API doesn't ship](/blog/signed-inference-receipt/).
+Malibu is in private pre-beta, and the first wave is filling by invite. That is deliberate. Every provider so far was brought on by hand, which is why it is four nodes and not four thousand, and why being in now actually counts for something.
 
-## Getting in
+The thesis is two hundred million Macs. The reality is the first few, live, serving traffic, with the next wave going out now. If you have an Apple Silicon Mac, claim your place in it: request an invite on the [host page](/host/), drop in your code, and your machine joins the same network as the ones already online. If you want the full argument for why this works, start with the [manifesto](/blog/turning-on-the-worlds-biggest-ai-cloud/).
 
-Malibu is in private pre-beta. Providers join by invite, a wave at a time. That is how the Macs online today got on, and it is why the network is four nodes and not four thousand: every provider so far was onboarded by hand. There is no open self-serve join yet.
-
-The thesis is two hundred million Macs. The reality today is four, serving live traffic, with the next wave being invited in now. Both are true at once, and the distance between them is the whole opportunity.
-
-If you have an Apple Silicon Mac and want to be in the first wave, request an invite on the [host page](/host/). Once you have a code, Malibu installs and registers in a few minutes and serves the same open models on the same network as the Macs already online. If you want the longer argument for why any of this works, start with the [manifesto](/blog/turning-on-the-worlds-biggest-ai-cloud/).
-
-The first Macs are on. The loop is closing. More coming.
+The first Macs are on. The loop is closing. This is the part you want to be early for.
