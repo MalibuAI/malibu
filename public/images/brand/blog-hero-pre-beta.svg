@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 714" width="1280" height="714" role="img" aria-label="A stylized Malibu sunrise over the ocean with a constellation of Mac nodes above it; the first few are lit in coral and connected to the rising sun.">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#05141a"/>
+      <stop offset="38%" stop-color="#0e2b33"/>
+      <stop offset="60%" stop-color="#3d3138"/>
+      <stop offset="68%" stop-color="#ff8b63"/>
+      <stop offset="70%" stop-color="#ff6e5b"/>
+      <stop offset="72%" stop-color="#b8503f"/>
+      <stop offset="100%" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd7b0" stop-opacity="0.95"/>
+      <stop offset="35%" stop-color="#ff8b63" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ff6e5b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a0f12"/>
+      <stop offset="100%" stop-color="#060606"/>
+    </linearGradient>
+    <linearGradient id="sunFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe9cf"/>
+      <stop offset="100%" stop-color="#ff6e5b"/>
+    </linearGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="softSun" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+
+  <!-- sky -->
+  <rect width="1280" height="714" fill="url(#sky)"/>
+
+  <!-- faint stars -->
+  <g fill="#eaf2f5">
+    <circle cx="120" cy="70" r="1.3" opacity="0.5"/>
+    <circle cx="300" cy="120" r="1" opacity="0.35"/>
+    <circle cx="520" cy="60" r="1.4" opacity="0.5"/>
+    <circle cx="760" cy="90" r="1" opacity="0.35"/>
+    <circle cx="980" cy="66" r="1.3" opacity="0.5"/>
+    <circle cx="1140" cy="130" r="1" opacity="0.3"/>
+    <circle cx="1010" cy="150" r="1.1" opacity="0.3"/>
+    <circle cx="210" cy="180" r="1" opacity="0.3"/>
+    <circle cx="640" cy="40" r="1.2" opacity="0.45"/>
+  </g>
+
+  <!-- sun glow -->
+  <circle cx="640" cy="486" r="300" fill="url(#sunGlow)"/>
+
+  <!-- rays -->
+  <g stroke="#ffb28c" stroke-width="3" stroke-linecap="round" opacity="0.5" filter="url(#soft)">
+    <line x1="640" y1="486" x2="640" y2="250"/>
+    <line x1="640" y1="486" x2="470" y2="300"/>
+    <line x1="640" y1="486" x2="810" y2="300"/>
+    <line x1="640" y1="486" x2="360" y2="378"/>
+    <line x1="640" y1="486" x2="920" y2="378"/>
+    <line x1="640" y1="486" x2="545" y2="268"/>
+    <line x1="640" y1="486" x2="735" y2="268"/>
+  </g>
+
+  <!-- water -->
+  <rect x="0" y="486" width="1280" height="228" fill="url(#water)"/>
+  <!-- sun reflection on water -->
+  <rect x="600" y="486" width="80" height="228" fill="#ff6e5b" opacity="0.16" filter="url(#soft)"/>
+  <g stroke="#ff8b63" stroke-linecap="round" opacity="0.35">
+    <line x1="590" y1="520" x2="690" y2="520" stroke-width="3"/>
+    <line x1="600" y1="556" x2="680" y2="556" stroke-width="2.5"/>
+    <line x1="612" y1="596" x2="668" y2="596" stroke-width="2"/>
+    <line x1="622" y1="640" x2="658" y2="640" stroke-width="1.6"/>
+  </g>
+
+  <!-- rising half-sun (Malibu mark) -->
+  <circle cx="640" cy="486" r="66" fill="url(#sunFill)" filter="url(#softSun)" opacity="0.9"/>
+  <path d="M574 486 a66 66 0 0 1 132 0 Z" fill="url(#sunFill)"/>
+
+  <!-- connectors from lit nodes to the sun -->
+  <g stroke="#ff8b63" stroke-width="1.6" opacity="0.55" fill="none">
+    <path d="M300 250 Q470 380 640 470"/>
+    <path d="M980 300 Q820 400 640 470"/>
+    <path d="M470 150 Q560 320 640 470"/>
+    <path d="M820 210 Q740 350 640 470"/>
+  </g>
+
+  <!-- Mac nodes: dim (offline) -->
+  <g fill="none" stroke="#7d9aa3" stroke-width="2" opacity="0.35">
+    <g transform="translate(170,330)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+    <g transform="translate(560,150)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+    <g transform="translate(700,300)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+    <g transform="translate(1080,210)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+    <g transform="translate(1130,360)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+    <g transform="translate(380,430)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+    <g transform="translate(900,410)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+    <g transform="translate(240,120)"><rect x="-19" y="-13" width="38" height="26" rx="4"/><line x1="-13" y1="17" x2="13" y2="17" stroke-width="3"/></g>
+  </g>
+
+  <!-- Mac nodes: lit (the first providers online) -->
+  <g>
+    <g transform="translate(300,250)">
+      <rect x="-22" y="-15" width="44" height="30" rx="5" fill="#ff6e5b" filter="url(#soft)" opacity="0.8"/>
+      <rect x="-20" y="-14" width="40" height="28" rx="4.5" fill="none" stroke="#ffd7b0" stroke-width="2.4"/>
+      <circle cx="0" cy="0" r="3.4" fill="#ffe9cf"/>
+      <line x1="-13" y1="19" x2="13" y2="19" stroke="#ffd7b0" stroke-width="3.2" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(980,300)">
+      <rect x="-22" y="-15" width="44" height="30" rx="5" fill="#ff6e5b" filter="url(#soft)" opacity="0.8"/>
+      <rect x="-20" y="-14" width="40" height="28" rx="4.5" fill="none" stroke="#ffd7b0" stroke-width="2.4"/>
+      <circle cx="0" cy="0" r="3.4" fill="#ffe9cf"/>
+      <line x1="-13" y1="19" x2="13" y2="19" stroke="#ffd7b0" stroke-width="3.2" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(470,150)">
+      <rect x="-22" y="-15" width="44" height="30" rx="5" fill="#ff6e5b" filter="url(#soft)" opacity="0.8"/>
+      <rect x="-20" y="-14" width="40" height="28" rx="4.5" fill="none" stroke="#ffd7b0" stroke-width="2.4"/>
+      <circle cx="0" cy="0" r="3.4" fill="#ffe9cf"/>
+      <line x1="-13" y1="19" x2="13" y2="19" stroke="#ffd7b0" stroke-width="3.2" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(820,210)">
+      <rect x="-22" y="-15" width="44" height="30" rx="5" fill="#ff6e5b" filter="url(#soft)" opacity="0.8"/>
+      <rect x="-20" y="-14" width="40" height="28" rx="4.5" fill="none" stroke="#ffd7b0" stroke-width="2.4"/>
+      <circle cx="0" cy="0" r="3.4" fill="#ffe9cf"/>
+      <line x1="-13" y1="19" x2="13" y2="19" stroke="#ffd7b0" stroke-width="3.2" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- gentle top vignette -->
+  <rect width="1280" height="714" fill="#000" opacity="0.06"/>
+</svg>

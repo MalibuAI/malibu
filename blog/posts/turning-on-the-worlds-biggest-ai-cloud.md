@@ -82,7 +82,7 @@ Imagine opening your laptop in the morning and realizing it earned money while y
 
 Your Mac is no longer just a laptop. It's an income-producing asset — not a hobby, not a lottery ticket, an actual asset.
 
-Cooperative scheduling keeps the machine yours. Mining runs in the background; serving interrupts for milliseconds at a time. You can use your Mac exactly the way you used it yesterday. It's just also, quietly, an inference-as-a-service business.
+Cooperative scheduling keeps the machine yours. Mining runs in the background; serving interrupts for milliseconds at a time. You can use your Mac exactly the way you used it yesterday. It's just also, quietly, an inference-as-a-service business. The first providers are already running exactly this setup — [meet Malibu's first Macs](/blog/meet-the-first-providers/).
 
 Everything after hardware payback is compound income on a machine you were going to buy anyway.
 
