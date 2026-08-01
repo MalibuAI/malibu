@@ -5,8 +5,9 @@ category: Field notes
 date: 2026-08-01
 author: The Malibu team
 description: Malibu's private pre-beta is rolling out to its first Apple Silicon providers. They are serving real inference before the network has paid a cent.
-heroImage: /images/brand/blog-hero-macbook-sunset-mesh.jpg
-heroAlt: A MacBook on a desk by the Malibu coast at sunset, with glowing lines flowing from its screen out to a mesh of distant Macs — one machine joining the network.
+heroImage: /images/brand/blog-hero-pre-beta.svg
+heroAlt: A stylized Malibu sunrise over the ocean; a scattered constellation of Mac nodes sits above the horizon with the first few lit in coral and wired to the rising sun, while the rest wait dim — the first providers coming online, one at a time.
+ogImage: /images/brand/blog-hero-macbook-sunset-mesh.jpg
 lede: The case for Malibu rests on two hundred million idle Apple Silicon Macs. That is the opportunity. The proof is much smaller and already running: a handful of Macs, owned by ordinary people, are serving real inference on the network today, before it has paid any of them a cent.
 keywords: [malibu providers, apple silicon inference node, decentralized ai, run llm on mac]
 draft: false
