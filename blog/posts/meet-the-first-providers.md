@@ -5,6 +5,7 @@ category: Field notes
 date: 2026-08-01
 author: The Malibu team
 description: Malibu's private pre-beta is rolling out to its first Apple Silicon providers. They are serving real inference before the network has paid a cent.
+lede: Two hundred million idle Apple Silicon Macs are the opportunity. The proof is already live: a handful of them, run by ordinary people, are serving real inference on the network today, before it has paid out a cent.
 heroImage: /images/brand/blog-hero-pre-beta.svg
 heroAlt: A stylized Malibu sunrise over the ocean; a scattered constellation of Mac nodes sits above the horizon with the first few lit in coral and wired to the rising sun, while the rest wait dim — the first providers coming online, one at a time.
 ogImage: /images/brand/blog-hero-macbook-sunset-mesh.jpg
@@ -14,7 +15,7 @@ draft: false
 
 The world's biggest AI cloud is not a someday. It is booting up right now, and a small group of people got there first.
 
-Four provider Macs. Three open-source models. 13,344 requests already served, and 4,806,891 tokens pushed across real hardware to real buyers. Four machines is not a swarm, and it is not trying to be one yet. It is proof the whole thing runs end to end, and every wave from here makes it bigger. The hard part was never the two-hundred-millionth Mac. It was the first one. That part is done.
+Four provider Macs. Three open-source models. 13,376 requests already served, and 4,837,854 tokens pushed across real hardware to real buyers. Four machines is not a swarm, and it is not trying to be one yet. It is proof the whole thing runs end to end, and every wave from here makes it bigger. The hard part was never the two-hundred-millionth Mac. It was the first one. That part is done.
 
 This is one of the Macs that did it.
 
@@ -28,19 +29,19 @@ Then he did the thing the early ones always do. He found bugs, wrote them up, an
 
 ## Why the early ones turn it on now
 
-Be clear-eyed about the timing. Settlement in USDC on Base is still being switched on, so the counter is barely moving. That is not the catch. That is the window.
+Be clear-eyed about the timing. This is pre-beta, and payouts are barely a trickle so far — the counter on a provider's screen sits close to zero. That is not the catch. That is the window.
 
 The people running Macs today are not here for week-one numbers. They are here because they can watch the loop close in real time: a host comes online, serves real traffic, hits a rough edge, reports it, the edge gets fixed, and the network gets stronger. Every turn of that loop pulls it closer to the two-hundred-million-Mac version. The providers online now will have been here since it was four nodes and a signed receipt. You do not get that moment back.
 
 ## Every response already carries proof
 
-Here is what four nodes already do that no major inference API will: every response comes back with a signed receipt binding the model, the output, and the provider that served it. Not at scale, not someday — since request one. Small network, full guarantee. For what a receipt proves and what it does not, see [the signed receipt your inference API doesn't ship](/blog/signed-inference-receipt/).
+Here is what four nodes already do that most inference APIs do not: every response comes back with a signed receipt binding the model, the output, and the provider that served it. Not at scale, not someday — from the very first request. Small network, same binding. For what a receipt proves and what it does not, see [the signed receipt your inference API doesn't ship](/blog/signed-inference-receipt/).
 
 ## Get in while it is early
 
 Malibu is in private pre-beta, and the first wave is filling by invite. That is deliberate. Every provider so far was brought on by hand, which is why it is four nodes and not four thousand, and why being in now actually counts for something.
 
-The thesis is two hundred million Macs. The reality is the first few, live, serving traffic, with the next wave going out now. If you have an Apple Silicon Mac, claim your place in it: request an invite on the [host page](/host/), drop in your code, and your machine joins the same network as the ones already online. If you want the full argument for why this works, start with the [manifesto](/blog/turning-on-the-worlds-biggest-ai-cloud/).
+The thesis is two hundred million Macs. The reality is the first few, live, serving traffic, with the next wave going out now. If you have an Apple Silicon Mac, claim your place in it: [download Malibu](/host/), drop in your invite code, and your machine joins the same network as the ones already online. If you want the full argument for why this works, start with the [manifesto](/blog/turning-on-the-worlds-biggest-ai-cloud/).
 
 The first Macs are on. The loop is closing. This is the part you want to be early for.
 
