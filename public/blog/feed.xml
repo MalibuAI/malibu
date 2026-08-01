@@ -5,8 +5,15 @@
     <link>https://malibu.tech/blog/</link>
     <description>Network updates, engineering notes, and the ideas behind turning idle Apple Silicon into the world's biggest AI cloud.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 23 Jul 2026 00:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 01 Aug 2026 00:00:00 GMT</lastBuildDate>
     <atom:link href="https://malibu.tech/blog/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Malibu&apos;s pre-beta is rolling out, one Mac at a time</title>
+      <link>https://malibu.tech/blog/meet-the-first-providers/</link>
+      <guid isPermaLink="true">https://malibu.tech/blog/meet-the-first-providers/</guid>
+      <pubDate>Sat, 01 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Malibu&apos;s private pre-beta is rolling out to its first Apple Silicon providers. They are serving real inference before the network has paid a cent.</description>
+    </item>
     <item>
       <title>The signed receipt your inference API doesn&apos;t ship</title>
       <link>https://malibu.tech/blog/signed-inference-receipt/</link>
