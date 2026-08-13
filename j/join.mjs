@@ -5,7 +5,7 @@ import {
   readBoundedUTF8,
   validationView,
 } from './referral-fragment.mjs';
-import { MALIBU_DOWNLOAD_URL } from './release.mjs';
+import { loadPublicMalibuRelease } from './release.mjs';
 
 const VALIDATION_URL = 'https://coordinator.streamvc.live/v1/referrals/validate';
 const MAX_RESPONSE_BYTES = 4096;
@@ -28,7 +28,8 @@ const retry = document.querySelector('#retry');
 const requestAccess = document.querySelector('#request-access');
 const nextStep = document.querySelector('#next-step');
 
-download.href = MALIBU_DOWNLOAD_URL;
+const publicRelease = await loadPublicMalibuRelease();
+download.href = publicRelease.url;
 let retryCount = 0;
 
 function render(view) {
