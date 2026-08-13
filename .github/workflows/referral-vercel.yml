@@ -4,7 +4,10 @@ on:
   pull_request:
     paths:
       - "j/**"
+      - "host/**"
+      - "api/**"
       - "test/referral-fragment.test.mjs"
+      - "test/latest-release.test.mjs"
       - "vercel.json"
       - "vite.config.js"
       - "package.json"
@@ -19,7 +22,10 @@ on:
     branches: [main]
     paths:
       - "j/**"
+      - "host/**"
+      - "api/**"
       - "test/referral-fragment.test.mjs"
+      - "test/latest-release.test.mjs"
       - "vercel.json"
       - "vite.config.js"
       - "package.json"
