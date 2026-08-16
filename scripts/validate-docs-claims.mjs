@@ -109,6 +109,19 @@ if (!status.includes('malibu.tech/v1/rate-card')) {
   errors++;
 }
 
+const marketingPages = [
+  ['index.html', join(root, 'index.html')],
+  ['host/index.html', join(root, 'host/index.html')],
+];
+for (const [rel, path] of marketingPages) {
+  if (!existsSync(path)) continue;
+  const text = readFileSync(path, 'utf8');
+  if (/earn USDC \+ \$MALIBU/i.test(text) || /USDC and \$MALIBU in real time/i.test(text)) {
+    console.error(`${rel}: live earn copy must not sell $MALIBU in present tense — USDC today, token at launch`);
+    errors++;
+  }
+}
+
 const staleDefault = 'mlx-community/Qwen2.5-7B-Instruct-4bit';
 for (const file of walkMdx(docsDir)) {
   const text = readFileSync(file, 'utf8');
@@ -121,7 +134,7 @@ for (const file of walkMdx(docsDir)) {
 
   for (const url of ['api.malibu.tech/v1/rate-card', 'api.malibu.tech/v1/network-stats']) {
     if (!text.includes(url)) continue;
-    const allowed = /404|not served|not on the gateway|Not served/i.test(text);
+    const allowed = /404|not served|not on the gateway|Not served|by design|wrong host/i.test(text);
     if (!allowed) {
       console.error(`${rel}: ${url} documented as live — use malibu.tech proxy or mark 404`);
       errors++;

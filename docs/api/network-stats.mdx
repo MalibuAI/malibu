@@ -8,15 +8,19 @@ icon: activity
 
 > Public read-only snapshot of the live pool.
 
-The public snapshot is served from the site, not the buyer gateway:
+The public snapshot is served from the **site**, not the buyer gateway:
 
 ```
 GET https://malibu.tech/v1/stats/overview
 ```
 
-No API key. Cached about 30 seconds (`stale_after` in the body).
+No API key. Cached about 30 seconds (`stale_after` in the body). Origin: `stats.streamvc.live` (Vercel rewrite). Coordinator also serves the same path.
 
-`GET https://api.malibu.tech/v1/network-stats` is **not served** (404 as of 16 August 2026). Do not poll the gateway for this payload.
+### Why `api.malibu.tech/v1/network-stats` is 404
+
+HTTP **404 Not Found** means the host is up and that **path is not mounted** — not that the network is down.
+
+`api.malibu.tech` is the OpenAI-compatible **buyer gateway** (chat, models, usage, receipts). Public pool stats and the rate card live on coordinator/stats hosts, exposed to browsers as `malibu.tech/v1/…`. A gateway 404 is expected. Use the `malibu.tech` URLs.
 
 ## Response (abridged)
 
@@ -69,11 +73,13 @@ Network-wide decode tokens/sec is **not** published on this endpoint. The consol
 
 ## Rate card (separate endpoint)
 
+Public market data, same 404-on-gateway pattern as stats:
+
 ```
 GET https://malibu.tech/v1/rate-card
 ```
 
-Also unauthenticated. Not available on `api.malibu.tech`. See [Pricing comparison](/guides/pricing-comparison) and [Model catalog](/operations/model-catalog).
+`api.malibu.tech/v1/rate-card` is 404 by design. Origin is the coordinator (`vercel.json` rewrite). See [Pricing comparison](/guides/pricing-comparison) and [Model catalog](/operations/model-catalog).
 
 ## Warm models (authenticated)
 

@@ -17,7 +17,7 @@ This page is the factual ledger behind the [Litepaper](/litepaper). Narrative co
 | Component | Status | Notes |
 | --- | --- | --- |
 | Coordinator (routing, billing ledger) | **Live** | `coordinator.malibu.tech` |
-| Gateway (OpenAI-compatible API) | **Live** | `api.malibu.tech/v1` — chat, models, usage. **Not** rate-card or network-stats (those are site/coordinator proxies). |
+| Gateway (OpenAI-compatible API) | **Live** | `api.malibu.tech/v1` — chat, models, usage. Rate card and public stats are on `malibu.tech` (see below). |
 | Console (buyer web UI) | **Live** | [malibu.tech/console](https://malibu.tech/console) — chat, agent tools, stop control, per-request decode tok/s in the bill line |
 | Provider onboarding | **Beta** | Signed installer at [malibu.tech/host](https://malibu.tech/host). **Invite required** for a fresh register (`malibu.tech/j#/…`). Download alone is not open admission. |
 | Signed inference receipts v0.3 | **Live** | `X-Malibu-Receipt`; verify with `malibu-verify` |
@@ -63,9 +63,10 @@ Full trust boundaries: [Security & trust model](/network/security). Hardware att
 | Endpoint | Status |
 | --- | --- |
 | `GET https://malibu.tech/v1/stats/overview` | **Live** — pool size, tokens, models serving. Cached ~30 s. See [Network stats](/api/network-stats). |
-| `GET https://malibu.tech/v1/rate-card` | **Live** — per-model credit rates. Not served on `api.malibu.tech`. |
+| `GET https://malibu.tech/v1/rate-card` | **Live** — per-model credit rates. Origin: coordinator. Gateway path 404 is expected. |
 | `GET https://api.malibu.tech/v1/models` | **Live** — warm models only; **requires** Bearer token |
-| `GET https://api.malibu.tech/v1/network-stats` | **Not served** (404 as of 16 Aug 2026) |
+| `GET https://api.malibu.tech/v1/rate-card` | **404 by design** — not a buyer-gateway route |
+| `GET https://api.malibu.tech/v1/network-stats` | **404 by design** — use `/v1/stats/overview` on `malibu.tech` |
 | Pool dashboard | [malibu.tech/console](https://malibu.tech/console) |
 
 ### Snapshot (16 August 2026)
