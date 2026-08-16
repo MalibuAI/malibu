@@ -6,7 +6,7 @@ icon: flask-conical
 
 # Benchmarks & methodology
 
-> Evidence behind hardware and mining claims in the [Litepaper](/litepaper). **Last reviewed:** July 2026.
+> Evidence behind hardware and mining claims in the [Litepaper](/litepaper). **Last reviewed:** 16 August 2026.
 
 Malibu publishes two different performance stories. They must not be conflated:
 
@@ -54,12 +54,13 @@ The Litepaper cites roughly **10× better per-watt efficiency vs an RTX 5090** o
 
 ## Inference benchmarks (not yet published)
 
-Malibu does **not** yet publish a cross-tier inference TPS table on `/docs`. Buyer value claims (latency, throughput, cost) should be validated against:
+Malibu does **not** publish a cross-tier inference TPS table on `/docs`. What exists today:
 
-- Live [`GET /v1/rate-card`](https://api.malibu.tech/v1/rate-card) for current pricing
-- Your workload on `api.malibu.tech/v1` with pinned providers when reproducibility matters
+- **Console bill line** — client-measured decode tok/s for a single stream (not network-wide).
+- **Public stats** — `GET https://malibu.tech/v1/stats/overview` has volume and pool size, not tok/s.
+- **Pricing** — [`GET https://malibu.tech/v1/rate-card`](https://malibu.tech/v1/rate-card)
 
-When inference benchmarks ship, they will appear on this page with hardware tier, model, context length, and date.
+Pin a provider when you need reproducible latency. When a hardware-tier TPS table ships, it will appear here with model, context length, and date.
 
 ## Market sizing claims
 

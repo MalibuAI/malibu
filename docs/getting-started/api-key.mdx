@@ -14,7 +14,11 @@ Buyers hit Malibu at `https://api.malibu.tech/v1` with the OpenAI SDK. To get an
   GitHub OAuth · No credit card required to browse
 </Card>
 
+Or use the console at [malibu.tech/console](https://malibu.tech/console).
+
 ## First request
+
+Warm models change. This example uses a 16 Aug 2026 warm ID — confirm with `client.models.list()` first.
 
 ```python theme={null}
 from openai import OpenAI
@@ -45,7 +49,7 @@ const client = new OpenAI({
 ## What the API surface covers
 
 * **Streaming** (`stream: true`) with token-incremental deltas.
-* **Multi-turn tool calling** — first-turn emission, second-turn `role: "tool"` acceptance, assistant-history rendering. Cline drop-in.
+* **Multi-turn tool calling** — first-turn emission, second-turn `role: "tool"` acceptance, assistant-history rendering. Cline drop-in. **Validate tool calls before execution** — [Buyer-side validation](/agentic/buyer-side-validation).
 * **Structured output** — `response_format: {"type": "json_schema", ...}` with the OpenAI strict-mode subset.
 * **Sticky conversations** — pass a stable `conversation_id`; the coordinator routes back to the same provider and reports `cached_prompt_tokens`.
 * **Signed receipts** — every response carries an Ed25519-signed receipt in the `X-Malibu-Receipt` header.
@@ -54,14 +58,21 @@ Every pattern with runnable code lives in [Using Malibu with the OpenAI SDK](/gu
 
 ## Model catalog
 
-Browse available models:
+Warm models (Bearer required):
 
 ```bash theme={null}
-curl https://api.malibu.tech/v1/models
+curl -s https://api.malibu.tech/v1/models \
+  -H "Authorization: Bearer $MALIBU_API_KEY"
 ```
 
-Or from Python: `client.models.list()`. Full catalog in [Operations → Model catalog](/operations/model-catalog).
+Or from Python: `client.models.list()`. Full catalog vs priced vs warm: [Operations → Model catalog](/operations/model-catalog).
 
 ## Billing
 
-Pay-as-you-go, USDC on Base. Rate card served live at `/v1/rate-card` and priced against the OpenRouter frontier. No subscription, no monthly commit.
+Pay-as-you-go, USDC on Base. Rate card:
+
+```bash theme={null}
+curl -s https://malibu.tech/v1/rate-card
+```
+
+Not served on `api.malibu.tech`. Dated comparison: [Pricing comparison](/guides/pricing-comparison). No subscription, no monthly commit.

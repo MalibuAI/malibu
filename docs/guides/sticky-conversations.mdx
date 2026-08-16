@@ -23,7 +23,7 @@ client_sticky = OpenAI(
 
 # Turn 1: cold prefix, provider caches it
 resp1 = client_sticky.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "You are a code review assistant."},
         {"role": "user", "content": "Explain the SOLID principles."},
@@ -32,7 +32,7 @@ resp1 = client_sticky.chat.completions.create(
 
 # Turn 2: same conversation_id -> same provider, warm KV-cache reused
 resp2 = client_sticky.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "You are a code review assistant."},
         {"role": "user", "content": "Explain the SOLID principles."},

@@ -10,34 +10,34 @@ icon: sparkles
 
 ## The premise
 
-Two hundred million Apple Silicon Macs have shipped since 2020 ([methodology](/network/benchmarks-and-methodology#market-sizing-claims)). Together they represent the world's largest idle AI compute network. Each machine delivers roughly ten times the per-watt efficiency of an RTX 5090 on **Proof-of-Model-Walk memory-hard weight walks** ([Phase 1 benchmark, M5 Air, July 2026](/network/benchmarks-and-methodology#pomw-phase-1-benchmark-m5-air) — not inference TPS). Fleet idle-time figures are planning assumptions, not audited telemetry — see [Benchmarks & methodology](/network/benchmarks-and-methodology).
+Two hundred million Apple Silicon Macs have shipped since 2020 ([methodology](/network/benchmarks-and-methodology#market-sizing-claims)). Together they are the largest idle Apple Silicon compute pool we can point at in public docs. Each machine delivers roughly ten times the per-watt efficiency of an RTX 5090 on **Proof-of-Model-Walk memory-hard weight walks** ([Phase 1 benchmark, M5 Air, July 2026](/network/benchmarks-and-methodology#pomw-phase-1-benchmark-m5-air) — not inference TPS). Fleet idle-time figures are planning assumptions, not audited telemetry — see [Benchmarks & methodology](/network/benchmarks-and-methodology).
 
-Malibu turns every Apple Silicon Mac into part of the world's largest AI cloud. Every Mac is a potential provider. Every provider earns from day one. Every dollar of buyer revenue is protocol-converted into demand for the network's asset. **Malibu doesn't build new AI infrastructure. It activates the infrastructure already sitting on millions of desks.**
+Malibu turns Apple Silicon Macs into a coordinated inference network. Every admitted provider can earn from billed requests. Token-protocol conversion of buyer dollars into $MALIBU demand is **planned** — see [Economics](/guides/economics). **Malibu doesn't build new AI infrastructure. It activates the infrastructure already sitting on millions of desks.**
 
 ## The opportunity
 
-AI inference is a fifty-billion-dollar market growing three-to-five times a year. Three companies own most of it. Open-source models — Llama, Qwen, gpt-oss — have caught up on quality for many workloads. Supply hasn't. Buyers pay four to twenty times what the underlying compute actually costs.
+AI inference is a fifty-billion-dollar market growing three-to-five times a year. Three companies own most of it. Open-source models — Llama, Qwen, gpt-oss — match closed-model quality on **many chat, coding, and retrieval workloads** (not every reasoning or multimodal eval). Supply hasn't. Buyers often pay a large markup over the underlying compute.
 
-New datacenter capacity takes billions of dollars and years to permit. Meanwhile hundreds of millions of AI-capable Macs sit on desks running at four percent utilization while somebody's on a Zoom call.
+New datacenter capacity takes billions of dollars and years to permit. Meanwhile hundreds of millions of AI-capable Macs sit on desks running at low utilization (the "four percent" figure is a **planning assumption**, not measured fleet telemetry).
 
 Every prior decentralized AI network — Bittensor, Akash, Gensyn, Prime Intellect — hit the same wall: buyers won't come without providers; providers won't stay without buyers. A decade of permanent bootstrap.
 
-**Malibu breaks the wall by paying providers to be ready before buyers arrive.**
+**Malibu's bet is to pay providers to be ready before buyers arrive** (PoMW + emission at v0). Today's live product is the **inference marketplace** (credits, USDC, receipts) on a small invite-gated pool. Check [Network status](/status) for the ledger.
 
 ## Why now
 
 Five years ago this network wasn't possible. Today, four preconditions are simultaneously true for the first time:
 
-- **Apple Silicon.** Unified-memory Macs capable of serving 100B+ parameter open-source models are shipping in consumer hardware.
+- **Apple Silicon.** Unified-memory Macs capable of serving large open-source models are shipping in consumer hardware.
 - **Open-source frontier models.** Llama, Qwen, gpt-oss now match closed-model quality on many workloads. Verified inference on open weights is finally worth paying for.
-- **Cheap inference verification.** TOPLOC (Prime Intellect, 2025) verifies buyer responses at roughly one percent of serving cost. Cryptographic trust no longer requires trusted hardware.
+- **Cheap inference verification.** TOPLOC (Prime Intellect, 2025) is designed to verify buyer responses at roughly one percent of serving cost — **planned v1** on Malibu, not live. Receipts are live today.
 - **Stablecoin payments.** USDC on Base makes global micropayments settlement-final in seconds, at sub-cent cost.
 
 **Malibu is not early to any of these. It is the network that combines all four.**
 
 ## What we've shipped
 
-Malibu is a **live coordinated inference network** today — distributed Apple Silicon providers, centralized routing and billing. Real coordinator, real providers, real inference requests, real settlement on the marketplace rail.
+Malibu is a **live coordinated inference network** today — distributed Apple Silicon providers, centralized routing and billing. Real coordinator, real providers, real inference requests, real settlement on the marketplace rail. Admission is **private pre-beta**: a valid invite is required to register a new provider.
 
 <Note>
   This section mixes **live marketplace infrastructure** and **planned token-protocol features**. For the current ledger, see [Network status](/status).
@@ -45,24 +45,26 @@ Malibu is a **live coordinated inference network** today — distributed Apple S
 
 ### Inference marketplace — Live
 
-- **Coordinator service.** Provider admission, real-time request routing, per-request billing ledger, epoch settlement. Deployed with monitoring, rollback procedures, and nightly reconcile automation.
-- **Gateway.** OpenAI-compatible `/v1/chat/completions`, `/v1/models`, `/v1/usage`, `/v1/rate-card`. Point any OpenAI SDK client at one endpoint and it works — Cursor, Aider, Claude Code SDK, curl. GitHub OAuth for buyer signup. Quota reservation. Signed session receipts.
-- **Provider onboarding.** Signed public installer auto-detects the Mac's memory tier, downloads the right MLX model weights, registers with the coordinator, and starts serving. Zero-config from install to first paid request. launchd watchdog for uptime.
-- **End-to-end serving verified.** Real requests flow through the network today: buyer → gateway → coordinator → Apple Silicon provider → response → signed receipt → settlement. The path from request to payment is closed and running.
-- **Multi-turn tool calling.** Standardized `tool_calls[]` emission and second-turn `role: "tool"` acceptance for Qwen and Llama-3.3 templates. Cline drop-in works today.
-- **Structured output.** `response_format: json_schema` with the OpenAI strict-mode subset.
-- **Sticky conversations.** Stable `conversation_id` routes back to the same provider; `cached_prompt_tokens` reported in the OpenAI `usage` object. Prefix-cache metering shipped.
-- **Signed inference receipts.** Every response carries a v0.3 nine-field receipt signed with the provider's Ed25519 key. Verify with the open-source `malibu-verify` CLI.
-- **Verified model settlement.** Coordinator receipt verdicts drive gateway buyer debit/refund decisions. Missing or unverifiable receipts settle with zero provider credits.
-- **Rate card & billing.** Per-model pricing served live at `/v1/rate-card`. Credit-based metering, **90% default provider share today**, weekly USDC payout automation with min-payout thresholds.
-- **Model catalog.** Qwen2.5 (7B), Qwen3.5 (35B), Llama-3.2 (3B), Llama-3.3 (70B), Gemma families — MLX-native, memory-tier-matched to provider hardware at install time.
-- **Release cadence.** Signed installer published on GitHub Releases. Full operational runbook: deployment, rollback, monitoring, nightly reconcile, weekly settlement.
+- **Coordinator service.** `Live` Provider admission, real-time request routing, per-request billing ledger, epoch settlement.
+- **Gateway.** `Live` OpenAI-compatible `/v1/chat/completions`, `/v1/models`, `/v1/usage` at `api.malibu.tech`. GitHub OAuth for buyer signup. Quota reservation. Signed session receipts. Rate card is **`https://malibu.tech/v1/rate-card`**, not the gateway.
+- **Provider onboarding.** `Beta` Signed installer; RAM-tier model match; launchd watchdog. **Invite required** for a fresh register ([malibu.tech/host](https://malibu.tech/host)). Already-running providers update without a new invite.
+- **End-to-end serving.** `Live` Buyer → gateway → coordinator → Apple Silicon provider → response → signed receipt → settlement. Public snapshot: [malibu.tech/v1/stats/overview](https://malibu.tech/v1/stats/overview).
+- **Multi-turn tool calling.** `Live` Standardized `tool_calls[]` emission and second-turn `role: "tool"` acceptance on catalog-marked templates. Buyer frameworks **must** validate before execution — [Buyer-side validation](/agentic/buyer-side-validation).
+- **Structured output.** `Live` `response_format: json_schema` with the OpenAI strict-mode subset.
+- **Sticky conversations.** `Live` Stable `conversation_id`; `cached_prompt_tokens` in the OpenAI `usage` object.
+- **Signed inference receipts.** `Live` v0.3 nine-field receipt, Ed25519. Verify with `malibu-verify`.
+- **Verified model settlement.** `Live` Missing or unverifiable receipts settle with zero provider credits. Late receipts are non-settling.
+- **Rate card & billing.** `Live` Credit-based metering, **90% default provider share today**, weekly USDC payouts. See [Economics](/guides/economics).
+- **Model catalog.** `Live` (warm set is small) Priced rows and warm IDs: [Model catalog](/operations/model-catalog). As of 16 Aug 2026 the warm set was Llama 3.2 3B and Qwen3 8B. Larger SKUs are eligible when a provider loads them — not implied live.
+- **Routing tiers.** `Live` New Macs join **provisional**; operator promotion to **pinned** raises routing weight. See [Payments](/guides/payments#provisional-vs-pinned).
+- **Release cadence.** `Live` Signed installer on GitHub Releases; public download follows GitHub Latest via [malibu.tech/host](https://malibu.tech/host).
 
 ### Token protocol — Planned
 
-- **PoMW mining substrate.** The Metal port of Proof-of-Model-Walk is public and reproducible on any Apple Silicon Mac shipped since 2020. Two hundred verification vectors passed byte-exact against a Rust reference on real Qwen3-1.7B GGUF weights. Phase 1 benchmarks on an M5 Air: [2.14 million walks per second at 4.7 watts](/network/benchmarks-and-methodology#pomw-phase-1-benchmark-m5-air) on the walk workload.
-- **v0 mining launch:** on-chain emission, burn-and-mint fee split, and token-native settlement mechanics.
-- **v1 marketplace:** TOPLOC per-request verification (Prime Intellect lineage) on buyer-paid inference.
+- **PoMW mining substrate.** `Prototype` Metal port is public and reproducible. Two hundred verification vectors passed byte-exact against a Rust reference on Qwen3-1.7B GGUF weights. Phase 1: [2.14 million walks per second at 4.7 watts](/network/benchmarks-and-methodology#pomw-phase-1-benchmark-m5-air) on an M5 Air (walk workload, not inference).
+- **v0 mining launch:** `Planned v0` on-chain emission, burn-and-mint fee split, token-native settlement.
+- **v1 marketplace:** `Planned v1` TOPLOC per-request verification (Prime Intellect lineage) on buyer-paid inference.
+- **Pooled serving:** `Planned` multi-Mac models beyond one machine's unified memory.
 
 **This is a launch document for a network that already runs inference — and a protocol layer still activating.**
 
@@ -72,34 +74,35 @@ Imagine opening your Mac in the morning and realizing it earned money while you 
 
 Your Mac is no longer just a laptop. It's an income-producing asset — not a hobby, not a lottery ticket, an actual asset.
 
-A single Mac Studio Ultra already serves frontier open models — gpt-oss-120b, Llama 3.3 70B — from unified memory, no datacenter. The models that dominate industry inference spend are larger still, and reaching them is Malibu's growth vector: **pooled serving** will link several Macs over a local interconnect to run models beyond any single machine. And the bigger the model, the more a verifiable receipt is worth — when you pay frontier rates, an attestation is the only way to know the endpoint ran the weights you paid for, not a cheaper stand-in. (Pooled serving is on the roadmap, not live.)
+A single high-RAM Mac can serve large open models from unified memory. The models that dominate industry inference spend are larger still; **pooled serving** (several Macs over a local interconnect) is the growth vector for those — **on the roadmap, not live**. And the bigger the model, the more a verifiable receipt is worth — when you pay frontier rates, an attestation is the only way to know the endpoint ran the weights you paid for, not a cheaper stand-in.
 
-Under Year-5 base-case assumptions (**illustrative, not guaranteed** — see [Provider economics](/guides/provider-economics)):
+Under Year-5 base-case assumptions (**illustrative, not guaranteed**, token-regime — see [Provider economics](/guides/provider-economics)):
 
 - **Mac Studio Ultra:** roughly **$10,000 to $13,000 per year** at $MALIBU = $2. Around $25,000+ at $5. Hardware payback in **under twelve months**. Even at a bearish $0.50, payback is under twenty-four.
 - **M4 Max:** roughly **$5,100 per year** at $2. Around $12,000 at $5. Payback in **under a year**.
 - **M4 Pro:** roughly **$3,400 per year** at $2.
 - **Air:** roughly **$1,050 per year** at $2.
 
-Everything after payback is compound income on hardware you were going to buy anyway. Fanless Macs throttle under sustained load — apply a duty-cycle discount ([Provider economics](/guides/provider-economics#hardware-reality-checks)).
+Those tables are **not** live USDC marketplace payouts. Today you earn 90% of billed credits. Fanless Macs throttle under sustained load — apply a duty-cycle discount ([Provider economics](/guides/provider-economics#hardware-reality-checks)).
 
-Cooperative scheduling keeps the Mac yours. Mining runs in the background; serving interrupts for milliseconds at a time. It's just also, quietly, an inference-as-a-service business.
+Cooperative scheduling keeps the Mac yours. Mining (planned) runs in the background; serving interrupts for milliseconds at a time.
 
 **For the first time, the compute you already own can pay you back.**
 
 ## What buyers get
 
-Companies are massively overpaying for AI inference. Malibu targets **20 to 40 percent** savings vs hyperscaler pricing on comparable OSS workloads — [methodology and how to verify](/guides/pricing-comparison) against the live [rate card](https://api.malibu.tech/v1/rate-card). Every response carries a **signed receipt** you can verify offline.
+On comparable OSS SKUs, Malibu is often cheaper than aggregator list — **sometimes a lot cheaper on small models, sometimes even or slightly higher on 20B–32B rows**. Dated snapshot: [Pricing comparison](/guides/pricing-comparison). Live card: [malibu.tech/v1/rate-card](https://malibu.tech/v1/rate-card). Every response carries a **signed receipt** you can verify offline.
 
-The catalog is the OSS frontier: gpt-oss-20b, gpt-oss-120b, Gemma 4 26B A4B, Nemotron, Qwen3 families, Qwen3-Coder — **available when pool hardware is warm** ([Model catalog](/operations/model-catalog)). Settled in USDC on Base via drop-in OpenAI-compatible endpoints.
+Warm models change with the pool. Catalog, priced rows, and warm IDs: [Model catalog](/operations/model-catalog). Settled in USDC on Base via drop-in OpenAI-compatible endpoints.
 
 Why buyers switch:
 
-- **Cheaper.** Consumer-hardware inference at a fraction of hyperscaler cost.
+- **Cheaper on many OSS rows.** Verify against the snapshot; do not assume a flat 20–40% on every SKU.
 - **Receipt-verified.** Signed binding of `(prompt, output, model, provider)`. Per-request forward-pass attestation via [TOPLOC](/network/toploc) ships at v1 — not live on buyer traffic today.
-- **OSS-native.** Best model per task. No vendor deprecating your API next quarter.
+- **OSS-native.** Best model per task, when that model is warm. No vendor deprecating a closed SKU next quarter.
 - **Cooperative trust.** Not confidential compute — prompts route through providers as plaintext. See [Security & trust model](/network/security) and [Threat model](/network/threat-model).
-- **No lock-in.** Open protocol on Base. Change providers without changing code.
+- **Buyer-side validation.** Emitted `tool_calls[]` are model output, not provider-verified intent. See [Buyer-side validation](/agentic/buyer-side-validation).
+- **No lock-in.** Change providers without changing OpenAI-SDK code.
 
 **Malibu is designed to be adopted without changing anything on the buyer side except the endpoint.**
 
@@ -109,16 +112,16 @@ Every provider runs one binary. At mining launch it performs **Proof-of-Model-Wa
 
 The walk hashes over the same weight file the network sells inference for, using the same Metal integer pipeline. Every mined block is a receipt that a specific Mac exercised the memory substrate inference depends on. When a buyer request arrives at v1, the miner yields in ~50 milliseconds — weights already resident, pipeline already running, file already the file the buyer is paying for.
 
-**Mining state is serving state.** That equivalence is the architectural bet the whole network is built on.
+**Mining state is serving state.** That equivalence is the architectural bet the whole network is built on. It is **not** enforced in production today.
 
 Verification is cheap. PoMW verifies in microseconds. TOPLOC (Prime Intellect, 2025) will verify buyer responses at about one percent of serving cost at v1.
 
 ## The token flywheel
 
-Every dollar entering Malibu permanently strengthens the network. Providers get paid. Reserves grow. Tokens are bought and burned automatically.
+Every dollar entering Malibu is designed to strengthen the network. Providers get paid. Reserves grow. Tokens are bought and burned automatically.
 
 <Note>
-  **Today (marketplace):** providers earn **90%** of gross credits; operator retains 10%. Weekly USDC settlement. See [Payments & payouts](/guides/payments).
+  **Today (marketplace):** providers earn **90%** of gross credits; operator retains 10%. Weekly USDC settlement. See [Economics](/guides/economics).
 
   **At token launch (planned):** the flywheel below replaces the marketplace split.
 </Note>
@@ -136,21 +139,21 @@ Provider issuance runs on a deterministic emission curve — front-loaded to boo
 ## Why Malibu wins
 
 1. **Apple already shipped the hardware.** Two hundred million Apple Silicon Macs. Strong per-watt PoMW efficiency on consumer silicon. Deployed, paid for, and idle.
-2. **PoMW prepares the fleet before buyers arrive.** Providers earn from day one for verifiable useful work. The cold-start wall dissolves.
-3. **Receipts today; TOPLOC at v1.** Signed receipts bind every response now. TOPLOC adds per-request forward-pass attestation when the marketplace activates.
-4. **Every transaction strengthens the token.** Buyer USDC automatically buys and burns $MALIBU; reserves grow. Network activity IS token demand.
-5. **The network compounds.** Every new provider increases coverage. Better coverage attracts more buyers. Buyer revenue increases provider earnings. Higher earnings attract more providers. **Every new participant makes the next one more valuable.**
-6. **Nobody else has a reason to build this.** Apple sells hardware. OpenAI sells closed models. Hyperscalers own the datacenters they need to keep utilized. The network that turns consumer Macs into AI infrastructure has to come from outside all three, and it has to be a token network — because only a token network can pay providers to be ready before buyers arrive. **The edge is hardware Malibu doesn't own, and a mechanism its competitors have no reason to build.**
+2. **PoMW is designed to prepare the fleet before buyers arrive.** Providers earn from day one of mining launch for verifiable useful work. That layer is **not** paying in production yet.
+3. **Receipts today; TOPLOC at v1.** Signed receipts bind every response now. TOPLOC adds per-request forward-pass attestation when that milestone ships.
+4. **Every transaction is designed to strengthen the token.** At launch, buyer USDC automatically buys and burns $MALIBU; reserves grow. Not active in today's 90/10 USDC rail.
+5. **The network compounds.** Every new provider increases coverage. Better coverage attracts more buyers. Buyer revenue increases provider earnings. Higher earnings attract more providers.
+6. **The combination is the bet — not a monopoly on the pieces.** Akash, Prime Intellect, Render, and io.net already cover overlapping slices (decentralized compute, verification lineage, GPU marketplaces). Malibu's edge is Apple Silicon + receipts now + PoMW-before-demand as a token mechanism those businesses have little reason to copy. **The hardware is not Malibu's. The mechanism has to come from outside Apple, OpenAI, and the hyperscalers.**
 
 ## Join
 
 **The world's biggest AI cloud already exists. Malibu turns it on.**
 
-Malibu launches with hundreds of providers. It scales to tens of thousands. The economics work best for the ones who show up first: the emission curve pays early miners the most, and mining reputation transfers to serving-revenue priority when v1 activates. Being early isn't a marketing pitch — it's the structural incentive the network is designed around.
+The live pool is a **small pre-beta** (single-digit Macs on the 16 Aug 2026 snapshot — [Network status](/status)). Emission economics, when they ship, are designed to pay early miners more; mining reputation is designed to transfer to serving priority at v1.
 
 <Columns cols={3}>
   <Card title="Host a Mac" icon="laptop" href="https://malibu.tech/host" color="#FF6E5B">
-    Turn idle Apple Silicon into paid inference. Download, sign in, start earning.
+    Invite-gated pre-beta. Download, paste your invite, start serving.
   </Card>
   <Card title="Integrate as a buyer" icon="key" href="/getting-started/api-key" color="#143A45">
     OpenAI-compatible API. Point your SDK at `api.malibu.tech/v1`.

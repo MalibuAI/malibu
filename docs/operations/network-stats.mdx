@@ -1,63 +1,64 @@
 ---
 title: Network stats
-description: Operator observability on the network — pool health, throughput, receipt validity.
+description: Operator observability on the network — pool health, throughput, public snapshot.
 icon: gauge
 ---
 
 # Network stats
 
-> Operator observability on the network — pool health, throughput, receipt validity.
+> Operator observability on the network — pool health, throughput, public snapshot.
 
-The network stats surface is the same one that powers the public snapshot at `/v1/network-stats` and the pool dashboard at [console.malibu.tech](https://console.malibu.tech). This page describes what it tracks and how the numbers are computed.
+The public snapshot that powers [malibu.tech/network](https://malibu.tech/network) is:
 
-For the public API, see [API → Network stats](/api/network-stats).
+```
+GET https://malibu.tech/v1/stats/overview
+```
 
-## What's tracked
+Buyer API reference: [API → Network stats](/api/network-stats).
 
-### Pool
+`GET https://api.malibu.tech/v1/network-stats` is not served. Do not document it as live.
 
-| Signal        | How it's counted                                    |
-| ------------- | --------------------------------------------------- |
-| `total`       | Providers with an active WebSocket at snapshot time |
-| `pinned`      | Providers at `TierPinned`                           |
-| `provisional` | Providers at `TierProvisional`                      |
-| `warming`     | Providers still in the post-reconnect warmup gate   |
+## What's tracked (public)
 
-Snapshot cadence: every 30 seconds. The `/v1/network-stats` endpoint is edge-cached for 30 s.
+| Signal | How it's counted |
+| --- | --- |
+| `nodes_online` | Providers with an active connection at snapshot time |
+| `models_serving` | Distinct models advertised warm |
+| `requests_total` / `tokens_*_total` | Lifetime billed volume on this surface |
+| `nodes_hardware_attested` | Hardware-attested providers — **0** until that gate ships |
+| `timeseries.rpm_30m` | Requests per minute, 60 s buckets |
 
-### Models warm
+Snapshot cadence is about 30 seconds (`stale_after` in the body).
 
-Per-model:
+## Warm models vs rate card vs catalog
 
-* `provider_count` — count of connected providers advertising this model warm.
-* `requests_last_hour` — billed request count in the last full hour.
+These three lists are not the same:
 
-A model drops out of the list when the last provider serving it disconnects.
+| Surface | What it shows |
+| --- | --- |
+| `GET https://api.malibu.tech/v1/models` (Bearer) | Models with **at least one warm provider right now** |
+| `GET https://malibu.tech/v1/rate-card` | Models the network **will bill** (eligible pricing rows) |
+| Signed catalog feed | Models providers **may load** (hash, RAM tier, templates) |
 
-### Throughput
+A rate-card row can exist with zero warm providers. Buyer requests then fail until a Mac loads that model.
 
-* `requests_last_hour` — sum across all models. Counts only billed requests (fault-qualifying responses excluded).
-* `tokens_out_last_hour` — completion tokens delivered in the last hour. Prompt tokens are not counted here; use per-buyer `/v1/usage` for prompt-token totals.
+## Receipts and settlement
 
-### Receipts
-
-* `valid_rate_last_24h` — fraction of receipts that verified `valid` in the last 24 hours. `inconclusive` results do not count as valid.
-* `receipt_version` — the current tuple version (`0.3` today).
-
-Denominators use billed requests only. Faulted requests don't emit settlement-capable receipts and are excluded.
+Receipt validity still drives [verified model settlement](/operations/verified-model-settlement). The public stats overview does **not** currently publish `valid_rate_last_24h`. Operators still have per-provider receipt views internally.
 
 ## Provider-level breakdown
 
-Not exposed publicly. Operator dashboards can drill from pool-level aggregates to per-provider views showing:
+Not exposed on the public snapshot. Operator dashboards can drill to:
 
 * Uptime last 24 h / 7 d
 * Requests served, faults, receipt validity
 * Current model, RAM tier, autoupdate status
 * Last-heartbeat delta
+* Provisional vs pinned routing weight
 
 ## Changelog
 
-Fields on `/v1/network-stats` are versioned. Additions are backwards-compatible. Removals or semantic changes are announced via a `Deprecation` header on responses and a note in the [network-stats API changelog](https://github.com/MalibuAI/malibu/blob/main/docs/network-stats-api/CHANGELOG.md).
+Semantic changes to the public stats payload are noted in the [docs changelog](/changelog).
 
 ## Related
 

@@ -3,7 +3,7 @@
 **Published site:** [malibu.tech/docs](https://www.malibu.tech/docs)  
 **Mintlify source:** [`docs/`](../docs/) (`docs.json` + MDX pages)  
 **Production:** Vercel static export → `dist/docs/` (see `scripts/build-docs.mjs`)  
-**Last updated:** July 2026
+**Last updated:** August 2026
 
 This document defines how Malibu docs are organized, what each lane is for, and how to keep the Litepaper ambitious without letting it impersonate the shipped-features ledger.
 
@@ -235,27 +235,29 @@ API field additions, receipt version bumps, docs semantic changes. Mirror `Depre
 ### Phase B — Evidence supports the story (2–4 weeks)
 
 - [x] Benchmarks & methodology page (PoMW vs inference, footnoted)
-- [x] Pricing comparison page (rate card vs anchors, dated)
+- [x] Pricing comparison page (rate card vs anchors, dated) — OpenRouter snapshot 16 Aug 2026
 - [x] Provider economics appendix (assumptions, duty cycle, token scenarios)
+- [x] Canonical [Economics](../docs/guides/economics.mdx) page (90/10 live vs 70/12/18 planned)
 - [x] Threat model page under Network & trust
 - [x] TOPLOC integration page (`Planned v1` until live)
-- [x] Network stats observability note on status page (503 / degraded state)
+- [x] Live public snapshot: `GET https://malibu.tech/v1/stats/overview` on status + API pages
 
 ### Phase C — IA polish (4–6 weeks)
 
 - [x] Confirm `/docs` default remains Litepaper
 - [x] Sidebar restructure per navigation spec above
-- [ ] CI or manual check: repo `whitepaper/litepaper.md` ↔ published litepaper drift (no separate `whitepaper/litepaper.md`; use `docs/litepaper.mdx` as source + `validate-docs-claims.mjs`)
+- [x] Buyer / Provider / Network nav groups (Aug 2026)
+- [x] CI: `validate-docs-claims.mjs` (evidence links, invite copy, stale API URLs, stale default model)
 - [x] Changelog + roadmap pages
 - [x] Glossary page
 
 ### Phase D — Voice governance (ongoing)
 
 - [x] CI check: Litepaper links evidence pages (`npm run docs:validate`)
-- [ ] No superlative without falsifiable test (manual review)
+- [x] Superlative pass on Litepaper competitive copy (Aug 2026) — keep reviewing new claims
 - [x] No live/planned merge without status chip (Litepaper + status)
 - [x] Security page wins on trust boundaries
-- [ ] New features: reference page first, then Litepaper bullet with chip (process)
+- [x] New features: reference page first, then Litepaper bullet with chip (process — stated here; CI does not enforce order)
 
 ---
 

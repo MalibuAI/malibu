@@ -61,13 +61,37 @@
         ]
       },
       {
-        "group": "API reference",
+        "group": "Buyers",
         "pages": [
           "api/chat-completions",
           "api/models",
           "api/headers",
           "api/usage-object",
-          "api/network-stats"
+          "api/network-stats",
+          "guides/openai-sdk",
+          "guides/receipts",
+          "guides/sticky-conversations",
+          "guides/pinning",
+          "guides/pricing-comparison",
+          "guides/tool-calling-and-structured-output",
+          "agentic/tool-calling",
+          "agentic/structured-output",
+          "agentic/buyer-side-validation"
+        ]
+      },
+      {
+        "group": "Providers",
+        "pages": [
+          "guides/payments",
+          "guides/economics",
+          "guides/provider-economics",
+          "cli/malibu-cli",
+          "cli/malibu-verify",
+          "cli/headless-install",
+          "cli/flags-and-config",
+          "operations/model-catalog",
+          "operations/verified-model-settlement",
+          "operations/provider-autoupdate"
         ]
       },
       {
@@ -83,48 +107,13 @@
           "network/metering-and-billing",
           "network/discovery-and-routing",
           "network/transport",
-          "network/reputation"
+          "network/reputation",
+          "operations/network-stats"
         ]
       },
       {
-        "group": "Guides",
-        "pages": [
-          "guides/index",
-          "guides/openai-sdk",
-          "guides/receipts",
-          "guides/sticky-conversations",
-          "guides/pinning",
-          "guides/payments",
-          "guides/pricing-comparison",
-          "guides/provider-economics",
-          "guides/tool-calling-and-structured-output"
-        ]
-      },
-      {
-        "group": "Agentic tooling",
-        "pages": [
-          "agentic/tool-calling",
-          "agentic/structured-output",
-          "agentic/buyer-side-validation"
-        ]
-      },
-      {
-        "group": "CLI reference",
-        "pages": [
-          "cli/malibu-cli",
-          "cli/malibu-verify",
-          "cli/headless-install",
-          "cli/flags-and-config"
-        ]
-      },
-      {
-        "group": "Operations",
-        "pages": [
-          "operations/model-catalog",
-          "operations/network-stats",
-          "operations/verified-model-settlement",
-          "operations/provider-autoupdate"
-        ]
+        "group": "Guides index",
+        "pages": ["guides/index"]
       },
       {
         "group": "Ledger",

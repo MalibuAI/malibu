@@ -10,23 +10,25 @@ icon: circle-check
 
 This page is the factual ledger behind the [Litepaper](/litepaper). Narrative copy may mix live and planned features in one arc; this page does not.
 
-**Last reviewed:** July 2026
+**Last reviewed:** 16 August 2026
 
 ## Inference marketplace
 
 | Component | Status | Notes |
 | --- | --- | --- |
 | Coordinator (routing, billing ledger) | **Live** | `coordinator.malibu.tech` |
-| Gateway (OpenAI-compatible API) | **Live** | `api.malibu.tech/v1` |
-| Console (buyer web UI) | **Live** | `console.malibu.tech` |
-| Provider onboarding (signed installer) | **Live** | Memory-tier model match at install |
+| Gateway (OpenAI-compatible API) | **Live** | `api.malibu.tech/v1` — chat, models, usage. **Not** rate-card or network-stats (those are site/coordinator proxies). |
+| Console (buyer web UI) | **Live** | [malibu.tech/console](https://malibu.tech/console) — chat, agent tools, stop control, per-request decode tok/s in the bill line |
+| Provider onboarding | **Beta** | Signed installer at [malibu.tech/host](https://malibu.tech/host). **Invite required** for a fresh register (`malibu.tech/j#/…`). Download alone is not open admission. |
 | Signed inference receipts v0.3 | **Live** | `X-Malibu-Receipt`; verify with `malibu-verify` |
 | Verified model settlement | **Live** | Receipt verdict drives debit/refund |
-| Multi-turn tool calling | **Live** | Qwen + Llama-3.3 templates |
+| Multi-turn tool calling | **Live** | Qwen + Llama templates where the catalog marks the model tool-capable |
 | Structured output (`json_schema`) | **Live** | OpenAI strict-mode subset |
 | Sticky conversations + prefix-cache metering | **Live** | `cached_prompt_tokens` in usage |
 | Weekly USDC payout rail | **Live** | Monday 00:00 UTC sweep |
-| Provider credit share (today) | **Live** | **90%** provider / 10% operator — see [Metering & billing](/network/metering-and-billing) |
+| Provider credit share (today) | **Live** | **90%** provider / 10% operator — see [Economics](/guides/economics) |
+| Public stats snapshot | **Live** | `GET https://malibu.tech/v1/stats/overview` |
+| Public rate card | **Live** | `GET https://malibu.tech/v1/rate-card` |
 
 ## Token protocol (planned)
 
@@ -37,11 +39,12 @@ This page is the factual ledger behind the [Litepaper](/litepaper). Narrative co
 | Burn-and-mint fee split (70/12/18) | **Planned v0** | Replaces 90/10 marketplace split at token launch |
 | Protocol-owned USDC reserves floor | **Planned v0** | On-chain |
 | TOPLOC per-request verification | **Planned v1** | Lineage: Prime Intellect, 2025 |
+| Pooled serving (multi-Mac models) | **Planned** | Roadmap — not live |
 | DAO / coordinator sunset | **Planned v2** | Measurable decentralization criteria |
 
 ## Economics — today vs launch
 
-**Today (marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits settle weekly in USDC on Base. Details: [Payments & payouts](/guides/payments).
+**Today (marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits settle weekly in USDC on Base. Details: [Economics](/guides/economics), [Payments & payouts](/guides/payments).
 
 **At token launch (planned):** buyer USDC splits **70%** provider / **12%** reserves / **18%** market-buy-and-burn. Described in the Litepaper flywheel section; not active in production billing yet.
 
@@ -53,25 +56,39 @@ This page is the factual ledger behind the [Litepaper](/litepaper). Narrative co
 | PoMW (memory-hard walk) | **Prototype** | Model residency + memory-substrate rate | Inference equivalence, routing honesty |
 | TOPLOC | **Planned v1** | Served completion on attested weights | Pre-buyer readiness |
 
-Full trust boundaries: [Security & trust model](/network/security).
+Full trust boundaries: [Security & trust model](/network/security). Hardware attestation is **not** live (`nodes_hardware_attested` is 0 on the public snapshot).
 
 ## Public observability
 
 | Endpoint | Status |
 | --- | --- |
-| `GET /v1/network-stats` | Live when coordinator healthy — pool size, throughput, receipt validity |
-| Pool dashboard | `console.malibu.tech` |
+| `GET https://malibu.tech/v1/stats/overview` | **Live** — pool size, tokens, models serving. Cached ~30 s. See [Network stats](/api/network-stats). |
+| `GET https://malibu.tech/v1/rate-card` | **Live** — per-model credit rates. Not served on `api.malibu.tech`. |
+| `GET https://api.malibu.tech/v1/models` | **Live** — warm models only; **requires** Bearer token |
+| `GET https://api.malibu.tech/v1/network-stats` | **Not served** (404 as of 16 Aug 2026) |
+| Pool dashboard | [malibu.tech/console](https://malibu.tech/console) |
 
-When `/v1/network-stats` returns non-200, treat pool-size claims in narrative copy as unverified until the endpoint recovers. Snapshot methodology: [Network stats](/operations/network-stats).
+### Snapshot (16 August 2026)
+
+From `GET https://malibu.tech/v1/stats/overview` at 06:45 UTC:
+
+| Field | Value |
+| --- | --- |
+| `nodes_online` | 4 |
+| `models_serving` | 2 |
+| `requests_total` | 28,995 |
+| `tokens_served_total` | 7,332,222 |
+| `nodes_hardware_attested` | 0 |
+
+Warm models at that time (auth’d `GET /v1/models`): `mlx-community/Llama-3.2-3B-Instruct-4bit`, `mlx-community/Qwen3-8B-4bit`. Treat narrative pool-size claims as unverified if the stats endpoint is down.
 
 ## Evidence pages (claim validation)
-
-Quantitative and trust claims in the Litepaper link to falsifiable reference pages:
 
 | Topic | Page |
 | --- | --- |
 | PoMW / 10× / market sizing | [Benchmarks & methodology](/network/benchmarks-and-methodology) |
-| 20–40% buyer savings | [Pricing comparison](/guides/pricing-comparison) |
+| Buyer savings vs aggregators | [Pricing comparison](/guides/pricing-comparison) |
+| Today vs launch economics | [Economics](/guides/economics) |
 | Provider earnings tables | [Provider economics](/guides/provider-economics) |
 | Adversaries & residual risk | [Threat model](/network/threat-model) |
 | TOPLOC (v1) | [TOPLOC integration](/network/toploc) |
@@ -81,4 +98,5 @@ Quantitative and trust claims in the Litepaper link to falsifiable reference pag
 
 - [Roadmap](/roadmap) — milestone timeline
 - [Changelog](/changelog) — API and docs changes
+- [Company](https://malibu.tech/company) — Superposition Technologies Pte. Ltd. (operating entity)
 - [Documentation architecture](https://github.com/MalibuAI/malibu/blob/main/docs-internal/ARCHITECTURE.md) — how docs lanes are organized (repo)

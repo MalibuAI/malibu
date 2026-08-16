@@ -20,7 +20,7 @@ client_pinned = OpenAI(
 )
 
 resp = client_pinned.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "Hello"}],
 )
 ```
@@ -28,7 +28,7 @@ resp = client_pinned.chat.completions.create(
 ## Behavior
 
 * **Strict.** If the pinned provider is offline the request returns `503 no_provider_available`. Malibu will not route to a substitute.
-* **Provider IDs** are visible on the pool dashboard at [console.malibu.tech](https://console.malibu.tech).
+* **Provider IDs** are visible on the pool dashboard at [malibu.tech/console](https://malibu.tech/console).
 * **Composes with sticky.** Pinning trumps `X-Malibu-Conversation`. If you pin, sticky becomes redundant.
 
 ## Discovering the served provider
@@ -37,7 +37,7 @@ Every response carries `X-Malibu-Provider` — the ID of the provider that actua
 
 ```python theme={null}
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "First request"}],
 )
 served_by = raw.headers.get("X-Malibu-Provider")
