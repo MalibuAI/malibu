@@ -99,13 +99,13 @@ if (!/invite/i.test(download)) {
   errors++;
 }
 
-if (!status.includes('malibu.tech/v1/stats/overview')) {
-  console.error('status.mdx must document https://malibu.tech/v1/stats/overview');
+if (!status.includes('api.malibu.tech/v1/stats/overview')) {
+  console.error('status.mdx must document https://api.malibu.tech/v1/stats/overview');
   errors++;
 }
 
-if (!status.includes('malibu.tech/v1/rate-card')) {
-  console.error('status.mdx must document https://malibu.tech/v1/rate-card');
+if (!status.includes('api.malibu.tech/v1/rate-card')) {
+  console.error('status.mdx must document https://api.malibu.tech/v1/rate-card');
   errors++;
 }
 
@@ -132,13 +132,9 @@ for (const file of walkMdx(docsDir)) {
     errors++;
   }
 
-  for (const url of ['api.malibu.tech/v1/rate-card', 'api.malibu.tech/v1/network-stats']) {
-    if (!text.includes(url)) continue;
-    const allowed = /404|not served|not on the gateway|Not served|by design|wrong host/i.test(text);
-    if (!allowed) {
-      console.error(`${rel}: ${url} documented as live — use malibu.tech proxy or mark 404`);
-      errors++;
-    }
+  if (/404 by design|wrong host|gateway 404 is expected/i.test(text)) {
+    console.error(`${rel}: do not treat buyer-host rate-card/stats 404 as intended — those routes belong on api.malibu.tech`);
+    errors++;
   }
 }
 

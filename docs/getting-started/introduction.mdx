@@ -34,7 +34,7 @@ Provider Mac (MLX)
 
 Provider Macs connect **outbound** to `wss://coordinator.malibu.tech/ws/provider` — no port-forwarding, no static IP, no reverse proxy. Buyers hit `https://api.malibu.tech/v1/*` and get OpenAI wire-shape responses. Every response also carries an `X-Malibu-Receipt` header signed with the provider's Ed25519 receipt key.
 
-Public pool snapshot: `GET https://malibu.tech/v1/stats/overview`. Rate card: `GET https://malibu.tech/v1/rate-card`.
+Public pool snapshot: `GET https://api.malibu.tech/v1/stats/overview`. Rate card: `GET https://api.malibu.tech/v1/rate-card`.
 
 ## For providers
 

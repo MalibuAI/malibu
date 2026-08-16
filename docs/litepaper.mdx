@@ -46,16 +46,16 @@ Malibu is a **live coordinated inference network** today — distributed Apple S
 ### Inference marketplace — Live
 
 - **Coordinator service.** `Live` Provider admission, real-time request routing, per-request billing ledger, epoch settlement.
-- **Gateway.** `Live` OpenAI-compatible `/v1/chat/completions`, `/v1/models`, `/v1/usage` at `api.malibu.tech`. GitHub OAuth for buyer signup. Quota reservation. Signed session receipts. Rate card is **`https://malibu.tech/v1/rate-card`**, not the gateway.
+- **Gateway.** `Live` OpenAI-compatible `/v1/chat/completions`, `/v1/models`, `/v1/usage`, `/v1/rate-card`, `/v1/stats/overview` at `api.malibu.tech`. GitHub OAuth for buyer signup. Quota reservation. Signed session receipts.
 - **Provider onboarding.** `Beta` Signed installer; RAM-tier model match; launchd watchdog. **Invite required** for a fresh register ([malibu.tech/host](https://malibu.tech/host)). Already-running providers update without a new invite.
-- **End-to-end serving.** `Live` Buyer → gateway → coordinator → Apple Silicon provider → response → signed receipt → settlement. Public snapshot: [malibu.tech/v1/stats/overview](https://malibu.tech/v1/stats/overview).
+- **End-to-end serving.** `Live` Buyer → gateway → coordinator → Apple Silicon provider → response → signed receipt → settlement. Public snapshot: [api.malibu.tech/v1/stats/overview](https://api.malibu.tech/v1/stats/overview).
 - **Multi-turn tool calling.** `Live` Standardized `tool_calls[]` emission and second-turn `role: "tool"` acceptance on catalog-marked templates. Buyer frameworks **must** validate before execution — [Buyer-side validation](/agentic/buyer-side-validation).
 - **Structured output.** `Live` `response_format: json_schema` with the OpenAI strict-mode subset.
 - **Sticky conversations.** `Live` Stable `conversation_id`; `cached_prompt_tokens` in the OpenAI `usage` object.
 - **Signed inference receipts.** `Live` v0.3 nine-field receipt, Ed25519. Verify with `malibu-verify`.
 - **Verified model settlement.** `Live` Missing or unverifiable receipts settle with zero provider credits. Late receipts are non-settling.
 - **Rate card & billing.** `Live` Credit-based metering, **90% default provider share today**, weekly USDC payouts. See [Economics](/guides/economics).
-- **Model catalog.** `Live` Qwen2.5 (7B), Qwen3.x (8B–35B-class), Llama-3.2 (3B), Llama-3.3 (70B), Gemma, gpt-oss (20B / 120B) — MLX-native, RAM-tier matched. Routes when a matching-RAM Mac is warm. Snapshot of who's online: [malibu.tech/v1/stats/overview](https://malibu.tech/v1/stats/overview). Details: [Model catalog](/operations/model-catalog).
+- **Model catalog.** `Live` Qwen2.5 (7B), Qwen3.x (8B–35B-class), Llama-3.2 (3B), Llama-3.3 (70B), Gemma, gpt-oss (20B / 120B) — MLX-native, RAM-tier matched. Routes when a matching-RAM Mac is warm. Snapshot of who's online: [api.malibu.tech/v1/stats/overview](https://api.malibu.tech/v1/stats/overview). Details: [Model catalog](/operations/model-catalog).
 - **Routing tiers.** `Live` New Macs join **provisional**; operator promotion to **pinned** raises routing weight. See [Payments](/guides/payments#provisional-vs-pinned).
 - **Release cadence.** `Live` Signed installer on GitHub Releases; public download follows GitHub Latest via [malibu.tech/host](https://malibu.tech/host).
 
@@ -91,7 +91,7 @@ Cooperative scheduling keeps the Mac yours. Mining (planned) runs in the backgro
 
 ## What buyers get
 
-On comparable OSS SKUs, Malibu is often cheaper than aggregator list — **sometimes a lot cheaper on small models, sometimes even or slightly higher on 20B–32B rows**. Dated snapshot: [Pricing comparison](/guides/pricing-comparison). Live card: [malibu.tech/v1/rate-card](https://malibu.tech/v1/rate-card). Every response carries a **signed receipt** you can verify offline.
+On comparable OSS SKUs, Malibu is often cheaper than aggregator list — **sometimes a lot cheaper on small models, sometimes even or slightly higher on 20B–32B rows**. Dated snapshot: [Pricing comparison](/guides/pricing-comparison). Live card: [api.malibu.tech/v1/rate-card](https://api.malibu.tech/v1/rate-card). Every response carries a **signed receipt** you can verify offline.
 
 The catalog is the OSS frontier: Qwen2.5 7B, Qwen3 families (including 35B-class), Llama 3.2 3B, Llama 3.3 70B, Gemma 4, gpt-oss-20b and gpt-oss-120b — **they run when a matching-RAM Mac is in the pool** ([Model catalog](/operations/model-catalog)). Settled in USDC on Base via drop-in OpenAI-compatible endpoints.
 
