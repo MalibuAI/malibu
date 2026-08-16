@@ -1,6 +1,6 @@
 ---
 title: Model catalog
-description: The set of models the network knows how to serve, and how the catalog is maintained.
+description: Eligible models, live warm set, and how the catalog is maintained.
 icon: library
 ---
 
@@ -8,36 +8,63 @@ icon: library
 
 > The set of models the network knows how to serve, and how the catalog is maintained.
 
-The **model catalog** is the authoritative list of models the network is willing to route requests to — including their canonical MLX model IDs, weight hashes, memory requirements, and rate-card entries.
+Three lists, three jobs:
+
+| List | Endpoint | Meaning |
+| --- | --- | --- |
+| **Warm now** | `GET https://api.malibu.tech/v1/models` (Bearer required) | At least one connected provider has the model loaded |
+| **Priced** | `GET https://malibu.tech/v1/rate-card` | Billing rows — eligible even if no Mac is warm |
+| **Catalog** | Signed provider feed | Weight hash, RAM tier, templates — what a Mac may load |
+
+Do not treat a Litepaper name as available. Call `/v1/models` before you depend on a model in production.
+
+## Warm now (16 August 2026)
+
+Auth’d `GET /v1/models` returned:
+
+| Serve ID (gateway) | Typical RAM |
+| --- | --- |
+| `mlx-community/Llama-3.2-3B-Instruct-4bit` | 8 GB+ |
+| `mlx-community/Qwen3-8B-4bit` | 16 GB+ |
+
+That set changes as Macs sleep, wake, or switch models.
+
+## Priced rows (rate card)
+
+Live card: `GET https://malibu.tech/v1/rate-card` (`generated_at` **2026-07-29**, `usd_per_million_credits = 1`). Gateway `api.malibu.tech/v1/rate-card` is **404**.
+
+Rate-card IDs are **slugs**. Gateway chat uses **MLX serve IDs**. Map them yourself; they are not always identical strings.
+
+| Rate-card row | USD / 1M prompt | USD / 1M completion | Warm on 16 Aug 2026? |
+| --- | --- | --- | --- |
+| `meta-llama/llama-3.2-3b-instruct` | $0.0135 | $0.027 | Yes (`Llama-3.2-3B-Instruct-4bit`) |
+| `qwen3-8b` | $0.0135 | $0.027 | Yes (`Qwen3-8B-4bit`) |
+| `meta-llama/llama-3.1-8b-instruct` | $0.0135 | $0.027 | No |
+| `openai/gpt-oss-20b` | $0.05 | $0.10 | No |
+| `google-gemma-4-26b-a4b-it` / `gemma-4-26b-a4b-it` | $0.06 | $0.24 | No |
+| `nemotron-3-nano-30b-a3b` | $0.08 | $0.16 | No |
+| `qwen3-32b` | $0.11 | $0.22 | No |
+| `qwen3-coder-30b-a3b-instruct` | $0.1175 | $0.235 | No |
+| `qwen2.5-coder-32b-instruct` | $0.425 | $0.85 | No |
+| `default` | $0.50 | $1.00 | Fallback if no row matches |
+
+Default completion rate is **$1.00 / 1M** (1,000,000 credits). Provider share on every row is **90%** (`provider_share_bps: 9000`).
+
+**Not on this rate card** (do not list as shipping): Qwen2.5 7B, Qwen3.5 35B, Llama 3.3 70B, gpt-oss-120B.
 
 ## What the catalog contains
 
 For each catalog entry:
 
-| Field              | Purpose                                                                        |
-| ------------------ | ------------------------------------------------------------------------------ |
-| `model_id`         | Canonical identifier (e.g. `mlx-community/Qwen2.5-7B-Instruct-4bit`)           |
-| `model_hash`       | SHA-256 of the canonical weight file — anchors receipt-verified model identity |
-| `family`           | `qwen` \| `llama` \| `gemma` \| …                                              |
-| `ram_tier_min_gb`  | Minimum unified memory required                                                |
-| `context_max`      | Maximum context window                                                         |
-| `template_support` | Which templates render `tools`, `response_format`, etc.                        |
-| `rate_card`        | Prompt / completion / cached-prompt rates                                      |
-
-## Currently shipping
-
-The v0 catalog covers the MLX-native OSS frontier, tier-matched to Apple Silicon RAM:
-
-| Family    | Sizes                   | Typical Mac tier     |
-| --------- | ----------------------- | -------------------- |
-| Qwen 2.5  | 7B (4-bit), 14B (4-bit) | M2 Air 16GB → M4 Pro |
-| Qwen 3.x  | 35B                     | M4 Max, Studio       |
-| Llama 3.2 | 1B, 3B (4-bit)          | Any Apple Silicon    |
-| Llama 3.3 | 70B                     | Studio Ultra         |
-| Gemma 4   | 26B A4B                 | M4 Max, Studio       |
-| gpt-oss   | 20B, 120B               | Studio Ultra (120B)  |
-
-Full live list: `GET /v1/models` (only models with at least one warm provider) and `GET /v1/rate-card` (per-model pricing).
+| Field | Purpose |
+| --- | --- |
+| `model_id` | Canonical identifier (e.g. `mlx-community/Qwen3-8B-4bit`) |
+| `model_hash` | SHA-256 of the canonical weight file — anchors receipt-verified model identity |
+| `family` | `qwen` \| `llama` \| `gemma` \| … |
+| `ram_tier_min_gb` | Minimum unified memory required |
+| `context_max` | Maximum context window |
+| `template_support` | Which templates render `tools`, `response_format`, etc. |
+| `rate_card` | Prompt / completion / cached-prompt rates |
 
 ## Catalog distribution
 

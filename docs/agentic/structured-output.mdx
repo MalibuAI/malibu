@@ -14,7 +14,7 @@ Malibu supports OpenAI's `response_format` for structured output — both `json_
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "Extract contact info as JSON."},
         {"role": "user", "content": "Call John at 555-0100, john@example.com"},
@@ -67,7 +67,7 @@ If your schema uses features outside the subset, the request returns 400 with th
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "Reply as a JSON object with keys `answer` and `confidence`."},
         {"role": "user", "content": "Is 42 prime?"},

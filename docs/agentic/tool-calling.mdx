@@ -14,7 +14,7 @@ Malibu ships a multi-turn OpenAI-compatible tool-calling surface for Qwen 2.5 an
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
     tools=[
         {
@@ -44,7 +44,7 @@ After you execute the tool locally, feed the result back with `role: "tool"` and
 
 ```python theme={null}
 first = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
     tools=[...],
 )
@@ -55,7 +55,7 @@ result = my_get_weather(city=json.loads(call.function.arguments)["city"])
 
 # Continue the conversation
 second = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "user", "content": "What's the weather in Vilnius?"},
         first.choices[0].message.model_dump(),
@@ -77,7 +77,7 @@ Set `stream=True` and reassemble `tool_calls` from the deltas the same way you w
 
 ```python theme={null}
 stream = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "..."}],
     tools=[...],
     stream=True,

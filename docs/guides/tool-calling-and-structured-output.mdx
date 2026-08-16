@@ -16,7 +16,7 @@ Multi-turn tool loops, streamed tool-call deltas, `tool_call_id` back-references
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
     tools=[
         {
@@ -60,7 +60,7 @@ Grammar-constrained sampling via `response_format`. Works in streaming and non-s
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "Extract contact info as JSON."},
         {"role": "user", "content": "Call John at 555-0100, john@example.com"},

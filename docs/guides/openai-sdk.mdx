@@ -40,7 +40,7 @@ Get an API key: [api.malibu.tech/auth/github/start](https://api.malibu.tech/auth
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "Hello, world"}],
 )
 print(resp.choices[0].message.content)
@@ -52,7 +52,7 @@ Any MLX chat model in the pool works. List available models: `client.models.list
 
 ```python theme={null}
 stream = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "Explain WebSocket ping/pong in one sentence."}],
     stream=True,
 )
@@ -69,7 +69,7 @@ Malibu ships OpenAI-shape `tools` + `tool_choice`. Multi-turn tool loops, stream
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
     tools=[
         {
@@ -103,7 +103,7 @@ Grammar-constrained sampling. Works in both streaming and non-streaming.
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "Extract contact info as JSON."},
         {"role": "user", "content": "Call John at 555-0100, john@example.com"},
@@ -147,7 +147,7 @@ client_sticky = OpenAI(
 
 # Turn 1: cold prefix, provider caches it
 resp1 = client_sticky.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "You are a code review assistant."},
         {"role": "user", "content": "Explain the SOLID principles."},
@@ -156,7 +156,7 @@ resp1 = client_sticky.chat.completions.create(
 
 # Turn 2: same conversation_id -> same provider, warm KV-cache reused
 resp2 = client_sticky.chat.completions.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "You are a code review assistant."},
         {"role": "user", "content": "Explain the SOLID principles."},
@@ -186,7 +186,7 @@ client_pinned = OpenAI(
 )
 ```
 
-Provider IDs are visible on the pool dashboard at [console.malibu.tech](https://console.malibu.tech). If the pinned provider is offline the request returns `503 no_provider_available` rather than routing to a substitute — pinning is strict.
+Provider IDs are visible on the pool dashboard at [malibu.tech/console](https://malibu.tech/console). If the pinned provider is offline the request returns `503 no_provider_available` rather than routing to a substitute — pinning is strict.
 
 `X-Malibu-Pin-Provider` and `X-Malibu-Conversation` compose: pinning trumps sticky. If you pin, sticky becomes redundant.
 
@@ -196,7 +196,7 @@ Every response carries `X-Malibu-Provider` identifying which provider actually s
 
 ```python theme={null}
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "Hello"}],
 )
 served_by = raw.headers.get("X-Malibu-Provider")
@@ -210,7 +210,7 @@ Capture the receipt at request time:
 
 ```python theme={null}
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "Hello"}],
 )
 resp = raw.parse()
@@ -244,7 +244,7 @@ client = OpenAI(
 )
 
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "Give me one interesting fact about Apple Silicon."},

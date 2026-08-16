@@ -1,79 +1,91 @@
 ---
 title: Network stats
-description: GET /v1/network-stats — public network snapshot.
+description: GET /v1/stats/overview — public network snapshot.
 icon: activity
 ---
 
 # Network stats
 
-> GET /v1/network-stats — public network snapshot.
+> Public read-only snapshot of the live pool.
 
-Public read-only snapshot of the network: pool size, models warm, request rate. No authentication required.
-
-## Endpoint
+The public snapshot is served from the site, not the buyer gateway:
 
 ```
-GET https://api.malibu.tech/v1/network-stats
+GET https://malibu.tech/v1/stats/overview
 ```
 
-## Response
+No API key. Cached about 30 seconds (`stale_after` in the body).
+
+`GET https://api.malibu.tech/v1/network-stats` is **not served** (404 as of 16 August 2026). Do not poll the gateway for this payload.
+
+## Response (abridged)
 
 ```json theme={null}
 {
-  "snapshot_ts": "2026-07-03T12:00:00Z",
-  "pool": {
-    "total": 342,
-    "pinned": 47,
-    "provisional": 295,
-    "warming": 8
+  "generated_at": "2026-08-16T06:45:13Z",
+  "stale_after": "2026-08-16T06:45:43Z",
+  "network": {
+    "tokens_served_total": 7332222,
+    "tokens_in_total": 2105292,
+    "tokens_out_total": 5226930,
+    "requests_total": 28995,
+    "nodes_online": 4,
+    "nodes_hardware_attested": 0,
+    "models_serving": 2,
+    "gpu_cores_total": 50,
+    "cpu_cores_total": 40,
+    "unified_ram_gb_total": 80,
+    "avg_tokens_per_request": 252
   },
-  "models_warm": [
-    {
-      "model_id": "mlx-community/Qwen2.5-7B-Instruct-4bit",
-      "provider_count": 128,
-      "requests_last_hour": 4021
-    },
-    {
-      "model_id": "mlx-community/Llama-3.2-3B-Instruct-4bit",
-      "provider_count": 82,
-      "requests_last_hour": 1573
+  "timeseries": {
+    "rpm_30m": {
+      "bucket_seconds": 60,
+      "points": [{ "t": "2026-08-16T06:15:00Z", "value": 3 }]
     }
-  ],
-  "throughput": {
-    "requests_last_hour": 8244,
-    "tokens_out_last_hour": 12_405_000
-  },
-  "receipts": {
-    "valid_rate_last_24h": 0.9987,
-    "receipt_version": "0.3"
   }
 }
 ```
 
+Example values are a **dated snapshot** (16 Aug 2026). Live numbers change; call the endpoint.
+
 ## Fields
 
-| Field                             | Meaning                                                       |
-| --------------------------------- | ------------------------------------------------------------- |
-| `snapshot_ts`                     | RFC3339 timestamp of this snapshot                            |
-| `pool.total`                      | Currently connected providers                                 |
-| `pool.pinned`                     | Providers at the pinned tier                                  |
-| `pool.provisional`                | Providers at the provisional tier                             |
-| `pool.warming`                    | Providers in the post-reconnect warmup gate                   |
-| `models_warm[]`                   | Per-model advertised warm counts and last-hour request volume |
-| `throughput.requests_last_hour`   | Sum across all models                                         |
-| `throughput.tokens_out_last_hour` | Completion tokens in the last hour                            |
-| `receipts.valid_rate_last_24h`    | Fraction of receipts that verified `valid` in the last 24h    |
-| `receipts.receipt_version`        | Current receipt tuple version                                 |
+| Field | Meaning |
+| --- | --- |
+| `generated_at` | RFC3339 snapshot time |
+| `stale_after` | Treat the payload as expired after this timestamp |
+| `network.nodes_online` | Providers with an active connection at snapshot time |
+| `network.models_serving` | Distinct models with at least one warm provider |
+| `network.requests_total` | Lifetime billed-request count on this surface |
+| `network.tokens_served_total` | Lifetime prompt + completion tokens |
+| `network.tokens_in_total` / `tokens_out_total` | Lifetime prompt vs completion split |
+| `network.nodes_hardware_attested` | Providers with hardware attestation — **0** today (not live) |
+| `network.unified_ram_gb_total` | Sum of reported unified memory |
+| `timeseries.rpm_30m` | Requests per minute, 60 s buckets |
 
-## Cache
+Capacity fields (`bandwidth_gb_per_s`, `network_power_kw`, core counts) are **estimates** from hardware profiles. The payload includes `capacity_estimate_sources` naming the method. Do not treat them as metered telemetry.
 
-The endpoint is cached at the edge for 30 seconds. Callers polling faster than 30 s see the same snapshot until it refreshes.
+Network-wide decode tokens/sec is **not** published on this endpoint. The console bill line can show **client-measured** tok/s for a single stream.
 
-## Rate limit
+## Rate card (separate endpoint)
 
-10 requests per minute per source IP. No API key needed.
+```
+GET https://malibu.tech/v1/rate-card
+```
+
+Also unauthenticated. Not available on `api.malibu.tech`. See [Pricing comparison](/guides/pricing-comparison) and [Model catalog](/operations/model-catalog).
+
+## Warm models (authenticated)
+
+```
+GET https://api.malibu.tech/v1/models
+Authorization: Bearer <MALIBU_API_KEY>
+```
+
+Returns only models with at least one warm provider. See [Models](/api/models).
 
 ## Related
 
-* [Reputation](/network/reputation) — how these numbers are aggregated
-* [Operations → Network stats](/operations/network-stats) — operator-side observability on top of the same data
+* [Operations → Network stats](/operations/network-stats) — how aggregates are computed
+* [Network status](/status) — live vs planned ledger
+* [Reputation](/network/reputation) — how per-provider signals surface

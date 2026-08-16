@@ -33,10 +33,10 @@ provider_token: <token minted on first admission>
 coordinator: wss://coordinator.malibu.tech/ws/provider
 
 model:
-  id: mlx-community/Qwen2.5-7B-Instruct-4bit
+  id: mlx-community/Qwen3-8B-4bit
   # Or a list to hold multiple warm:
   # ids:
-  #   - mlx-community/Qwen2.5-7B-Instruct-4bit
+  #   - mlx-community/Qwen3-8B-4bit
   #   - mlx-community/Llama-3.2-3B-Instruct-4bit
 
 runtime:
@@ -84,7 +84,7 @@ Every config field has an environment equivalent, uppercased with dots replaced 
 │   ├── provider.pub.pem      # advertised via /v1/receipt-keys
 │   └── provider.key.pem      # signs every receipt (chmod 600)
 ├── models/                    # MLX weight cache
-│   └── mlx-community__Qwen2.5-7B-Instruct-4bit/
+│   └── mlx-community__Qwen3-8B-4bit/
 └── state/
     ├── last-connect.json
     └── autoupdate.json

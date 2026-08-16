@@ -1,76 +1,70 @@
 ---
 title: Pricing comparison
-description: How to validate Malibu's 20–40% savings claim against the live rate card and your workload.
+description: Dated Malibu rate-card snapshot vs OpenRouter list prices on comparable OSS models.
 icon: scale
 ---
 
 # Pricing comparison
 
-> Methodology for the buyer savings claim in the [Litepaper](/litepaper). **Last reviewed:** July 2026.
+> Evidence for buyer-cost claims in the [Litepaper](/litepaper). **Last reviewed:** 16 August 2026.
 
-The Litepaper targets **20–40% lower cost** vs hyperscaler pricing on comparable open-source workloads. This page explains how to verify that claim — and where it does not apply.
+Savings are **model-specific**. The old 20–40% band is not a uniform guarantee. This page snapshots live Malibu rates against public OpenRouter list prices on the same family.
 
 ## Live Malibu pricing
 
-Malibu bills in **credits**; credits convert to USDC at payout/settlement time. The live rate card is authoritative:
-
 ```
-GET https://api.malibu.tech/v1/rate-card
+GET https://malibu.tech/v1/rate-card
 ```
 
-Default rates (when no model-specific override applies):
+Not on `api.malibu.tech` (404). Credits convert at `usd_per_million_credits` (**1.0** on this snapshot). Provider share (90%) affects **provider payout**, not buyer price.
 
-| Token type | Credits per 1M tokens | USD equivalent* |
-| --- | --- | --- |
-| Prompt | 500,000 | $0.50 / M |
-| Completion | 1,000,000 | $1.00 / M |
+Full formula: [Metering & billing](/network/metering-and-billing). Canonical regimes: [Economics](/guides/economics).
 
-\*Assumes `usd_per_million_credits = 1` (default in rate card). Confirm on the live endpoint — the operator may change this field.
+## Dated snapshot — 16 August 2026
 
-Provider share (90%) affects **provider payout**, not buyer price. Buyers pay gross credits before the split.
+**Malibu card:** `generated_at` 2026-07-29 (`version` `51d4eb9d…`).  
+**OpenRouter:** public `GET https://openrouter.ai/api/v1/models` on 16 Aug 2026 (prompt/completion fields × 1e6 → USD per 1M tokens).
 
-Full formula: [Metering & billing](/network/metering-and-billing).
+Blend column uses **1M prompt + 0.5M completion** tokens (same mix as the worked example below).
 
-## How to run a fair comparison
+| Model family | Malibu in / out ($/1M) | OpenRouter in / out ($/1M) | Blend Malibu | Blend OpenRouter | Blend vs OpenRouter |
+| --- | --- | --- | --- | --- | --- |
+| Llama 3.2 3B | 0.0135 / 0.027 | 0.05 / 0.33 | $0.027 | $0.215 | **87% lower** |
+| Qwen3 8B | 0.0135 / 0.027 | 0.117 / 0.455 | $0.027 | $0.345 | **92% lower** |
+| Llama 3.1 8B | 0.0135 / 0.027 | 0.05 / 0.08 | $0.027 | $0.090 | **70% lower** |
+| Gemma 4 26B A4B | 0.06 / 0.24 | 0.12 / 0.40 | $0.180 | $0.320 | **44% lower** |
+| Qwen3 32B | 0.11 / 0.22 | 0.08 / 0.28 | $0.220 | $0.220 | **about even** |
+| gpt-oss-20b | 0.05 / 0.10 | 0.03 / 0.13 | $0.100 | $0.095 | **~5% higher** |
+| Nemotron 3 Nano 30B | 0.08 / 0.16 | 0.05 / 0.20 | $0.160 | $0.150 | **~7% higher** |
 
-1. **Pick a fixed workload** — same model family, similar context length, same prompt/completion token mix. Malibu serves OSS weights; compare against OSS or equivalent-tier closed API pricing, not flagship-only SKUs.
-2. **Snapshot Malibu rates** — download `/v1/rate-card` and record `effective_at` or capture date.
-3. **Snapshot anchor pricing** — record hyperscaler or aggregator list price with date and region. Malibu does not maintain a third-party price feed; you own the anchor snapshot.
-4. **Include cache effects** — sticky conversations report `cached_prompt_tokens` at the lower cache-hit rate. Hyperscaler prompt-cache discounts differ; compare with and without prefix reuse if your agent replays context.
-5. **Exclude non-comparable SKUs** — frontier closed models without OSS equivalents are out of scope for "same workload" claims.
-
-## Worked example (illustrative)
-
-Assume a workload of **1M prompt + 500K completion tokens** at default Malibu rates and `usd_per_million_credits = 1`:
-
-```
-promptCost      = 1.0 × 500,000 / 1,000,000 = $0.50
-completionCost  = 0.5 × 1,000,000 / 1,000,000 = $0.50
-buyerTotal      = $1.00 gross
-```
-
-Compare `$1.00` to your anchor's all-in price for the same token mix. A **25% savings** vs a `$1.33` anchor falls inside the Litepaper's 20–40% band.
+Malibu IDs: `meta-llama/llama-3.2-3b-instruct`, `qwen3-8b`, `meta-llama/llama-3.1-8b-instruct`, `google-gemma-4-26b-a4b-it`, `qwen3-32b`, `openai/gpt-oss-20b`, `nemotron-3-nano-30b-a3b`. OpenRouter IDs: `meta-llama/llama-3.2-3b-instruct`, `qwen/qwen3-8b`, `meta-llama/llama-3.1-8b-instruct`, `google/gemma-4-26b-a4b-it`, `qwen/qwen3-32b`, `openai/gpt-oss-20b`, `nvidia/nemotron-3-nano-30b-a3b`.
 
 <Warning>
-  This example uses default rates only. Model-specific overrides, global multipliers, and live `usd_per_million_credits` may differ. Always use the live rate card for quotes.
+  Only **Llama 3.2 3B** and **Qwen3 8B** were warm on 16 Aug 2026. A cheaper rate-card row does not mean the model routes today. Check `GET /v1/models`. Quantization, latency, and receipt semantics differ from OpenRouter even when the family name matches.
 </Warning>
 
-## When the 20–40 percent claim may not hold
+## How to rerun the comparison
 
-- **Low-volume or bursty traffic** — minimum payouts and quota mechanics don't affect buyers the same way, but your effective $/token can shift at small scale.
-- **Frontier models without warm pool hardware** — catalog entries for very large models (e.g. 120B+) require matching provider RAM; if the pool is cold, compare availability separately from price.
-- **Latency-sensitive workloads** — consumer Mac routing may trade cost for tail latency vs dedicated GPU clusters.
-- **Private / compliance requirements** — Malibu is cooperative-trust, not confidential compute. The comparison is economic, not security-equivalent.
+1. Download `https://malibu.tech/v1/rate-card` and record `generated_at`.
+2. Download OpenRouter (or another aggregator) list prices with date.
+3. Convert Malibu credits: `usd = credits_per_mtok / 1e6 * usd_per_million_credits`.
+4. Compare the same token mix. Include `prompt_cache_hit_rate_per_mtok` if your agent replays context.
+5. Exclude closed flagship SKUs with no OSS equivalent.
 
-## Malibu-maintained snapshot policy
+## Default row (no model match)
 
-Malibu will publish dated rate-card snapshots on this page when a formal comparison table is added. Until then:
+If a request hits the `default` rate-card row: **$0.50 / $1.00** per 1M prompt/completion — usually **more expensive** than aggregator OSS list. Prefer an explicit priced model.
 
-- **Buyers:** use live `/v1/rate-card` + your anchor snapshot.
-- **Docs reviewers:** the Litepaper links here instead of asserting a fixed savings percentage without evidence.
+## When Malibu is not cheaper
+
+- **Cold catalog rows** — price without supply is not a savings.
+- **Some 20B–32B SKUs** — this snapshot is flat or slightly above OpenRouter list.
+- **Latency / availability** — consumer Mac routing vs dedicated GPU clusters.
+- **Confidential compute** — cooperative-trust, not TEE. Economic comparison only.
 
 ## Related
 
-- [Provider economics](/guides/provider-economics) — provider-side earnings (different from buyer price)
-- [Payments & payouts](/guides/payments) — credit → USDC settlement
+- [Economics](/guides/economics) — 90/10 today vs 70/12/18 planned
+- [Provider economics](/guides/provider-economics) — provider-side earnings
+- [Model catalog](/operations/model-catalog) — warm vs priced vs catalog
 - [Network status](/status) — what's live in billing today

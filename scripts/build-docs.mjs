@@ -140,6 +140,7 @@ const llmsEntries = [
   '## Evidence (claim validation)',
   '- [Benchmarks & methodology](/docs/network/benchmarks-and-methodology): PoMW evidence scope',
   '- [Pricing comparison](/docs/guides/pricing-comparison): Buyer savings methodology',
+  '- [Economics](/docs/guides/economics): 90/10 live vs 70/12/18 planned',
   '- [Provider economics](/docs/guides/provider-economics): Earnings assumptions',
   '- [Threat model](/docs/network/threat-model): Adversary catalog',
   '- [TOPLOC integration](/docs/network/toploc): Planned v1 verification',

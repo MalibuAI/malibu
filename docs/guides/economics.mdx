@@ -1,0 +1,48 @@
+---
+title: Economics
+description: Two billing regimes — live 90/10 USDC marketplace vs planned 70/12/18 token flywheel.
+icon: banknote
+---
+
+# Economics
+
+> Canonical split between **what providers earn today** and **what the token launch changes**. **Last reviewed:** 16 August 2026.
+
+Never mix the two regimes in one sentence.
+
+| Regime | Status | Provider share | Buyer pays in | Settlement |
+| --- | --- | --- | --- | --- |
+| **Marketplace credits** | **Live** | **90%** of gross credits (10% operator) | Credits → USDC | Weekly on Base, Monday 00:00 UTC |
+| **Token flywheel (BME)** | **Planned v0/v1** | **70%** of buyer USDC | $MALIBU + USDC (design) | 12% reserves / 18% buy-and-burn |
+
+Source for live numbers: `GET https://malibu.tech/v1/rate-card` (`provider_share_bps: 9000` on every row as of 29 July 2026). Formula: [Metering & billing](/network/metering-and-billing). Payouts: [Payments & payouts](/guides/payments).
+
+## Live marketplace
+
+```
+providerCredits = grossCredits × 9000 ÷ 10,000
+```
+
+Buyers pay **gross** credits. The 90/10 split is a provider/operator split, not a buyer discount.
+
+Credits convert at `usd_per_million_credits` on the rate card (**1.0** on the 29 July 2026 card). Model-specific prompt/completion rates override the default 500k / 1M credits per million tokens.
+
+Admission is **invite-gated pre-beta**. Earnings are not a public "$X/year per Mac" figure — use `/providers/{id}/earnings` after you serve traffic.
+
+## Planned token launch
+
+When (and only when) token economics activate:
+
+- **70¢** of each buyer dollar to the serving provider
+- **12¢** to protocol-owned USDC reserves
+- **18¢** market-buy-and-burn of $MALIBU
+
+That split **replaces** 90/10. It is not additive. Effective date: TBD on [Network status](/status).
+
+Illustrative Year-5 earnings tables in the Litepaper assume this regime plus a token price. They are **not** live marketplace payouts. See [Provider economics](/guides/provider-economics).
+
+## Related
+
+- [Pricing comparison](/guides/pricing-comparison) — buyer-side rates vs aggregators
+- [Provider economics](/guides/provider-economics) — assumptions behind annual tables
+- [Network status](/status) — live vs planned ledger

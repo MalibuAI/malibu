@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 /**
- * Validates that Litepaper quantitative/trust claims link to evidence pages.
+ * Validates Litepaper evidence links and blocks stale live-API claims.
  * Run: node scripts/validate-docs-claims.mjs
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const litepaperPath = join(root, 'docs', 'litepaper.mdx');
+const docsDir = join(root, 'docs');
+const litepaperPath = join(docsDir, 'litepaper.mdx');
+const downloadPath = join(docsDir, 'getting-started', 'download-malibu.mdx');
+const statusPath = join(docsDir, 'status.mdx');
 
 const REQUIRED_EVIDENCE_PAGES = [
   'docs/network/benchmarks-and-methodology.mdx',
@@ -17,27 +20,38 @@ const REQUIRED_EVIDENCE_PAGES = [
   'docs/network/glossary.mdx',
   'docs/guides/pricing-comparison.mdx',
   'docs/guides/provider-economics.mdx',
+  'docs/guides/economics.mdx',
   'docs/status.mdx',
   'docs/roadmap.mdx',
   'docs/changelog.mdx',
 ];
 
-/** Litepaper must link to these paths (Mintlify routes, no /docs prefix). */
 const LITEPAPER_REQUIRED_LINKS = [
   '/network/benchmarks-and-methodology',
   '/guides/pricing-comparison',
   '/guides/provider-economics',
+  '/guides/economics',
   '/network/threat-model',
   '/network/toploc',
+  '/agentic/buyer-side-validation',
   '/status',
 ];
 
-/** Patterns that must not appear without nearby evidence links. */
 const BANNED_UNQUALIFIED = [
   { pattern: /\blive P2P\b/i, message: 'Use "coordinated inference network" — not "live P2P"' },
   { pattern: /\bPrivate\.\s*No data harvesting/i, message: 'Privacy bullet must use cooperative-trust framing' },
   { pattern: /\bNo tampering\b/i, message: '"No tampering" requires TOPLOC live — use threat-model language' },
+  { pattern: /Nobody else has a reason to build this/i, message: 'Competitive absolute — credit overlapping networks' },
 ];
+
+function walkMdx(dir, acc = []) {
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) walkMdx(path, acc);
+    else if (name.endsWith('.mdx') || name.endsWith('.md')) acc.push(path);
+  }
+  return acc;
+}
 
 function fail(msg) {
   console.error(`validate-docs-claims: ${msg}`);
@@ -50,11 +64,12 @@ if (!existsSync(litepaperPath)) {
 }
 
 const litepaper = readFileSync(litepaperPath, 'utf8');
+const download = existsSync(downloadPath) ? readFileSync(downloadPath, 'utf8') : '';
+const status = existsSync(statusPath) ? readFileSync(statusPath, 'utf8') : '';
 let errors = 0;
 
 for (const rel of REQUIRED_EVIDENCE_PAGES) {
-  const abs = join(root, rel);
-  if (!existsSync(abs)) {
+  if (!existsSync(join(root, rel))) {
     console.error(`missing evidence page: ${rel}`);
     errors++;
   }
@@ -74,18 +89,48 @@ for (const { pattern, message } of BANNED_UNQUALIFIED) {
   }
 }
 
-if (!litepaper.includes('Network status') && !litepaper.includes('/status')) {
-  console.error('litepaper missing Network status / reality-check link');
-  errors++;
-}
-
 if (!litepaper.includes('90%') || !/70[%¢]|70\/12\/18/.test(litepaper)) {
   console.error('litepaper must distinguish today (90%) vs launch (70%) economics');
   errors++;
 }
 
+if (!/invite/i.test(download)) {
+  console.error('download-malibu.mdx must mention invite-gated admission');
+  errors++;
+}
+
+if (!status.includes('malibu.tech/v1/stats/overview')) {
+  console.error('status.mdx must document https://malibu.tech/v1/stats/overview');
+  errors++;
+}
+
+if (!status.includes('malibu.tech/v1/rate-card')) {
+  console.error('status.mdx must document https://malibu.tech/v1/rate-card');
+  errors++;
+}
+
+const staleDefault = 'mlx-community/Qwen2.5-7B-Instruct-4bit';
+for (const file of walkMdx(docsDir)) {
+  const text = readFileSync(file, 'utf8');
+  const rel = file.slice(root.length + 1);
+
+  if (text.includes(staleDefault)) {
+    console.error(`${rel}: stale default model ${staleDefault} — use a warm ID`);
+    errors++;
+  }
+
+  for (const url of ['api.malibu.tech/v1/rate-card', 'api.malibu.tech/v1/network-stats']) {
+    if (!text.includes(url)) continue;
+    const allowed = /404|not served|not on the gateway|Not served/i.test(text);
+    if (!allowed) {
+      console.error(`${rel}: ${url} documented as live — use malibu.tech proxy or mark 404`);
+      errors++;
+    }
+  }
+}
+
 if (errors === 0) {
-  console.log('validate-docs-claims: OK — evidence pages present and litepaper cross-links verified');
+  console.log('validate-docs-claims: OK — evidence pages, admission, and live API URLs verified');
 } else {
   fail(`${errors} check(s) failed`);
   process.exit(1);

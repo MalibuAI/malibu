@@ -10,14 +10,14 @@ icon: compass
 
 <Columns cols={2}>
   <Card title="I'm a provider" icon="apple" href="/getting-started/download-malibu" color="#FF6E5B">
-    Download the app, pick a model, start serving.
+    Invite-gated pre-beta. Download the app, pick a model, start serving.
   </Card>
   <Card title="I'm a buyer" icon="terminal" href="/getting-started/api-key" color="#143A45">
     Get an API key, hit the OpenAI-compatible endpoint.
   </Card>
 </Columns>
 
-Malibu is a coordinated inference network built on Apple Silicon — distributed providers, centralized routing and billing. Providers run open-source models on their Macs; buyers hit an OpenAI-compatible API and get responses back with a signed receipt binding `(prompt, output, model, provider)`. Verifiable inference, without a datacenter.
+Malibu is a coordinated inference network built on Apple Silicon — distributed providers, centralized routing and billing. Providers run open-source models on their Macs; buyers hit an OpenAI-compatible API and get responses back with a signed receipt binding `(prompt, output, model, provider)`. Verifiable inference, without a datacenter. What's live vs planned: [Network status](/status).
 
 ## Architecture
 
@@ -28,22 +28,27 @@ Provider Mac (MLX)
                              │
                ┌─────────────┴─────────────┐
                │                           │
-    api.malibu.tech/v1            console.malibu.tech
+    api.malibu.tech/v1            malibu.tech/console
     (OpenAI-compatible)                (web front end)
 ```
 
 Provider Macs connect **outbound** to `wss://coordinator.malibu.tech/ws/provider` — no port-forwarding, no static IP, no reverse proxy. Buyers hit `https://api.malibu.tech/v1/*` and get OpenAI wire-shape responses. Every response also carries an `X-Malibu-Receipt` header signed with the provider's Ed25519 receipt key.
 
+Public pool snapshot: `GET https://malibu.tech/v1/stats/overview`. Rate card: `GET https://malibu.tech/v1/rate-card`.
+
 ## For providers
 
-Any Apple Silicon Mac (M1 or newer, macOS 14+) can serve. The **Malibu app** handles onboarding: pick a model matched to your Mac's memory tier, sign in, start earning. Every request served produces credits; credits settle weekly in USDC on Base.
+Apple Silicon (M1 or newer, macOS 14+) can serve. The **Malibu app** handles onboarding: invite, model match, GitHub sign-in. New Macs start **provisional** and may be promoted to **pinned**. Every billed request produces credits; credits settle weekly in USDC on Base (90% provider share today).
 
 * [Download Malibu](/getting-started/download-malibu)
 * [Payments & payouts](/guides/payments)
+* [Economics](/guides/economics)
 
 ## For buyers
 
-Point any OpenAI SDK client at `https://api.malibu.tech/v1` with your Malibu API key. Full OpenAI wire-shape surface: streaming, multi-turn tool calling, JSON-schema structured output, sticky conversations with prefix-cache reuse. Every response carries a signed receipt.
+Point any OpenAI SDK client at `https://api.malibu.tech/v1` with your Malibu API key. Full OpenAI wire-shape surface: streaming, multi-turn tool calling, JSON-schema structured output, sticky conversations with prefix-cache reuse. Every response carries a signed receipt. List **warm** models with a Bearer token (`GET /v1/models`) — the list is small and changes. Console chat at [malibu.tech/console](https://malibu.tech/console) includes agent tools, stop, and per-stream decode tok/s.
+
+Emitted `tool_calls[]` are model output. Validate before execution: [Buyer-side validation](/agentic/buyer-side-validation).
 
 * [Get an API key](/getting-started/api-key)
 * [Using Malibu with the OpenAI SDK](/guides/openai-sdk)

@@ -17,7 +17,7 @@ The v0.3 receipt is a nine-field tuple:
 | Field             | Meaning                                                          |
 | ----------------- | ---------------------------------------------------------------- |
 | `model_hash`      | SHA-256 of the model weights actually loaded on the provider     |
-| `model_id`        | Model identifier (e.g. `mlx-community/Qwen2.5-7B-Instruct-4bit`) |
+| `model_id`        | Model identifier (e.g. `mlx-community/Qwen3-8B-4bit`) |
 | `prompt_hash`     | SHA-256 of the canonicalized request body                        |
 | `output_hash`     | SHA-256 of the canonicalized response body                       |
 | `provider_pubkey` | Ed25519 public key that signed this receipt                      |
@@ -32,7 +32,7 @@ Signed with the provider's Ed25519 key. Streaming responses emit a settlement-ca
 
 ```python theme={null}
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="mlx-community/Qwen3-8B-4bit",
     messages=[{"role": "user", "content": "Hello"}],
 )
 resp = raw.parse()

@@ -1,48 +1,50 @@
 ---
 title: Download Malibu
-description: Turn any Apple Silicon Mac into a paid AI provider in a few clicks.
+description: Invite-gated pre-beta — turn an Apple Silicon Mac into a paid AI provider.
 icon: apple
 ---
 
 # Download Malibu
 
-> Turn any Apple Silicon Mac into a paid AI provider in a few clicks.
+> Signed Mac app for providers. Fresh registration needs an invite.
 
 The Malibu app is the primary way to join the network as a provider. Signed `.dmg`, menu-bar wrapper around the underlying `malibu-cli` binary. No terminal required.
 
+<Note>
+  **Private pre-beta.** Download is public; **admission is not**. A valid invite (`malibu.tech/j#/…`) is required to register a new Mac. Already-running providers keep updating without a new invite. Troubleshooting: [malibu.tech/host/troubleshoot](https://malibu.tech/host/troubleshoot).
+</Note>
+
 <Card title="Download for Apple Silicon" icon="apple" href="https://malibu.tech/host" color="#FF6E5B">
-  macOS 14+ · Apple Silicon (M1 or newer)
+  macOS 14+ · Apple Silicon (M1 or newer) · invite required to register
 </Card>
+
+Public `/host` serves GitHub **Latest** so new providers do not land on a stale DMG. Confirm the tag on the host page before you install.
 
 ## What onboarding looks like
 
-<Frame>
-  <img src="https://mintcdn.com/malibu/L7FmLqpSAaaj9-FX/logo/dark.svg?fit=max&auto=format&n=L7FmLqpSAaaj9-FX&q=85&s=9586cdc31612889d779f97fafbfd7f6f" alt="Malibu app onboarding screenshot placeholder" width="140" height="36" data-path="logo/dark.svg" />
-</Frame>
-
-The app walks you through four steps:
-
-1. **Pick a model.** Malibu detects your Mac's RAM tier and sustained TPS, then recommends an MLX model that fits — Qwen, Llama, or Gemma family. You can override.
-2. **Sign in.** GitHub OAuth. This links your Mac to a provider identity you can move between machines.
-3. **Start serving.** The app registers with the coordinator over an outbound WebSocket. First request usually arrives within seconds.
-4. **Check earnings.** Balance, per-model breakdown, payout status — all in the app. No portal, no dashboard.
+1. **Open your invite.** Use the link you were sent, then download. Paste the code when Malibu asks.
+2. **Pick a model.** Malibu detects RAM tier and recommends an MLX model that fits. You can override. Small models (Llama 3.2 3B) can run on 8 GB; 16 GB+ is more comfortable; 32 GB+ for 30B-class catalog rows.
+3. **Sign in.** GitHub OAuth. This links your Mac to a provider identity you can move between machines.
+4. **Start serving.** The app registers with the coordinator over an outbound WebSocket. New Macs join the **provisional** routing tier until promoted to **pinned** — [Payments](/guides/payments#provisional-vs-pinned).
+5. **Check earnings.** Balance, per-model breakdown, payout status — in the app.
 
 ## What you get
 
 * **Auto-detected model choice** matched to your Mac's RAM, sustained TPS, and 4K-prompt TTFT.
 * **Auto-updates.** When a newer binary ships, the app validates the signed release, drains in-flight requests, and swaps in place.
 * **Menu-bar controls.** Pause serving, switch models, view live request rate without leaving the menu bar.
-* **Weekly USDC payouts** on Base once you cross the minimum payout threshold. See [Payments & payouts](/guides/payments).
+* **Weekly USDC payouts** on Base once you cross the minimum payout threshold. See [Payments & payouts](/guides/payments). **90%** provider share today — [Economics](/guides/economics).
 
 ## Requirements
 
 * Apple Silicon Mac (M1 or newer)
 * macOS 14 or later
-* 16 GB RAM minimum (32 GB+ for larger models)
+* 8 GB unified memory can serve 3B-class models; 16 GB+ recommended; 32 GB+ for larger catalog rows
 * Stable network connection (outbound WebSocket to `coordinator.malibu.tech`)
+* **Invite code** for a first-time register
 
 No port-forwarding, no static IP, no incoming firewall rules.
 
 ## Headless install
 
-Running on a CI runner, a headless Mac Studio, or a remote Mac without a display? Use the [headless install](/cli/headless-install) — same underlying binary, no app UI.
+Running on a CI runner, a headless Mac Studio, or a remote Mac without a display? Use the [headless install](/cli/headless-install) — same underlying binary, no app UI. Fresh headless registers still need an invite.

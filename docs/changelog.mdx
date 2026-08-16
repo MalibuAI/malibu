@@ -8,6 +8,25 @@ icon: list
 
 > API field additions, receipt version bumps, and docs semantic changes.
 
+## August 2026
+
+### Product (docs catch-up)
+
+- Public snapshot is `GET https://malibu.tech/v1/stats/overview` — not `api.malibu.tech/v1/network-stats` (404)
+- Public rate card is `GET https://malibu.tech/v1/rate-card` — not on the buyer gateway
+- `GET /v1/models` requires a Bearer token
+- Provider admission is **invite-gated pre-beta** ([malibu.tech/host](https://malibu.tech/host)); fresh register needs `malibu.tech/j#/…`
+- Download pin follows GitHub Latest (accepted Malibu app **v1.8.93** as of 16 Aug 2026)
+- Console: agent tools, stop control, activity bus, client-measured decode tok/s on the bill line
+- Catalog truth: priced rows vs warm set — drop 7B / 35B / 70B / 120B as "currently shipping"
+- Operating entity named on site: Superposition Technologies Pte. Ltd. ([company](https://malibu.tech/company), [privacy](https://malibu.tech/privacy), [terms](https://malibu.tech/terms))
+
+### Documentation
+
+- Ledger, catalog, stats, and example model IDs refreshed against live APIs (16 Aug 2026)
+- Added [Economics](/guides/economics); pricing page now has a dated OpenRouter snapshot
+- Buyer / provider / network nav groups
+
 ## July 2026 (continued)
 
 ### Documentation — claim validation (Phase B)
@@ -20,7 +39,7 @@ icon: list
 
 ### Documentation
 
-- Mintlify docs source in `MalibuAI/malibu` under `/docs`; **self-hosted on Vercel** via `npm run docs:build` (no Mintlify GitHub org link required).
+- Mintlify docs source in `MalibuAI/malibu` under `/docs`; **self-hosted on Vercel** via `npm run docs:build` (no Mintlify GitHub org connection required).
 - Litepaper remains `/docs` default opening page
 - Added [Network status](/status), [Roadmap](/roadmap), and Changelog ledger pages
 - Litepaper updated with live vs planned status labels and trust-boundary pointers
@@ -29,8 +48,7 @@ icon: list
 
 - Receipt tuple **v0.3** — nine-field signed receipt on settlement-capable traffic
 - `usage.cached_prompt_tokens` — always present on sticky-routed requests
-- `GET /v1/network-stats` — 30 s edge cache; pool + throughput + receipt validity aggregates
 
 ### Deprecation policy
 
-Fields on `/v1/network-stats` are versioned. Additions are backwards-compatible. Removals or semantic changes are announced via a `Deprecation` response header and noted here.
+Fields on public stats and rate-card payloads are versioned. Additions are backwards-compatible. Removals or semantic changes are announced here.
