@@ -57,6 +57,7 @@
         "pages": [
           "getting-started/introduction",
           "getting-started/download-malibu",
+          "getting-started/agent-onboarding",
           "getting-started/api-key"
         ]
       },

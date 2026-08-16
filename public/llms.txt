@@ -9,6 +9,7 @@
 ## Product
 
 - [Host a model](https://malibu.tech/host/): Turn a stock Apple Silicon Mac into a paid inference provider with one command.
+- [Agent-readable onboarding](https://get.malibu.tech/skill.md): Point a coding agent here to install the provider CLI, check status, recover a broken setup, update or uninstall, and connect apps to the OpenAI-compatible API at api.malibu.tech.
 - [Console](https://malibu.tech/console/): Point any OpenAI SDK client at Malibu; nothing else changes.
 - [Network](https://malibu.tech/network/): Live network stats and coverage.
 

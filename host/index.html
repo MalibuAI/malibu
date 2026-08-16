@@ -73,6 +73,14 @@
     .dl-meta .ver { color: rgba(255, 198, 41,0.9); }
     .dl-sha { margin: 10px auto 0; max-width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: rgba(250, 251, 255,0.42); line-height: 1.5; word-break: break-all; }
     .dl-sha code { font-family: inherit; font-size: inherit; color: rgba(250, 251, 255,0.58); background: none; padding: 0; }
+    .agent-skill { max-width: 880px; margin: 0 auto 28px; padding: 22px 24px; background: rgba(250, 251, 255,0.04); border: 1px solid rgba(255, 198, 41,0.28); border-radius: 16px; text-align: left; }
+    .agent-skill .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #FFC629; margin-bottom: 10px; }
+    .agent-skill p { font-size: 15px; line-height: 1.55; color: rgba(250, 251, 255,0.78); margin: 0 0 16px; }
+    .agent-skill-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .agent-skill-row code { flex: 1 1 auto; min-width: 0; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: clamp(13px, 1.4vw, 16px); font-weight: 500; color: #FAFBFF; }
+    .agent-skill-row code .url { color: #FFC629; }
+    .agent-skill .docs { display: inline-block; margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(247, 107, 87,0.85); }
+    .agent-skill .docs:hover { color: #F76B57; }
     .terminal-toggle { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 16px; padding: 8px 14px; border-radius: 9999px; border: 1px solid rgba(250, 251, 255,0.14); background: rgba(250, 251, 255,0.04); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(250, 251, 255,0.62); transition: color 160ms ease, border-color 160ms ease, background 160ms ease; }
     .terminal-toggle:hover { color: #FAFBFF; border-color: rgba(247, 107, 87,0.45); background: rgba(250, 251, 255,0.06); }
     .terminal-toggle[aria-expanded="true"] { color: #FAFBFF; border-color: rgba(255, 198, 41,0.45); }
@@ -196,6 +204,19 @@
       <a href="/host/troubleshoot/" class="troubleshoot-link">Having trouble? Troubleshoot →</a>
     </div>
 
+    <div class="agent-skill" role="region" aria-label="Agent-readable onboarding">
+      <div class="lbl">New · Agent-readable onboarding</div>
+      <p>Point your coding agent at this skill. It can install the provider CLI, check status, recover a broken setup, update or uninstall, and connect apps to <code style="font-family:'JetBrains Mono',monospace;font-size:0.92em;color:rgba(255,198,41,0.9);">api.malibu.tech</code>.</p>
+      <div class="agent-skill-row">
+        <code id="skill-url"><span class="url">https://get.malibu.tech/skill.md</span></code>
+        <button type="button" class="copy" data-copy="https://get.malibu.tech/skill.md">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.4"/><path d="M5 3 V1 H13 V9 H11"/></svg>
+          <span data-copy-label>Copy</span>
+        </button>
+      </div>
+      <a href="https://malibu.tech/docs/getting-started/agent-onboarding" class="docs">Docs →</a>
+    </div>
+
     <button type="button" class="terminal-toggle" id="terminal-toggle" aria-expanded="false" aria-controls="terminal-install">Prefer terminal?</button>
 
     <div class="install-wrap" id="terminal-install" hidden>
@@ -210,8 +231,8 @@
         <div style="width: 38px;"></div>
       </div>
       <div class="install-body">
-        <code id="install-cmd"><span class="prompt">$</span><span class="cmd">curl</span> -fsSL <span class="url">https://get.streamvc.live/install.sh</span> | bash</code>
-        <button type="button" class="copy" data-copy="curl -fsSL https://get.streamvc.live/install.sh | bash">
+        <code id="install-cmd"><span class="prompt">$</span><span class="cmd">curl</span> -fsSL <span class="url">https://get.malibu.tech/install.sh</span> | bash</code>
+        <button type="button" class="copy" data-copy="curl -fsSL https://get.malibu.tech/install.sh | bash">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.4"/><path d="M5 3 V1 H13 V9 H11"/></svg>
           <span data-copy-label>Copy</span>
         </button>
@@ -343,29 +364,31 @@
     terminalToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
 
-  const btn = document.querySelector('[data-copy]');
-  const lbl = document.querySelector('[data-copy-label]');
-  let resetTimer;
-  btn.addEventListener('click', async () => {
-    const text = btn.getAttribute('data-copy');
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      ta.remove();
-    }
-    btn.classList.add('ok');
-    lbl.textContent = 'Copied';
-    clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => {
-      btn.classList.remove('ok');
-      lbl.textContent = 'Copy';
-    }, 1800);
-  });
+  const bindCopy = (btn) => {
+    const lbl = btn.querySelector('[data-copy-label]');
+    let resetTimer;
+    btn.addEventListener('click', async () => {
+      const text = btn.getAttribute('data-copy');
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      btn.classList.add('ok');
+      if (lbl) lbl.textContent = 'Copied';
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        btn.classList.remove('ok');
+        if (lbl) lbl.textContent = 'Copy';
+      }, 1800);
+    });
+  };
+  document.querySelectorAll('[data-copy]').forEach(bindCopy);
   document.getElementById('install-cmd').addEventListener('click', () => {
     const r = document.createRange();
     r.selectNodeContents(document.getElementById('install-cmd'));

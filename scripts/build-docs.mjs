@@ -148,6 +148,7 @@ const llmsEntries = [
   '',
   '## Reference',
   '- [Getting started](/docs/getting-started/introduction)',
+  '- [Agent-readable onboarding](/docs/getting-started/agent-onboarding): skill at https://get.malibu.tech/skill.md',
   '- [Security & trust model](/docs/network/security)',
   '- [API reference](/docs/api/chat-completions)',
 ].join('\n');

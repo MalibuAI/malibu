@@ -1,0 +1,48 @@
+---
+title: Agent-readable onboarding
+description: Point a coding agent at get.malibu.tech/skill.md to install, recover, update, or connect.
+icon: bot
+---
+
+# Agent-readable onboarding
+
+> Point your coding agent at one URL. It can install the provider CLI, check status, recover a broken setup, update or uninstall, and connect apps to `api.malibu.tech`.
+
+The skill is the agent-facing runbook. Humans can still use the [Malibu app](/getting-started/download-malibu) or the [headless installer](/cli/headless-install).
+
+<Card title="https://get.malibu.tech/skill.md" icon="bot" href="https://get.malibu.tech/skill.md" color="#143A45">
+  Agent skill · install, status, recover, update, uninstall, buyer SDK
+</Card>
+
+## What to tell your agent
+
+Paste this:
+
+```
+Read https://get.malibu.tech/skill.md and help me set up Malibu.
+```
+
+The skill covers:
+
+* **Install** the provider CLI on Apple Silicon (macOS 14+), after inspecting `https://get.malibu.tech/install.sh`
+* **Status and recovery** — version, connection, and a broken local setup
+* **Update** to the current signed release
+* **Uninstall** via the published uninstaller (inspect, dry-run, then remove)
+* **Buyer SDK** — point any OpenAI-compatible client at `https://api.malibu.tech/v1`
+
+Discovery index: `https://get.malibu.tech/.well-known/skills/index.json`
+
+## Invite still required
+
+Fresh provider registration is invite-gated. The skill can install the CLI; it cannot skip admission. You still need a valid `malibu.tech/j#/…` invite to register a new Mac. Already-running providers update without a new invite.
+
+## Buyer path
+
+If you only need the API, the skill's buyer section is enough: GitHub OAuth for a key, then the OpenAI SDK against `api.malibu.tech/v1`. Full patterns: [Using Malibu with the OpenAI SDK](/guides/openai-sdk).
+
+## Related
+
+* [Download Malibu](/getting-started/download-malibu) — signed Mac app
+* [Headless install](/cli/headless-install) — curl installer for humans
+* [malibu-cli](/cli/malibu-cli) — command reference
+* [Get an API key](/getting-started/api-key)
