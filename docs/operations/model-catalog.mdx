@@ -13,7 +13,7 @@ Three lists, three jobs:
 | List | Endpoint | Meaning |
 | --- | --- | --- |
 | **Warm now** | `GET https://api.malibu.tech/v1/models` (Bearer required) | At least one connected provider has the model loaded |
-| **Priced** | `GET https://malibu.tech/v1/rate-card` | Billing rows — eligible even if no Mac is warm |
+| **Priced** | `GET https://api.malibu.tech/v1/rate-card` | Billing rows — eligible even if no Mac is warm |
 | **Catalog** | Signed provider feed | Weight hash, RAM tier, templates — what a Mac may load |
 
 ## Catalog (eligible — runs when matching RAM is online)
@@ -44,9 +44,7 @@ That set grows as higher-RAM Macs join and load catalog weights.
 
 ## Priced rows (rate card)
 
-Live card: `GET https://malibu.tech/v1/rate-card` (`generated_at` **2026-07-29**, `usd_per_million_credits = 1`).
-
-This is **not** on the buyer gateway. `api.malibu.tech/v1/rate-card` returns HTTP **404 by design** — the OpenAI-compatible host only serves chat/models/usage. Public market data is proxied on `malibu.tech` (Vercel rewrite → coordinator). 404 here means "wrong host," not "rate card is down."
+Live card: `GET https://api.malibu.tech/v1/rate-card` (`generated_at` **2026-07-29**, `usd_per_million_credits = 1`). Same payload on `https://malibu.tech/v1/rate-card`.
 
 Rate-card IDs are **slugs**. Gateway chat uses **MLX serve IDs**. Map them yourself; they are not always identical strings.
 

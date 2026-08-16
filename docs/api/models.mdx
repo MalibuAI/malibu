@@ -65,10 +65,10 @@ A model appears in the list when **at least one connected provider** advertises 
 
 ## Rate card
 
-Per-model pricing is **not** on the buyer gateway (404 by design):
+Per-model pricing:
 
 ```bash theme={null}
-curl -s https://malibu.tech/v1/rate-card | jq .
+curl -s https://api.malibu.tech/v1/rate-card | jq .
 ```
 
 Returns per-model `prompt_rate_per_mtok`, `completion_rate_per_mtok`, and `prompt_cache_hit_rate_per_mtok`, plus `usd_per_million_credits`. Rate-card slugs may differ from MLX serve IDs. Dated comparison: [Pricing comparison](/guides/pricing-comparison).

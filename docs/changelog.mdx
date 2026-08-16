@@ -12,8 +12,8 @@ icon: list
 
 ### Product (docs catch-up)
 
-- Public snapshot is `GET https://malibu.tech/v1/stats/overview` (coordinator/stats origin). `api.malibu.tech/v1/network-stats` is 404 **by design** — buyer gateway does not mount that path
-- Public rate card is `GET https://malibu.tech/v1/rate-card` (coordinator origin). Gateway `/v1/rate-card` is the same kind of 404
+- Public snapshot is `GET https://api.malibu.tech/v1/stats/overview` (also on `malibu.tech`). `GET /v1/network-stats` is a compatibility alias for the same body
+- Public rate card is `GET https://api.malibu.tech/v1/rate-card` (also on `malibu.tech`)
 - `GET /v1/models` requires a Bearer token
 - Provider admission is **invite-gated pre-beta** ([malibu.tech/host](https://malibu.tech/host)); fresh register needs `malibu.tech/j#/…`
 - Download pin follows GitHub Latest (accepted Malibu app **v1.8.93** as of 16 Aug 2026)

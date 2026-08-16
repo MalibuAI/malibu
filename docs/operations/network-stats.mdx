@@ -11,16 +11,10 @@ icon: gauge
 The public snapshot that powers [malibu.tech/network](https://malibu.tech/network) is:
 
 ```
-GET https://malibu.tech/v1/stats/overview
+GET https://api.malibu.tech/v1/stats/overview
 ```
 
-Buyer API reference: [API → Network stats](/api/network-stats).
-
-`GET https://api.malibu.tech/v1/network-stats` is **404 by design** (buyer gateway does not mount that path). Public snapshot:
-
-```
-GET https://malibu.tech/v1/stats/overview
-```
+Same payload on `https://malibu.tech/v1/stats/overview`. Buyer API reference: [API → Network stats](/api/network-stats). `GET /v1/network-stats` is a compatibility alias for the same overview body.
 
 ## What's tracked (public)
 
@@ -41,7 +35,7 @@ These three lists are not the same:
 | Surface | What it shows |
 | --- | --- |
 | `GET https://api.malibu.tech/v1/models` (Bearer) | Models with **at least one warm provider right now** |
-| `GET https://malibu.tech/v1/rate-card` | Models the network **will bill** (eligible pricing rows) |
+| `GET https://api.malibu.tech/v1/rate-card` | Models the network **will bill** (eligible pricing rows) |
 | Signed catalog feed | Models providers **may load** (hash, RAM tier, templates) |
 
 A rate-card row can exist with zero warm providers. Buyer requests then fail until a Mac loads that model.

@@ -13,16 +13,10 @@ Savings are **model-specific**. The old 20–40% band is not a uniform guarantee
 ## Live Malibu pricing
 
 ```
-GET https://malibu.tech/v1/rate-card
+GET https://api.malibu.tech/v1/rate-card
 ```
 
-Not on the buyer gateway (`api.malibu.tech/v1/rate-card` is 404 by design). Public URL:
-
-```
-GET https://malibu.tech/v1/rate-card
-```
-
-Full formula: [Metering & billing](/network/metering-and-billing). Canonical regimes: [Economics](/guides/economics).
+Same payload on `https://malibu.tech/v1/rate-card`. Full formula: [Metering & billing](/network/metering-and-billing). Canonical regimes: [Economics](/guides/economics).
 
 ## Dated snapshot — 16 August 2026
 
@@ -49,7 +43,7 @@ Malibu IDs: `meta-llama/llama-3.2-3b-instruct`, `qwen3-8b`, `meta-llama/llama-3.
 
 ## How to rerun the comparison
 
-1. Download `https://malibu.tech/v1/rate-card` and record `generated_at`.
+1. Download `https://api.malibu.tech/v1/rate-card` and record `generated_at`.
 2. Download OpenRouter (or another aggregator) list prices with date.
 3. Convert Malibu credits: `usd = credits_per_mtok / 1e6 * usd_per_million_credits`.
 4. Compare the same token mix. Include `prompt_cache_hit_rate_per_mtok` if your agent replays context.
