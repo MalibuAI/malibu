@@ -16,7 +16,11 @@ Savings are **model-specific**. The old 20–40% band is not a uniform guarantee
 GET https://malibu.tech/v1/rate-card
 ```
 
-Not on `api.malibu.tech` (404). Credits convert at `usd_per_million_credits` (**1.0** on this snapshot). Provider share (90%) affects **provider payout**, not buyer price.
+Not on the buyer gateway (`api.malibu.tech/v1/rate-card` is 404 by design). Public URL:
+
+```
+GET https://malibu.tech/v1/rate-card
+```
 
 Full formula: [Metering & billing](/network/metering-and-billing). Canonical regimes: [Economics](/guides/economics).
 

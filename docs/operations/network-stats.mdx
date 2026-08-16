@@ -16,7 +16,11 @@ GET https://malibu.tech/v1/stats/overview
 
 Buyer API reference: [API → Network stats](/api/network-stats).
 
-`GET https://api.malibu.tech/v1/network-stats` is not served. Do not document it as live.
+`GET https://api.malibu.tech/v1/network-stats` is **404 by design** (buyer gateway does not mount that path). Public snapshot:
+
+```
+GET https://malibu.tech/v1/stats/overview
+```
 
 ## What's tracked (public)
 
