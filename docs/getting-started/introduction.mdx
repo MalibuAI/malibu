@@ -8,12 +8,15 @@ icon: compass
 
 > Malibu turns any Apple Silicon Mac into a remote-addressable, OpenAI-compatible AI inference endpoint.
 
-<Columns cols={2}>
+<Columns cols={3}>
   <Card title="I'm a provider" icon="apple" href="/getting-started/download-malibu" color="#FF6E5B">
     Invite-gated pre-beta. Download the app, pick a model, start serving.
   </Card>
   <Card title="I'm a buyer" icon="terminal" href="/getting-started/api-key" color="#143A45">
     Get an API key, hit the OpenAI-compatible endpoint.
+  </Card>
+  <Card title="I'm an agent" icon="bot" href="/getting-started/agent-onboarding" color="#143A45">
+    Point at `get.malibu.tech/skill.md` — install, recover, connect.
   </Card>
 </Columns>
 
@@ -41,6 +44,7 @@ Public pool snapshot: `GET https://api.malibu.tech/v1/stats/overview`. Rate card
 Apple Silicon (M1 or newer, macOS 14+) can serve. The **Malibu app** handles onboarding: invite, model match, GitHub sign-in. New Macs start **provisional** and may be promoted to **pinned**. Every billed request produces credits; credits settle weekly in USDC on Base (90% provider share today).
 
 * [Download Malibu](/getting-started/download-malibu)
+* [Agent-readable onboarding](/getting-started/agent-onboarding)
 * [Payments & payouts](/guides/payments)
 * [Economics](/guides/economics)
 
@@ -52,6 +56,7 @@ Emitted `tool_calls[]` are model output. Validate before execution: [Buyer-side 
 
 * [Get an API key](/getting-started/api-key)
 * [Using Malibu with the OpenAI SDK](/guides/openai-sdk)
+* [Agent-readable onboarding](/getting-started/agent-onboarding)
 
 ## Trust model
 

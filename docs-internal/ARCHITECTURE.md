@@ -76,6 +76,7 @@ DOCS
 ├── Getting started
 │   ├── Introduction
 │   ├── Download Malibu
+│   ├── Agent-readable onboarding
 │   └── Get an API key
 ├── API reference
 ├── Network & trust

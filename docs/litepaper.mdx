@@ -48,6 +48,7 @@ Malibu is a **live coordinated inference network** today — distributed Apple S
 - **Coordinator service.** `Live` Provider admission, real-time request routing, per-request billing ledger, epoch settlement.
 - **Gateway.** `Live` OpenAI-compatible `/v1/chat/completions`, `/v1/models`, `/v1/usage`, `/v1/rate-card`, `/v1/stats/overview` at `api.malibu.tech`. GitHub OAuth for buyer signup. Quota reservation. Signed session receipts.
 - **Provider onboarding.** `Beta` Signed installer; RAM-tier model match; launchd watchdog. **Invite required** for a fresh register ([malibu.tech/host](https://malibu.tech/host)). Already-running providers update without a new invite.
+- **Agent-readable onboarding.** `Live` Point a coding agent at [get.malibu.tech/skill.md](https://get.malibu.tech/skill.md) to install, inspect, recover, update, or uninstall the provider CLI, and to connect apps to `api.malibu.tech`. Same invite gate.
 - **End-to-end serving.** `Live` Buyer → gateway → coordinator → Apple Silicon provider → response → signed receipt → settlement. Public snapshot: [api.malibu.tech/v1/stats/overview](https://api.malibu.tech/v1/stats/overview).
 - **Multi-turn tool calling.** `Live` Standardized `tool_calls[]` emission and second-turn `role: "tool"` acceptance on catalog-marked templates. Buyer frameworks **must** validate before execution — [Buyer-side validation](/agentic/buyer-side-validation).
 - **Structured output.** `Live` `response_format: json_schema` with the OpenAI strict-mode subset.
@@ -163,12 +164,15 @@ The live pool is a **small pre-beta** (single-digit Macs on the 16 Aug 2026 snap
   </Card>
 </Columns>
 
-<Columns cols={2}>
+<Columns cols={3}>
   <Card title="Read the integration manual" icon="book-open" href="/getting-started/introduction" horizontal>
     Architecture, trust model, provider and buyer paths.
   </Card>
   <Card title="Browse the API" icon="code" href="/api/chat-completions" horizontal>
     Chat completions, models, headers, usage object.
+  </Card>
+  <Card title="Agent-readable onboarding" icon="bot" href="/getting-started/agent-onboarding" horizontal>
+    Point a coding agent at `get.malibu.tech/skill.md`.
   </Card>
 </Columns>
 
