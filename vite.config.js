@@ -28,6 +28,13 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
           const path = req.url?.split('?')[0];
+          if (path === '/api/host-compatibility') {
+            const { default: handler } = await import(
+              `${pathToFileURL(resolve(__dirname, 'api/host-compatibility.js')).href}?dev=${Date.now()}`
+            );
+            await handler(req, res);
+            return;
+          }
           if (path !== '/api/malibu-release') {
             next();
             return;

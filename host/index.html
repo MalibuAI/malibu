@@ -113,6 +113,39 @@
     .install-foot { padding: 12px 22px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.5); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .install-foot .verify { color: rgba(255, 198, 41,0.85); }
 
+    .fit { max-width: 1080px; margin: clamp(48px, 8vw, 82px) auto 0; padding: 0 clamp(28px, 5vw, 64px); }
+    .fit-panel { display: grid; grid-template-columns: minmax(260px, 0.88fr) minmax(320px, 1.12fr); gap: 24px; padding: 26px; background: rgba(250, 251, 255,0.045); border: 1px solid rgba(250, 251, 255,0.12); border-radius: 16px; text-align: left; }
+    .fit-kicker { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #FFC629; margin-bottom: 12px; }
+    .fit h2 { font-family: 'Hanken Grotesk', sans-serif; font-weight: 600; font-size: clamp(24px, 3vw, 34px); line-height: 1.05; letter-spacing: -0.02em; color: #FAFBFF; margin: 0 0 12px; }
+    .fit-lede { font-size: 15px; line-height: 1.55; color: rgba(250, 251, 255,0.72); margin: 0 0 20px; }
+    .fit-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+    .fit-field { min-width: 0; }
+    .fit-field label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(250, 251, 255,0.52); margin-bottom: 8px; }
+    .fit-field select { width: 100%; height: 42px; border-radius: 10px; border: 1px solid rgba(250, 251, 255,0.16); background: #0C3A45; color: #FAFBFF; padding: 0 12px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; }
+    .fit-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .fit-button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 16px; border-radius: 10px; background: #F76B57; color: #FAFBFF; font-size: 14px; font-weight: 600; transition: background 140ms ease, transform 180ms ease; }
+    .fit-button:hover { background: #E05A48; transform: translateY(-1px); }
+    .fit-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(250, 251, 255,0.52); }
+    .fit-profile { margin: 16px 0 0; padding: 12px 14px; border-radius: 10px; background: rgba(12, 58, 69,0.58); border: 1px solid rgba(250, 251, 255,0.08); font-size: 15px; font-weight: 600; color: #FAFBFF; overflow-wrap: anywhere; }
+    .fit-note { margin: 14px 0 0; font-size: 12.5px; line-height: 1.45; color: rgba(250, 251, 255,0.56); }
+    .fit-source { margin: 12px 0 0; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 198, 41,0.72); overflow-wrap: anywhere; }
+    .fit-results { display: grid; gap: 10px; align-content: start; }
+    .fit-summary { padding: 15px 16px; border-radius: 12px; background: rgba(255, 198, 41,0.09); border: 1px solid rgba(255, 198, 41,0.28); }
+    .fit-summary .big { font-size: 16px; font-weight: 650; line-height: 1.25; color: #FAFBFF; }
+    .fit-summary .small { margin-top: 6px; font-size: 13px; line-height: 1.45; color: rgba(250, 251, 255,0.70); }
+    .fit-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; min-height: 76px; padding: 14px; border-radius: 12px; background: rgba(12, 58, 69,0.52); border: 1px solid rgba(250, 251, 255,0.08); }
+    .fit-grade { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #143A45; background: #FFC629; }
+    .fit-model { min-width: 0; }
+    .fit-model .name { font-size: 15.5px; font-weight: 600; color: #FAFBFF; line-height: 1.2; }
+    .fit-model .meta { margin-top: 5px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(250, 251, 255,0.48); overflow-wrap: anywhere; }
+    .fit-model .speed { margin-top: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em; color: rgba(255, 198, 41,0.82); overflow-wrap: anywhere; }
+    .fit-pill { justify-self: end; padding: 6px 9px; border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid rgba(250, 251, 255,0.12); color: rgba(250, 251, 255,0.68); white-space: nowrap; }
+    .fit-card[data-fit="great"] .fit-grade { background: #4ADE80; }
+    .fit-card[data-fit="good"] .fit-grade { background: #A3E635; }
+    .fit-card[data-fit="tight"] .fit-grade { background: #FFC629; }
+    .fit-card[data-fit="future"] .fit-grade { background: rgba(250, 251, 255,0.18); color: rgba(250, 251, 255,0.62); }
+    .fit-card[data-fit="future"] { opacity: 0.76; }
+
     .steps { max-width: 1080px; margin: clamp(56px, 10vw, 96px) auto 0; padding: 0 clamp(28px, 5vw, 64px); display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
     .step { padding: 28px 26px; background: rgba(250, 251, 255,0.04); border: 1px solid rgba(250, 251, 255,0.10); border-radius: 14px; }
     .step .n { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #FFC629; margin-bottom: 16px; }
@@ -133,7 +166,20 @@
     .footer a:hover { color: #FAFBFF; }
 
     @media (max-width: 720px) {
+      body { overflow-x: hidden; }
+      .hero { padding-left: 18px; padding-right: 18px; overflow: hidden; }
+      .pill { max-width: 100%; }
+      .pill span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .agent-skill-row { align-items: stretch; }
+      .agent-skill-row code { flex-basis: 100%; }
+      .fit { width: 100%; padding-left: 16px; padding-right: 16px; overflow: hidden; }
       .specs { grid-template-columns: 1fr; }
+      .fit-panel { grid-template-columns: 1fr; padding: 18px; }
+      .fit-panel > div, .fit-results, .fit-summary, .fit-card { min-width: 0; }
+      .fit-controls { grid-template-columns: 1fr; }
+      .fit-source { word-break: break-word; }
+      .fit-card { grid-template-columns: auto minmax(0, 1fr); }
+      .fit-pill { grid-column: 2; justify-self: start; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
@@ -245,6 +291,71 @@
     </div>
   </section>
 
+  <section class="fit" aria-label="Mac model fit preview">
+    <div class="fit-panel">
+      <div>
+        <div class="fit-kicker">Mac fit preview</div>
+        <h2>See what your Mac can host.</h2>
+        <p class="fit-lede">Your browser uses local graphics and memory hints, then Malibu compares the corrected profile against a hash-bound MacProvider candidate snapshot. Unknown Macs still work: pick the closest chip and RAM below.</p>
+
+        <div class="fit-controls">
+          <div class="fit-field">
+            <label for="fit-chip">Chip</label>
+            <select id="fit-chip">
+              <option value="Apple Silicon">Apple Silicon</option>
+              <option value="Apple M1">Apple M1</option>
+              <option value="Apple M1 Pro">Apple M1 Pro</option>
+              <option value="Apple M1 Max">Apple M1 Max</option>
+              <option value="Apple M1 Ultra">Apple M1 Ultra</option>
+              <option value="Apple M2">Apple M2</option>
+              <option value="Apple M2 Pro">Apple M2 Pro</option>
+              <option value="Apple M2 Max">Apple M2 Max</option>
+              <option value="Apple M2 Ultra">Apple M2 Ultra</option>
+              <option value="Apple M3">Apple M3</option>
+              <option value="Apple M3 Pro">Apple M3 Pro</option>
+              <option value="Apple M3 Max">Apple M3 Max</option>
+              <option value="Apple M3 Ultra">Apple M3 Ultra</option>
+              <option value="Apple M4">Apple M4</option>
+              <option value="Apple M4 Pro">Apple M4 Pro</option>
+              <option value="Apple M4 Max">Apple M4 Max</option>
+              <option value="Apple M4 Ultra">Apple M4 Ultra</option>
+              <option value="Apple M5">Apple M5</option>
+              <option value="Apple M5 Pro">Apple M5 Pro</option>
+              <option value="Apple M5 Max">Apple M5 Max</option>
+            </select>
+          </div>
+          <div class="fit-field">
+            <label for="fit-ram">Unified memory</label>
+            <select id="fit-ram">
+              <option value="8">8 GB</option>
+              <option value="16" selected>16 GB</option>
+              <option value="24">24 GB</option>
+              <option value="32">32 GB</option>
+              <option value="36">36 GB</option>
+              <option value="48">48 GB</option>
+              <option value="64">64 GB</option>
+              <option value="96">96 GB</option>
+              <option value="128">128 GB</option>
+              <option value="192">192 GB</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fit-actions">
+          <button type="button" class="fit-button" id="fit-detect">Detect again</button>
+          <span class="fit-status" id="fit-status">Checking this browser...</span>
+        </div>
+
+        <p class="fit-profile" id="fit-profile">Checking this Mac...</p>
+
+        <p class="fit-note">This preview stays scoped to Malibu's public pre-beta rows. The app still runs local autotune and verifies the exact model artifact before serving paid traffic.</p>
+        <p class="fit-source" id="fit-source">Catalog snapshot loading...</p>
+      </div>
+
+      <div class="fit-results" id="fit-results" aria-live="polite"></div>
+    </div>
+  </section>
+
   <section class="steps" aria-label="What happens next">
     <div class="step">
       <div class="n">01 · Invite</div>
@@ -268,8 +379,8 @@
       <div class="lbl">Requirements</div>
       <h3>What your Mac needs</h3>
       <ul>
-        <li>Apple Silicon (M1, M2, M3, or M4)</li>
-        <li>8 GB can serve 3B-class · 16 GB+ recommended · 32 GB+ for 70B / 120B catalog models</li>
+        <li>Apple Silicon (M1, M2, M3, M4, or M5)</li>
+        <li>8 GB can serve 3B-class · 16 GB+ recommended · 32 GB+ opens more current catalog rows</li>
         <li>macOS 14 Sonoma or later</li>
         <li>Wired or fast Wi-Fi · 50 Mbps up recommended</li>
       </ul>
@@ -347,6 +458,7 @@
   // /api/malibu-release (GitHub Latest, checksum-bound) so this page cannot
   // lag a published release until the next malibu.tech deploy.
   const { loadPublicMalibuRelease } = await import('/j/release.mjs');
+  const { enrichCompatibilityWithCanIRunSpeeds, evaluateHostCompatibility } = await import('/j/host-compatibility.mjs');
   const release = await loadPublicMalibuRelease();
   const dl = document.getElementById('mac-download');
   const ver = document.getElementById('mac-version');
@@ -396,6 +508,163 @@
     s.removeAllRanges();
     s.addRange(r);
   });
+
+  const fitEls = {
+    chip: document.getElementById('fit-chip'),
+    ram: document.getElementById('fit-ram'),
+    status: document.getElementById('fit-status'),
+    profile: document.getElementById('fit-profile'),
+    source: document.getElementById('fit-source'),
+    results: document.getElementById('fit-results'),
+    detect: document.getElementById('fit-detect'),
+  };
+
+  const ensureOption = (select, value) => {
+    if ([...select.options].some((option) => option.value === value)) return;
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  };
+
+  const inferChip = (renderer) => {
+    const text = String(renderer || '').replace(/\s+/g, ' ').trim();
+    const full = text.match(/Apple\s+M[1-5](?:\s+(?:Pro|Max|Ultra))?/i)?.[0];
+    if (full) return full.replace(/\bM([1-5])\b/i, 'M$1').replace(/\b(pro|max|ultra)\b/i, (m) => m[0].toUpperCase() + m.slice(1).toLowerCase());
+    const short = text.match(/\bM[1-5](?:\s+(?:Pro|Max|Ultra))?\b/i)?.[0];
+    if (short) return `Apple ${short.replace(/\b(pro|max|ultra)\b/i, (m) => m[0].toUpperCase() + m.slice(1).toLowerCase())}`;
+    if (/Apple|AGX|Metal/i.test(text)) return 'Apple Silicon';
+    return 'Apple Silicon';
+  };
+
+  const getWebGLRenderer = () => {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    if (!gl) return '';
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    return info
+      ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL)
+      : gl.getParameter(gl.RENDERER);
+  };
+
+  const getWebGPUSummary = async () => {
+    if (!navigator.gpu?.requestAdapter) return '';
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) return 'WebGPU available';
+      if (adapter.requestAdapterInfo) {
+        const info = await adapter.requestAdapterInfo();
+        return [info.vendor, info.architecture, info.device, info.description].filter(Boolean).join(' · ');
+      }
+      return 'WebGPU adapter available';
+    } catch {
+      return '';
+    }
+  };
+
+  const browserMemoryGb = () => {
+    const value = Number(navigator.deviceMemory);
+    if (!Number.isFinite(value) || value <= 0) return null;
+    return Math.max(8, Math.min(192, Math.round(value)));
+  };
+
+  const nearestRamOption = (ramGb) => {
+    const values = [...fitEls.ram.options].map((option) => Number(option.value));
+    return values.reduce((best, value) => Math.abs(value - ramGb) < Math.abs(best - ramGb) ? value : best, values[0]);
+  };
+
+  const renderCompatibility = (data) => {
+    fitEls.profile.textContent = `${data.hardware.chip} · ${data.hardware.ramGb} GB unified memory`;
+    fitEls.source.textContent = `MacProvider signed candidate feed · ${data.catalog.candidateCatalogSha256.slice(0, 12)}...`;
+    fitEls.results.innerHTML = '';
+
+    const eligibleRows = data.rows.filter((row) => row.eligiblePreview);
+    const bestRow = eligibleRows[0];
+    const summary = document.createElement('div');
+    summary.className = 'fit-summary';
+    const allFit = data.compatibleCount === data.rows.length;
+    const highCeiling = data.catalogCeiling.state === 'above_current_preview';
+    const headline = bestRow
+      ? `Best pick: ${bestRow.name}`
+      : `No current Malibu pick for this profile`;
+    const detail = highCeiling
+      ? `This Mac fits every current preview pick. More catalog rows can appear here after Malibu publishes their benchmark-backed host recommendations.`
+      : allFit
+        ? `This Mac fits every current preview pick in the signed candidate feed.`
+        : bestRow
+          ? `These are the strongest current preview picks for this Mac. More catalog rows appear here after Malibu benchmarks and signs their host recommendations.`
+          : data.catalogCeiling.message;
+    summary.innerHTML = '<div class="big"></div><div class="small"></div>';
+    summary.querySelector('.big').textContent = headline;
+    summary.querySelector('.small').textContent = detail;
+    fitEls.results.appendChild(summary);
+
+    const visibleRows = eligibleRows.slice(0, 3);
+    const speedTitle = (speed) => {
+      if (!speed) return 'Waiting for a public oMLX or CanIRun speed match. This does not affect Malibu preview fit.';
+      if (speed.source === 'omlx') {
+        return `${speed.modelName} on ${speed.benchmarkChip} ${speed.benchmarkRamGb} GB, ${Math.round(speed.contextTokens / 1024)}k context, observed ${speed.observedAt}.`;
+      }
+      if (speed.source === 'canirun') {
+        return `${speed.modelName || 'Model'} ${speed.quantization || ''}, estimated by CanIRun from hardware memory bandwidth.`;
+      }
+      return '';
+    };
+
+    visibleRows.forEach((row, index) => {
+      const card = document.createElement('div');
+      card.className = 'fit-card';
+      card.dataset.fit = row.fit;
+      card.innerHTML = `
+        <div class="fit-grade">${row.grade}</div>
+        <div class="fit-model">
+          <div class="name"></div>
+          <div class="meta"></div>
+          <div class="speed"></div>
+        </div>
+        <div class="fit-pill"></div>
+      `;
+      card.querySelector('.name').textContent = row.name;
+      card.querySelector('.meta').textContent = `${row.minRamGb} GB min · current Malibu preview`;
+      const speed = card.querySelector('.speed');
+      speed.textContent = row.speedLabel || 'Speed estimate pending';
+      speed.title = speedTitle(row.advisorySpeed);
+      card.querySelector('.fit-pill').textContent = index === 0 ? 'Best pick' : row.label;
+      fitEls.results.appendChild(card);
+    });
+  };
+
+  const selectedHardware = () => ({
+    chip: fitEls.chip.value,
+    ramGb: Number(fitEls.ram.value),
+  });
+
+  const refreshCompatibility = async (finalStatus = 'Preview ready') => {
+    const hardware = selectedHardware();
+    fitEls.status.textContent = 'Checking catalog...';
+    renderCompatibility(await enrichCompatibilityWithCanIRunSpeeds(evaluateHostCompatibility(hardware)));
+    fitEls.status.textContent = finalStatus;
+  };
+
+  const detectHardware = async () => {
+    fitEls.status.textContent = 'Checking browser...';
+    const [webgpu, webgl] = await Promise.all([getWebGPUSummary(), Promise.resolve(getWebGLRenderer())]);
+    const gpuSummary = webgpu || webgl || 'Hidden by browser';
+    const chip = inferChip(`${webgpu} ${webgl}`);
+    const ram = browserMemoryGb();
+    ensureOption(fitEls.chip, chip);
+    fitEls.chip.value = chip;
+    if (ram) fitEls.ram.value = String(nearestRamOption(ram));
+    fitEls.profile.textContent = ram
+      ? `${chip} · ${fitEls.ram.value} GB unified memory`
+      : `${chip} · choose memory`;
+    await refreshCompatibility('Confirm values');
+  };
+
+  fitEls.chip.addEventListener('change', refreshCompatibility);
+  fitEls.ram.addEventListener('change', refreshCompatibility);
+  fitEls.detect.addEventListener('click', detectHardware);
+  detectHardware();
 </script>
 </body>
 </html>
