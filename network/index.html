@@ -148,6 +148,38 @@
     </div>
   </section>
 
+  <!-- ============ ROUTABILITY ============ -->
+  <section class="net-health-section" data-health-panel data-state="loading">
+    <div class="net-health-inner">
+      <div class="net-health-head">
+        <div>
+          <div class="net-chart-eyebrow">Model availability · public health feed</div>
+          <h2 class="net-health-title">Which models are available now?</h2>
+        </div>
+        <div class="net-health-status" data-health-status>Loading health feed…</div>
+      </div>
+
+      <div class="net-health-summary">
+        <div class="net-health-summary-main">
+          <span class="net-state-chip" data-health-state>Unknown</span>
+          <strong data-health-routable>Checking availability</strong>
+          <span data-health-freshness>Awaiting first snapshot</span>
+        </div>
+      </div>
+
+      <div class="net-health-models" data-health-models aria-live="polite"></div>
+      <div class="net-health-empty" data-health-models-empty hidden>No model availability is published yet. The counters above still update independently.</div>
+
+      <details class="net-health-method">
+        <summary>Methodology</summary>
+        <div class="net-health-method-body">
+          <span data-health-method-version>SPEC-017 public projection</span>
+          <p data-health-method-copy>Availability combines the public coordinator snapshot, recent success, capacity, and freshness. If capacity is tight or the snapshot is stale, the model may be shown as limited until the next fresh update.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
   <!-- ============ CHARTS ============ -->
   <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(56px, 8vh, 96px);">
     <div style="position: relative; max-width: 1240px; margin: 0 auto;">

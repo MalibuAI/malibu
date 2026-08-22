@@ -1,9 +1,11 @@
+import { normalizeRoutabilityPayload, routabilityErrorView } from '../j/network-routability.mjs';
+
 const STATS_BASE = (import.meta.env.VITE_MACPROVIDER_STATS_BASE_URL || '').replace(/\/+$/, '');
 const OVERVIEW_URL = STATS_BASE + '/v1/stats/overview';
+const ROUTABILITY_URL = STATS_BASE + '/v1/stats/routability';
 const POLL_MS = 20000;
+const HEALTH_POLL_MS = 30000;
 const MIN_MANUAL_MS = 3000;
-
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const els = {
   statusPill: document.querySelector('[data-net-status-pill]'),
@@ -13,14 +15,28 @@ const els = {
   refresh: document.querySelector('[data-net-refresh]'),
   banner: document.querySelector('[data-net-banner]'),
   bannerText: document.querySelector('[data-net-banner-text]'),
+  healthPanel: document.querySelector('[data-health-panel]'),
+  healthStatus: document.querySelector('[data-health-status]'),
+  healthState: document.querySelector('[data-health-state]'),
+  healthRoutable: document.querySelector('[data-health-routable]'),
+  healthFreshness: document.querySelector('[data-health-freshness]'),
+  healthModels: document.querySelector('[data-health-models]'),
+  healthModelsEmpty: document.querySelector('[data-health-models-empty]'),
+  healthMethodVersion: document.querySelector('[data-health-method-version]'),
+  healthMethodCopy: document.querySelector('[data-health-method-copy]'),
 };
 
 let currentAbort = null;
+let currentHealthAbort = null;
 let pollTimer = null;
+let healthPollTimer = null;
 let lastFetchAt = 0;
+let lastHealthFetchAt = 0;
 let latestData = null;
 let latestFetchedAt = 0;
+let latestHealth = null;
 let staleTimer = null;
+let healthStaleTimer = null;
 
 function nfmt(n) {
   if (n === null || n === undefined || Number.isNaN(n)) return '—';
@@ -48,6 +64,33 @@ function relTime(fromMs) {
   if (m < 60) return m + 'm ago';
   const h = Math.floor(m / 60);
   return h + 'h ago';
+}
+
+function labelize(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  return String(value).replace(/_/g, ' ');
+}
+
+function stateLabel(state) {
+  switch (state) {
+    case 'redundant':
+    case 'operational':
+      return 'Operational';
+    case 'degraded':
+      return 'Limited';
+    case 'offline':
+      return 'Offline';
+    default:
+      return 'Updating';
+  }
+}
+
+function plural(value, singular, pluralLabel = singular + 's') {
+  return nfmt(value) + ' ' + (value === 1 ? singular : pluralLabel);
+}
+
+function appendText(el, text) {
+  el.appendChild(document.createTextNode(text));
 }
 
 function setStatus(kind, label) {
@@ -333,6 +376,148 @@ function paintTpm(series) {
   if (outPeakEl) outPeakEl.textContent = anyData ? nfmt(outPeak) + ' /min' : '—';
 }
 
+function healthStatusText(view) {
+  if (!view) return 'Loading health feed…';
+  if (view.status === 'error') return 'Health feed unavailable';
+  if (view.status === 'stale' && view.errorMessage) return 'Showing last health snapshot';
+  if (view.freshness === 'stale') return 'Health feed stale';
+  if (view.isEmpty) return 'Health feed empty';
+  return 'Health feed live';
+}
+
+function paintHealthSummary(view) {
+  if (!view) return;
+  if (els.healthPanel) {
+    els.healthPanel.dataset.state =
+      view.status === 'error' ? 'error' :
+      view.freshness === 'stale' || view.status === 'stale' ? 'stale' :
+      view.isEmpty ? 'empty' : 'live';
+  }
+  if (els.healthStatus) els.healthStatus.textContent = healthStatusText(view);
+  if (els.healthState) {
+    els.healthState.textContent = stateLabel(view.summary.state);
+    els.healthState.dataset.state = view.summary.state;
+  }
+  if (els.healthRoutable) {
+    els.healthRoutable.textContent = view.summary.routable ? 'Ready for buyer requests' : 'No models available right now';
+  }
+  if (els.healthFreshness) {
+    if (view.status === 'error') {
+      els.healthFreshness.textContent = 'No health snapshot loaded.';
+    } else if (view.status === 'stale' && view.errorMessage) {
+      els.healthFreshness.textContent = 'Refresh failed; counters continue independently.';
+    } else if (view.freshness === 'stale') {
+      els.healthFreshness.textContent = 'Snapshot is past its freshness window.';
+    } else {
+      els.healthFreshness.textContent =
+        plural(view.summary.modelsTotal, 'model') + ' published · availability updates live';
+    }
+  }
+}
+
+function stateChip(state) {
+  const span = document.createElement('span');
+  span.className = 'net-state-chip';
+  span.dataset.state = state;
+  span.textContent = stateLabel(state);
+  return span;
+}
+
+function metricLine(label, value) {
+  const span = document.createElement('span');
+  const strong = document.createElement('strong');
+  strong.textContent = value;
+  appendText(span, label + ' ');
+  span.appendChild(strong);
+  return span;
+}
+
+function modelStatusLabel(model, view) {
+  if (view?.status === 'stale' || view?.freshness === 'stale') return 'Last snapshot';
+  if (model.state === 'degraded') return 'Limited capacity';
+  if (model.state === 'offline') return 'Unavailable';
+  if (model.state === 'unknown') return 'Updating';
+  return 'Available';
+}
+
+function paintModelHealth(view) {
+  if (!els.healthModels) return;
+  els.healthModels.innerHTML = '';
+  const models = view?.models || [];
+  if (els.healthModelsEmpty) els.healthModelsEmpty.hidden = models.length > 0 || view?.status === 'error';
+  for (const model of models) {
+    const card = document.createElement('article');
+    card.className = 'net-model-card';
+    card.dataset.state = model.state;
+
+    const head = document.createElement('div');
+    head.className = 'net-model-card-head';
+    const titleRow = document.createElement('div');
+    titleRow.className = 'net-model-title-row';
+    const dot = document.createElement('span');
+    dot.className = 'net-model-dot';
+    dot.dataset.state = model.state;
+    const title = document.createElement('h3');
+    title.textContent = model.displayName || model.modelId;
+    titleRow.appendChild(dot);
+    titleRow.appendChild(title);
+    head.appendChild(titleRow);
+    head.appendChild(stateChip(model.state));
+    card.appendChild(head);
+
+    const metrics = document.createElement('div');
+    metrics.className = 'net-model-metrics';
+    metrics.appendChild(metricLine('capacity', model.slotsFree === null && model.slotsTotal === null ? '—' : nfmt(model.slotsFree) + '/' + nfmt(model.slotsTotal)));
+    if (model.maxContextTokens !== null) metrics.appendChild(metricLine('context', nfmt(model.maxContextTokens)));
+    card.appendChild(metrics);
+
+    const load = document.createElement('div');
+    load.className = 'net-model-capacity-bar';
+    const total = Number(model.slotsTotal);
+    const free = Number(model.slotsFree);
+    const fillPct = Number.isFinite(total) && total > 0 && Number.isFinite(free)
+      ? Math.max(0, Math.min(100, (free / total) * 100))
+      : 0;
+    load.style.setProperty('--capacity-pct', fillPct + '%');
+    load.dataset.state = model.state;
+    load.setAttribute('role', 'meter');
+    load.setAttribute('aria-label', (model.displayName || model.modelId) + ' available capacity');
+    if (Number.isFinite(total) && total > 0) {
+      load.setAttribute('aria-valuemin', '0');
+      load.setAttribute('aria-valuemax', String(total));
+      load.setAttribute('aria-valuenow', Number.isFinite(free) ? String(Math.max(0, free)) : '0');
+    }
+    const fill = document.createElement('span');
+    load.appendChild(fill);
+    card.appendChild(load);
+
+    const meaning = document.createElement('p');
+    meaning.className = 'net-model-status-copy';
+    meaning.innerHTML = '<span>Now</span><strong></strong>';
+    meaning.querySelector('strong').textContent = model.routingMeaning;
+    card.appendChild(meaning);
+    els.healthModels.appendChild(card);
+  }
+}
+
+function paintMethodology(view) {
+  const method = view?.methodology || {};
+  if (els.healthMethodVersion) {
+    els.healthMethodVersion.textContent = method.version || 'SPEC-017 public projection';
+  }
+  if (els.healthMethodCopy) {
+    els.healthMethodCopy.textContent =
+      'Availability combines the public coordinator snapshot, recent success, capacity, and freshness. If capacity is tight or the snapshot is stale, the model may be shown as limited until the next fresh update.';
+  }
+}
+
+function paintRoutability(view) {
+  if (!view) return;
+  paintHealthSummary(view);
+  paintModelHealth(view);
+  paintMethodology(view);
+}
+
 function scheduleStaleCheck(staleAtMs) {
   if (staleTimer) clearTimeout(staleTimer);
   if (!Number.isFinite(staleAtMs)) return;
@@ -341,6 +526,17 @@ function scheduleStaleCheck(staleAtMs) {
     if (!latestData) return;
     setStatus('stale', 'Stale');
     showBanner('Live snapshot is past its freshness window. Numbers may lag behind the coordinator.');
+  }, delay);
+}
+
+function scheduleHealthStaleCheck(staleAtMs) {
+  if (healthStaleTimer) clearTimeout(healthStaleTimer);
+  if (!Number.isFinite(staleAtMs)) return;
+  const delay = Math.max(1000, staleAtMs - Date.now());
+  healthStaleTimer = setTimeout(() => {
+    if (!latestHealth) return;
+    latestHealth = { ...latestHealth, freshness: 'stale' };
+    paintRoutability(latestHealth);
   }, delay);
 }
 
@@ -408,29 +604,72 @@ async function fetchOverview({ manual } = {}) {
   }
 }
 
+async function fetchRoutability({ manual } = {}) {
+  const now = Date.now();
+  if (manual && now - lastHealthFetchAt < MIN_MANUAL_MS) return;
+  lastHealthFetchAt = now;
+
+  if (currentHealthAbort) currentHealthAbort.abort();
+  currentHealthAbort = new AbortController();
+
+  try {
+    const res = await fetch(ROUTABILITY_URL, {
+      signal: currentHealthAbort.signal,
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store',
+      mode: 'cors',
+      credentials: 'omit',
+    });
+
+    if (!res.ok) {
+      throw new Error('HTTP ' + res.status);
+    }
+
+    const data = await res.json();
+    latestHealth = normalizeRoutabilityPayload(data);
+    paintRoutability(latestHealth);
+    scheduleHealthStaleCheck(latestHealth.staleAfterMs);
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;
+    console.warn('[network routability] fetch failed', err);
+    latestHealth = routabilityErrorView(err, latestHealth);
+    paintRoutability(latestHealth);
+  }
+}
+
+function fetchAll(opts) {
+  fetchOverview(opts);
+  fetchRoutability(opts);
+}
+
 function startPolling() {
   stopPolling();
   pollTimer = setInterval(() => {
     if (document.visibilityState === 'visible') fetchOverview();
   }, POLL_MS);
+  healthPollTimer = setInterval(() => {
+    if (document.visibilityState === 'visible') fetchRoutability();
+  }, HEALTH_POLL_MS);
 }
 
 function stopPolling() {
   if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  if (healthPollTimer) { clearInterval(healthPollTimer); healthPollTimer = null; }
 }
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
-    fetchOverview();
+    fetchAll();
     startPolling();
   } else {
     stopPolling();
     if (currentAbort) currentAbort.abort();
+    if (currentHealthAbort) currentHealthAbort.abort();
   }
 });
 
 if (els.refresh) {
-  els.refresh.addEventListener('click', () => fetchOverview({ manual: true }));
+  els.refresh.addEventListener('click', () => fetchAll({ manual: true }));
 }
 
 setInterval(updateUpdatedLabel, 15000);
@@ -472,7 +711,7 @@ setInterval(updateUpdatedLabel, 15000);
       const [promptHash, outputHash, modelHash] = await Promise.all([
         sha256Hex('Summarize the Malibu litepaper in one line.'),
         sha256Hex('A verifiable inference network on idle Apple silicon.'),
-        sha256Hex('mlx-community/Qwen3-8B-4bit'),
+        sha256Hex('Qwen3 8B'),
       ]);
 
       const keyPair = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
@@ -513,5 +752,5 @@ setInterval(updateUpdatedLabel, 15000);
   btn.addEventListener('click', run);
 })();
 
-fetchOverview();
-if (!reduced) startPolling();
+fetchAll();
+startPolling();

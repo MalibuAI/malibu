@@ -91,7 +91,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/mp/, ''),
       },
       '/v1/stats': {
-        target: 'https://stats.streamvc.live',
+        target: 'https://api.malibu.tech',
         changeOrigin: true,
       },
       '/v1/rate-card': {
