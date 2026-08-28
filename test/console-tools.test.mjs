@@ -23,6 +23,13 @@ test('normalizes alternate web_fetch URL keys for gateway replay', () => {
   );
 });
 
+test('repairs web_fetch JSON arguments with trailing model punctuation', () => {
+  assert.equal(
+    normalizeToolArguments('web_fetch', '{"url":"https://malibu.tech"}}'),
+    JSON.stringify({ url: 'https://malibu.tech' }),
+  );
+});
+
 test('normalizes built-in tool calls before replaying them to the model', () => {
   assert.deepEqual(
     normalizeToolCallForReplay({

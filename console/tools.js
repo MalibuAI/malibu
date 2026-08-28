@@ -66,8 +66,46 @@ function parseToolArgs(argsJson) {
     if (typeof parsed === 'string') return { kind: 'string', value: parsed };
     return { kind: 'value', value: parsed };
   } catch {
+    const repaired = parseJsonPrefix(raw);
+    if (repaired) return repaired;
     return { kind: 'string', value: raw };
   }
+}
+
+function parseJsonPrefix(raw) {
+  const first = raw[0];
+  const pairs = { '{': '}', '[': ']' };
+  if (!pairs[first]) return null;
+
+  const stack = [];
+  let inString = false;
+  let escaped = false;
+  for (let i = 0; i < raw.length; i += 1) {
+    const ch = raw[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (pairs[ch]) stack.push(pairs[ch]);
+    else if (ch === '}' || ch === ']') {
+      if (stack.pop() !== ch) return null;
+      if (stack.length !== 0) continue;
+      try {
+        const parsed = JSON.parse(raw.slice(0, i + 1));
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return { kind: 'object', value: parsed };
+        }
+        if (typeof parsed === 'string') return { kind: 'string', value: parsed };
+        return { kind: 'value', value: parsed };
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
 }
 
 function pickStringArg(parsed, keys) {
