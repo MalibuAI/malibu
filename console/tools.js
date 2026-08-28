@@ -55,10 +55,74 @@ function safeCalc(expression) {
   return val;
 }
 
+function parseToolArgs(argsJson) {
+  const raw = String(argsJson ?? '').trim();
+  if (!raw) return { kind: 'object', value: {} };
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return { kind: 'object', value: parsed };
+    }
+    if (typeof parsed === 'string') return { kind: 'string', value: parsed };
+    return { kind: 'value', value: parsed };
+  } catch {
+    return { kind: 'string', value: raw };
+  }
+}
+
+function pickStringArg(parsed, keys) {
+  if (parsed.kind === 'string') return parsed.value;
+  if (parsed.kind !== 'object') return String(parsed.value ?? '');
+  for (const key of keys) {
+    const value = parsed.value?.[key];
+    if (value != null) return String(value);
+  }
+  return '';
+}
+
+function normalizeHttpUrl(value) {
+  let url = String(value || '').trim();
+  if (!url) return '';
+  if (url.startsWith('//')) url = `https:${url}`;
+  else if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = `https://${url}`;
+  return url;
+}
+
+export function normalizeToolArguments(name, argsJson) {
+  const parsed = parseToolArgs(argsJson);
+
+  switch (name) {
+    case 'calculator':
+      return JSON.stringify({ expression: pickStringArg(parsed, ['expression', 'expr', 'input']) });
+    case 'json_validate': {
+      const text = parsed.kind === 'object' && parsed.value?.text == null
+        ? JSON.stringify(parsed.value)
+        : pickStringArg(parsed, ['text', 'json', 'input']);
+      return JSON.stringify({ text });
+    }
+    case 'web_fetch':
+      return JSON.stringify({ url: normalizeHttpUrl(pickStringArg(parsed, ['url', 'href', 'uri', 'link', 'input'])) });
+    default:
+      return parsed.kind === 'object' ? JSON.stringify(parsed.value) : JSON.stringify({ value: String(argsJson ?? '') });
+  }
+}
+
+export function normalizeToolCallForReplay(toolCall, index = 0) {
+  const name = String(toolCall?.function?.name || '');
+  return {
+    id: String(toolCall?.id || `call_${index}`),
+    type: toolCall?.type || 'function',
+    function: {
+      name,
+      arguments: normalizeToolArguments(name, toolCall?.function?.arguments),
+    },
+  };
+}
+
 export async function executeTool(name, argsJson) {
   let args = {};
   try {
-    args = argsJson ? JSON.parse(argsJson) : {};
+    args = JSON.parse(normalizeToolArguments(name, argsJson));
   } catch (e) {
     throw new Error(`Invalid tool arguments JSON: ${e.message}`);
   }
