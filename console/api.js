@@ -3,6 +3,7 @@ import {
   sanitizeStoredThread,
   sanitizeStoredThreads,
   shouldFilterThinkingContent,
+  withQwenNoThinkDirective,
 } from '../j/thinking-filter.mjs';
 
 const BASE = '/api/mp';
@@ -504,7 +505,7 @@ export async function* chatStream({
   };
   if (conversationId) headers['X-MacProvider-Conversation'] = conversationId;
 
-  const body = { model, messages, stream: true, max_tokens: maxTokens };
+  const body = { model, messages: withQwenNoThinkDirective(model, messages), stream: true, max_tokens: maxTokens };
   if (tools?.length) {
     body.tools = tools;
     if (toolChoice) body.tool_choice = toolChoice;

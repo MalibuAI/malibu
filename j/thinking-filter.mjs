@@ -108,6 +108,12 @@ export function shouldFilterThinkingContent(modelId) {
   return /\bqwen/i.test(String(modelId || ''));
 }
 
+export function shouldSendNoThinkDirective(modelId) {
+  const id = String(modelId || '');
+  if (!/\bqwen3(?:\b|[\W_])/i.test(id)) return false;
+  return !/\bqwen3[\w.-]*(?:thinking|instruct|base)(?:\b|[\W_])/i.test(id);
+}
+
 export function startsWithThinkingBlock(content) {
   return /^\s*<think>/i.test(String(content || ''));
 }
@@ -135,4 +141,17 @@ export function sanitizeStoredThread(thread) {
 
 export function sanitizeStoredThreads(threads) {
   return Array.isArray(threads) ? threads.map(sanitizeStoredThread) : [];
+}
+
+export function withQwenNoThinkDirective(modelId, messages) {
+  if (!shouldSendNoThinkDirective(modelId) || !Array.isArray(messages)) return messages;
+  const next = messages.map((msg) => ({ ...msg }));
+  const lastUserIndex = next.findLastIndex((msg) => msg?.role === 'user' && typeof msg.content === 'string');
+  if (lastUserIndex === -1) return next;
+  if (/\/no_think\s*$/i.test(next[lastUserIndex].content)) return next;
+  next[lastUserIndex] = {
+    ...next[lastUserIndex],
+    content: `${next[lastUserIndex].content}\n\n/no_think`,
+  };
+  return next;
 }

@@ -6,7 +6,9 @@ import {
   sanitizeAssistantContent,
   sanitizeStoredThread,
   shouldFilterThinkingContent,
+  shouldSendNoThinkDirective,
   stripThinkingContent,
+  withQwenNoThinkDirective,
 } from '../j/thinking-filter.mjs';
 
 test('strips a leading Qwen thinking block from assistant content', () => {
@@ -66,11 +68,25 @@ test('flushes ordinary text that only looks like a partial tag', () => {
 
 test('scopes thinking filtering to Qwen-family models', () => {
   assert.equal(shouldFilterThinkingContent('mlx-community/Qwen3-8B-4bit'), true);
+  assert.equal(shouldFilterThinkingContent('mlx-community/Qwen2.5-7B-Instruct-4bit'), true);
   assert.equal(shouldFilterThinkingContent('openai/gpt-oss-20b'), false);
   assert.equal(
     sanitizeAssistantContent('<think>literal</think>', { model: 'openai/gpt-oss-20b' }),
     '<think>literal</think>',
   );
+});
+
+test('scopes no-think directives to Qwen3 hybrid-thinking models', () => {
+  assert.equal(shouldSendNoThinkDirective('mlx-community/Qwen3-8B-4bit'), true);
+  assert.equal(shouldSendNoThinkDirective('Qwen/Qwen3-30B-A3B'), true);
+  assert.equal(shouldSendNoThinkDirective('qwen3:8b'), true);
+  assert.equal(shouldSendNoThinkDirective('Qwen3-235B-A22B-Thinking-2507'), false);
+  assert.equal(shouldSendNoThinkDirective('qwen3-next-80b-a3b-thinking'), false);
+  assert.equal(shouldSendNoThinkDirective('Qwen3-235B-A22B-Instruct-2507'), false);
+  assert.equal(shouldSendNoThinkDirective('Qwen3-4B-Base'), false);
+  assert.equal(shouldSendNoThinkDirective('mlx-community/Qwen2.5-7B-Instruct-4bit'), false);
+  assert.equal(shouldSendNoThinkDirective('QwQ-32B'), false);
+  assert.equal(shouldSendNoThinkDirective('openai/gpt-oss-20b'), false);
 });
 
 test('sanitizes saved Qwen assistant history before rendering or replay', () => {
@@ -109,4 +125,37 @@ test('preserves saved non-Qwen literal think tags', () => {
   });
 
   assert.equal(thread.messages[0].content, '<think>literal</think>\n\nVisible saved answer.');
+});
+
+test('adds no-think directive to cloned outgoing Qwen messages', () => {
+  const messages = [
+    { role: 'user', content: 'Answer directly.' },
+  ];
+  const next = withQwenNoThinkDirective('mlx-community/Qwen3-8B-4bit', messages);
+
+  assert.equal(messages[0].content, 'Answer directly.');
+  assert.equal(next[0].content, 'Answer directly.\n\n/no_think');
+});
+
+test('does not duplicate existing Qwen no-think directives', () => {
+  const next = withQwenNoThinkDirective('mlx-community/Qwen3-8B-4bit', [
+    { role: 'user', content: 'Answer directly.\n\n/no_think' },
+  ]);
+
+  assert.equal(next[0].content, 'Answer directly.\n\n/no_think');
+});
+
+test('preserves outgoing non-Qwen messages', () => {
+  const messages = [{ role: 'user', content: 'Answer directly.' }];
+  assert.equal(withQwenNoThinkDirective('openai/gpt-oss-20b', messages), messages);
+});
+
+test('preserves outgoing non-Qwen3 Qwen messages', () => {
+  const messages = [{ role: 'user', content: 'Answer directly.' }];
+  assert.equal(withQwenNoThinkDirective('mlx-community/Qwen2.5-7B-Instruct-4bit', messages), messages);
+});
+
+test('preserves outgoing Qwen3 thinking-only messages', () => {
+  const messages = [{ role: 'user', content: 'Answer directly.' }];
+  assert.equal(withQwenNoThinkDirective('Qwen3-235B-A22B-Thinking-2507', messages), messages);
 });
