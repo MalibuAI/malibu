@@ -34,6 +34,8 @@
     .rail .item:hover { background: rgba(250, 251, 255,0.06); color: #FAFBFF; }
     .rail .item.active { background: #F76B57; color: #FAFBFF; }
     .rail .item .meta { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(250, 251, 255,0.4); }
+    .rail .item.recent-toggle { margin-top: 4px; color: rgba(250, 251, 255,0.48); }
+    .rail .item.recent-toggle:hover { color: #FAFBFF; }
     .rail .scroll { overflow-y: auto; flex: 1; }
     .new-chat { width: calc(100% - 28px); margin: 0 14px 4px; padding: 11px 14px; border-radius: 9px; background: rgba(250, 251, 255,0.06); color: #FAFBFF; font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; justify-content: center; transition: background 140ms ease; border: 1px solid rgba(250, 251, 255,0.10); }
     .new-chat:hover { background: rgba(250, 251, 255,0.10); }
@@ -224,6 +226,7 @@
       <div class="rail-section" data-recent-section hidden>
         <h3>Recent</h3>
         <div data-recent></div>
+        <button class="item recent-toggle" type="button" data-recent-toggle hidden></button>
       </div>
 
       <div class="rail-section">
@@ -438,6 +441,7 @@
   const toastEl = document.querySelector('[data-toast]');
   const recentSection = document.querySelector('[data-recent-section]');
   const recentEl = document.querySelector('[data-recent]');
+  const recentToggleEl = document.querySelector('[data-recent-toggle]');
   const quotaBarEl = document.querySelector('[data-quota-bar]');
   const quotaFillEl = document.querySelector('[data-quota-fill]');
   const quotaLabelEl = document.querySelector('[data-quota-label]');
@@ -465,6 +469,8 @@
   let threadId = createThreadId();
   let conversation = [];
   let threadTitle = '';
+  let recentExpanded = false;
+  const RECENT_COLLAPSED_LIMIT = 6;
 
   function toast(message, kind) {
     toastEl.textContent = message;
@@ -847,12 +853,14 @@
     const threads = loadThreads();
     if (!threads.length) {
       recentSection.hidden = true;
+      if (recentToggleEl) recentToggleEl.hidden = true;
       return;
     }
     recentSection.hidden = false;
     recentEl.innerHTML = '';
     const active = getActivityState();
-    for (const t of threads.slice(0, 12)) {
+    const visibleThreads = recentExpanded ? threads : threads.slice(0, RECENT_COLLAPSED_LIMIT);
+    for (const t of visibleThreads) {
       const item = document.createElement('button');
       item.type = 'button';
       item.className = 'item' + (t.id === threadId ? ' active' : '');
@@ -866,6 +874,12 @@
       }
       item.addEventListener('click', () => loadThread(t.id));
       recentEl.appendChild(item);
+    }
+    if (recentToggleEl) {
+      const hiddenCount = Math.max(0, threads.length - RECENT_COLLAPSED_LIMIT);
+      recentToggleEl.hidden = hiddenCount === 0;
+      recentToggleEl.innerHTML = `${icon(recentExpanded ? 'chevronUp' : 'chevronDown')}<span class="item-title">${recentExpanded ? 'Show less' : `Show ${hiddenCount} more`}</span>`;
+      recentToggleEl.setAttribute('aria-expanded', String(recentExpanded));
     }
   }
 
@@ -923,6 +937,8 @@
     workspace.close();
     const t = getThread(id);
     if (!t) return;
+    const threadIndex = loadThreads().findIndex((thread) => thread.id === id);
+    if (threadIndex >= RECENT_COLLAPSED_LIMIT) recentExpanded = true;
     threadId = t.id;
     conversation = Array.isArray(t.messages) ? [...t.messages] : [];
     threadTitle = t.title || '';
@@ -945,6 +961,11 @@
     scroller.follow({ force: true });
     history.replaceState({}, '', location.pathname + (threadId ? `?thread=${threadId}` : ''));
   }
+
+  recentToggleEl?.addEventListener('click', () => {
+    recentExpanded = !recentExpanded;
+    renderRecent();
+  });
 
   function showWelcome() {
     stream.innerHTML = '';
