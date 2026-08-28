@@ -1,5 +1,5 @@
 import { chatStream } from './api.js';
-import { executeTool } from './tools.js';
+import { executeTool, normalizeToolCallForReplay } from './tools.js';
 
 const MAX_AGENT_STEPS = 8;
 
@@ -188,17 +188,18 @@ export async function runAgentLoop({
     }
 
     lastContent = content;
+    const replayToolCalls = toolCalls.map((tc, i) => normalizeToolCallForReplay(tc, i));
 
     onTimeline?.({
       kind: 'tools',
-      label: `${toolCalls.length} tool call${toolCalls.length === 1 ? '' : 's'}`,
+      label: `${replayToolCalls.length} tool call${replayToolCalls.length === 1 ? '' : 's'}`,
       status: 'pending',
-      toolCalls,
+      toolCalls: replayToolCalls,
     });
 
-    const approved = await requestToolApproval(toolCalls, { autoApprove, signal });
+    const approved = await requestToolApproval(replayToolCalls, { autoApprove, signal });
     if (!approved) {
-      onTimeline?.({ kind: 'tools', label: 'Tool calls rejected', status: 'rejected', toolCalls });
+      onTimeline?.({ kind: 'tools', label: 'Tool calls rejected', status: 'rejected', toolCalls: replayToolCalls });
       return {
         content: content || (signal?.aborted ? 'Generation stopped.' : 'Tool execution cancelled.'),
         usage: lastUsage,
@@ -212,14 +213,10 @@ export async function runAgentLoop({
       role: 'assistant',
       content: content || null,
       model,
-      tool_calls: toolCalls.map((tc) => ({
-        id: tc.id,
-        type: tc.type || 'function',
-        function: { name: tc.function.name, arguments: tc.function.arguments },
-      })),
+      tool_calls: replayToolCalls,
     });
 
-    for (const tc of toolCalls) {
+    for (const tc of replayToolCalls) {
       if (signal?.aborted) {
         return {
           content: lastContent || 'Generation stopped.',
