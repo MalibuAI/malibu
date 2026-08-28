@@ -216,6 +216,7 @@ export async function runAgentLoop({
     conversation.push({
       role: 'assistant',
       content: content || null,
+      model,
       tool_calls: toolCalls.map((tc) => ({
         id: tc.id,
         type: tc.type || 'function',

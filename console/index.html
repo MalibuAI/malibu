@@ -1183,6 +1183,7 @@
           conversation.push({
             role: 'assistant',
             content: buf,
+            model: modelId,
             usage,
             meta,
             surface,
@@ -1219,7 +1220,7 @@
         }
         textEl.className = 'msg-content';
         textEl.textContent = buf;
-        conversation.push({ role: 'assistant', content: buf, usage, meta, timing, surface, latencyMs: performance.now() - started });
+        conversation.push({ role: 'assistant', content: buf, model: modelId, usage, meta, timing, surface, latencyMs: performance.now() - started });
         finishBill(billEl, usage, meta, performance.now() - started, timing);
       }
       if (buf) wireAiMessageActions(ai, buf);
@@ -1240,6 +1241,7 @@
           conversation.push({
             role: 'assistant',
             content,
+            model: modelId,
             usage,
             meta,
             surface,
