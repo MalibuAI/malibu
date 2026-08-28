@@ -1,3 +1,10 @@
+import {
+  createThinkingContentFilter,
+  sanitizeStoredThread,
+  sanitizeStoredThreads,
+  shouldFilterThinkingContent,
+} from '../j/thinking-filter.mjs';
+
 const BASE = '/api/mp';
 const RATE_CARD_URL = '/v1/rate-card';
 const KEY_STORAGE = 'malibu.mp.key';
@@ -250,7 +257,7 @@ export function exportThreadsBundle() {
 export function importThreadsBundle(raw, { merge = true } = {}) {
   const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
   if (!data || !Array.isArray(data.threads)) throw new Error('Invalid thread export');
-  const incoming = data.threads.slice(0, MAX_THREADS);
+  const incoming = sanitizeStoredThreads(data.threads).slice(0, MAX_THREADS);
   if (!merge) saveThreads(incoming);
   else {
     const byId = new Map(loadThreads().map((t) => [t.id, t]));
@@ -405,7 +412,12 @@ export function loadThreads() {
     const raw = localStorage.getItem(THREADS_STORAGE);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    const sanitized = sanitizeStoredThreads(parsed);
+    if (JSON.stringify(sanitized) !== raw) {
+      localStorage.setItem(THREADS_STORAGE, JSON.stringify(sanitized.slice(0, MAX_THREADS)));
+    }
+    return sanitized;
   } catch {
     return [];
   }
@@ -413,7 +425,7 @@ export function loadThreads() {
 
 export function saveThreads(threads) {
   try {
-    localStorage.setItem(THREADS_STORAGE, JSON.stringify(threads.slice(0, MAX_THREADS)));
+    localStorage.setItem(THREADS_STORAGE, JSON.stringify(sanitizeStoredThreads(threads).slice(0, MAX_THREADS)));
     return true;
   } catch {
     return false;
@@ -421,8 +433,9 @@ export function saveThreads(threads) {
 }
 
 export function upsertThread(thread) {
-  const threads = loadThreads().filter((t) => t.id !== thread.id);
-  threads.unshift(thread);
+  const normalized = sanitizeStoredThread(thread);
+  const threads = loadThreads().filter((t) => t.id !== normalized.id);
+  threads.unshift(normalized);
   saveThreads(threads);
   return threads;
 }
@@ -521,6 +534,7 @@ export async function* chatStream({
   let content = '';
   let finishReason = '';
   const toolAcc = {};
+  const thinkingFilter = shouldFilterThinkingContent(model) ? createThinkingContentFilter() : null;
   // Decode-window timing so the console can show the per-request speed the user
   // actually felt on this stream: tokens ÷ (first content token → last content
   // token), which excludes queue + prompt + TTFT. It is client-observed
@@ -543,11 +557,14 @@ export async function* chatStream({
           const delta = choice?.delta;
           if (choice?.finish_reason) finishReason = choice.finish_reason;
           if (delta?.content) {
-            const now = performance.now();
-            if (firstTokenAt == null) firstTokenAt = now;
-            lastTokenAt = now;
-            content += delta.content;
-            yield { type: 'delta', text: delta.content };
+            const visibleText = thinkingFilter ? thinkingFilter.push(delta.content) : delta.content;
+            if (visibleText) {
+              const now = performance.now();
+              if (firstTokenAt == null) firstTokenAt = now;
+              lastTokenAt = now;
+              content += visibleText;
+              yield { type: 'delta', text: visibleText };
+            }
           }
           if (delta?.tool_calls) {
             mergeToolDelta(toolAcc, delta.tool_calls);
@@ -578,15 +595,18 @@ export async function* chatStream({
     }
   }
 
+  const finalContent = content + (thinkingFilter ? thinkingFilter.flush() : '');
+
   yield {
     type: 'done',
-    content,
+    content: finalContent,
     usage,
     meta,
     finishReason,
     toolCalls: toolList(toolAcc),
     timing: {
       decodeMs: firstTokenAt != null && lastTokenAt != null ? lastTokenAt - firstTokenAt : null,
+      redactedContent: !!thinkingFilter?.redacted,
     },
   };
 }
@@ -622,6 +642,7 @@ function formatLatency(latencyMs) {
 // delivery, not pure model decode. Gated on a real window and enough tokens so
 // a tiny reply can't show a wild rate; omitted rather than shown when unsafe.
 function formatDecodeSpeed(usage, timing) {
+  if (timing?.redactedContent) return '';
   const completion = Number(usage?.completion_tokens) || 0;
   const decodeMs = Number(timing?.decodeMs);
   if (completion < 8 || !Number.isFinite(decodeMs) || decodeMs < 200) return '';
