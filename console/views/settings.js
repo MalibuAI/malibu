@@ -1,6 +1,6 @@
 import {
   getStatus, loadSettings, saveSettings, resetQuotaAlert,
-  exportThreadsBundle, importThreadsBundle, filterPoolModels,
+  exportThreadsBundle, importThreadsBundle, filterPoolModels, MAX_REPLY_TOKENS,
 } from '../api.js';
 
 export const title = 'Settings';
@@ -19,7 +19,7 @@ export function mount(root, { navigate, toast }) {
         </div>
         <div class="field">
           <label for="max-tokens">Max tokens per reply</label>
-          <input id="max-tokens" name="maxTokens" type="number" min="64" max="4096" step="64" data-max-tokens />
+          <input id="max-tokens" name="maxTokens" type="number" min="64" max="${MAX_REPLY_TOKENS}" step="64" data-max-tokens />
         </div>
       </div>
       <div class="panel">
@@ -166,7 +166,7 @@ export function mount(root, { navigate, toast }) {
   function applySettings() {
     const s = loadSettings();
     modelEl.value = s.defaultModel || '';
-    maxTokEl.value = s.maxTokens || 1024;
+    maxTokEl.value = s.maxTokens || MAX_REPLY_TOKENS;
     spendEl.value = s.softSpendLimitUsd ?? '';
     policyEl.value = s.modelPolicy || 'all';
     const thresholds = new Set(s.alertThresholds || [50, 80, 100]);
@@ -184,7 +184,7 @@ export function mount(root, { navigate, toast }) {
     const lists = readModelLists();
     saveSettings({
       defaultModel: modelEl.value,
-      maxTokens: Math.min(4096, Math.max(64, Number(maxTokEl.value) || 1024)),
+      maxTokens: Number(maxTokEl.value) || MAX_REPLY_TOKENS,
       alertThresholds: thresholds.length ? thresholds : [50, 80, 100],
       softSpendLimitUsd: spendEl.value === '' ? null : Number(spendEl.value),
       agentAutoApprove: !!agentAutoEl?.checked,

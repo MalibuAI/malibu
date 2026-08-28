@@ -13,10 +13,12 @@ const DEMO_STORAGE = 'malibu.demo.token';
 const THREADS_STORAGE = 'malibu.threads';
 const SETTINGS_STORAGE = 'malibu.settings';
 const MAX_THREADS = 40;
+const MIN_REPLY_TOKENS = 64;
+export const MAX_REPLY_TOKENS = 512;
 
 const DEFAULT_SETTINGS = {
   defaultModel: '',
-  maxTokens: 1024,
+  maxTokens: MAX_REPLY_TOKENS,
   alertThresholds: [50, 80, 100],
   softSpendLimitUsd: null,
   lastAlertPct: 0,
@@ -28,6 +30,11 @@ const DEFAULT_SETTINGS = {
   blockedModels: [],
   threadSyncEnabled: false,
 };
+
+function clampReplyTokens(value) {
+  const n = Number(value) || MAX_REPLY_TOKENS;
+  return Math.min(MAX_REPLY_TOKENS, Math.max(MIN_REPLY_TOKENS, n));
+}
 
 export function loadKey() {
   try { return localStorage.getItem(KEY_STORAGE) || ''; } catch { return ''; }
@@ -166,6 +173,7 @@ export function loadSettings() {
     if (!raw) return { ...DEFAULT_SETTINGS };
     const settings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
     if (settings.chatMode === 'json') settings.chatMode = 'chat';
+    settings.maxTokens = clampReplyTokens(settings.maxTokens);
     return settings;
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -174,6 +182,7 @@ export function loadSettings() {
 
 export function saveSettings(patch) {
   const next = { ...loadSettings(), ...patch };
+  next.maxTokens = clampReplyTokens(next.maxTokens);
   try {
     localStorage.setItem(SETTINGS_STORAGE, JSON.stringify(next));
     return next;
