@@ -66,6 +66,28 @@ const builtinTools = [
   { type: 'function', function: { name: 'web_fetch' } },
 ];
 
+test('extracts Llama markdown test-case calculator JSON dumped as assistant text', () => {
+  const content = `Here are two test cases:
+
+**Test Case 1:**
+
+**Response should be:**
+
+\`\`\`json
+{
+  "name": "calculator",
+  "parameters": {
+    "expression": "(42 * 1.5) + 8"
+  }
+}
+\`\`\`
+`;
+  const calls = extractToolCallsFromContent(content, builtinTools);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].function.name, 'calculator');
+  assert.equal(JSON.parse(calls[0].function.arguments).expression, '(42 * 1.5) + 8');
+});
+
 test('extracts schema-echo calculator JSON dumped as assistant text', () => {
   const content = "Here is a JSON object representing a call to the 'calculator' function with a valid argument: {'name': 'calculator', 'parameters': {'properties': {'expression': '42 + 1.5 * 8'}}}";
   const calls = extractToolCallsFromContent(content, builtinTools);
