@@ -2,22 +2,27 @@
 // fails. The /host button and /j invite flow upgrade at request time via
 // /api/malibu-release, which binds GitHub Latest (immutable tag + checksums +
 // provenance). scripts/verify-referral-download.mjs still gates production
-// builds against this fallback so a broken pin cannot ship.
-export const MALIBU_RELEASE_TAG = 'v1.8.93';
+// builds against the GitHub bytes so a broken pin cannot ship.
+export const MALIBU_RELEASE_TAG = 'v1.8.111';
 export const MALIBU_DMG_SHA256 =
-  'febcbec19b6c32365cbf1053a79850f3ac9e78848775f1519b58620685604d2c';
+  'a39ce0a9e66530420751e16f74695f4a33e53f5dc440b9786ddd78957b1e7e1e';
 export const MALIBU_DOWNLOAD_URL =
-  'https://github.com/Augustas11/macprovider/releases/download/v1.8.93/Malibu-v1.8.93.dmg';
+  'https://github.com/Augustas11/macprovider/releases/download/v1.8.111/Malibu-v1.8.111.dmg';
 
 const TAG_RE = /^v\d+\.\d+\.\d+$/;
 const SHA256_RE = /^[0-9a-f]{64}$/;
-const DOWNLOAD_PATH =
+const GITHUB_DOWNLOAD_PATH =
   /^\/Augustas11\/macprovider\/releases\/download\/(v\d+\.\d+\.\d+)\/Malibu-\1\.dmg$/;
+const BRANDED_DOWNLOAD_PATH = /^\/Malibu-(v\d+\.\d+\.\d+)\.dmg$/;
+
+export function publicMalibuDownloadUrl(tag = MALIBU_RELEASE_TAG) {
+  return `https://download.malibu.tech/Malibu-${tag}.dmg`;
+}
 
 export function fallbackMalibuRelease() {
   return {
     tag: MALIBU_RELEASE_TAG,
-    url: MALIBU_DOWNLOAD_URL,
+    url: publicMalibuDownloadUrl(),
     sha256: MALIBU_DMG_SHA256,
   };
 }
@@ -37,15 +42,21 @@ export function isAcceptedMalibuDownload(release) {
   }
   if (
     parsed.protocol !== 'https:'
-    || parsed.hostname !== 'github.com'
     || parsed.search
     || parsed.hash
     || parsed.port
   ) {
     return false;
   }
-  const match = DOWNLOAD_PATH.exec(parsed.pathname);
-  return Boolean(match && match[1] === tag);
+  if (parsed.hostname === 'github.com') {
+    const match = GITHUB_DOWNLOAD_PATH.exec(parsed.pathname);
+    return Boolean(match && match[1] === tag);
+  }
+  if (parsed.hostname === 'download.malibu.tech') {
+    const match = BRANDED_DOWNLOAD_PATH.exec(parsed.pathname);
+    return Boolean(match && match[1] === tag);
+  }
+  return false;
 }
 
 export async function loadPublicMalibuRelease() {
@@ -71,7 +82,11 @@ export async function loadPublicMalibuRelease() {
     }
     const body = await response.json();
     if (isAcceptedMalibuDownload(body)) {
-      return { tag: body.tag, url: body.url, sha256: body.sha256 };
+      return {
+        tag: body.tag,
+        url: publicMalibuDownloadUrl(body.tag),
+        sha256: body.sha256,
+      };
     }
   } catch {
     // Keep the verified fallback pin. The download must still be a real DMG.

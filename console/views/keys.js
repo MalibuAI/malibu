@@ -7,7 +7,7 @@ export const title = 'API keys';
 
 export function mount(root, { navigate, esc, toast }) {
   root.innerHTML = `
-    <p class="sub">Create, rotate, and revoke keys via the MacProvider gateway. Keys are shown once — save immediately.</p>
+    <p class="sub">Create, rotate, and revoke keys via the Malibu gateway. Keys are shown once — save immediately.</p>
     <div data-content class="empty">Loading…</div>`;
 
   const el = root.querySelector('[data-content]');

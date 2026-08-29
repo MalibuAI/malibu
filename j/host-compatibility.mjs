@@ -267,7 +267,7 @@ export function evaluateHostCompatibility(input = {}) {
   const maxCatalogMinRamGb = HOST_CATALOG.rows.reduce((max, row) => Math.max(max, row.minRamGb), 0);
   let catalogCeiling = {
     state: 'within_current_preview',
-    message: 'Preview is scoped to the current MacProvider candidate snapshot and Malibu host recommendations.',
+    message: 'Preview is scoped to the current Malibu candidate snapshot and host recommendations.',
     maxCatalogMinRamGb,
   };
   if (usableRamGb > maxCatalogMinRamGb + 24 && compatibleRows.length === rows.length) {
