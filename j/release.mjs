@@ -3,11 +3,11 @@
 // /api/malibu-release, which binds GitHub Latest (immutable tag + checksums +
 // provenance). scripts/verify-referral-download.mjs still gates production
 // builds against the GitHub bytes so a broken pin cannot ship.
-export const MALIBU_RELEASE_TAG = 'v1.8.111';
+export const MALIBU_RELEASE_TAG = 'v1.8.113';
 export const MALIBU_DMG_SHA256 =
-  'a39ce0a9e66530420751e16f74695f4a33e53f5dc440b9786ddd78957b1e7e1e';
+  '123f2cea0dd7cc1b07cd3d7ccb21fbb9aea7e5a0afc68d30797868b99a77860a';
 export const MALIBU_DOWNLOAD_URL =
-  'https://github.com/Augustas11/macprovider/releases/download/v1.8.111/Malibu-v1.8.111.dmg';
+  'https://github.com/Augustas11/macprovider/releases/download/v1.8.113/Malibu-v1.8.113.dmg';
 
 const TAG_RE = /^v\d+\.\d+\.\d+$/;
 const SHA256_RE = /^[0-9a-f]{64}$/;
