@@ -118,7 +118,8 @@ Examples:
 
 - Signed receipts v0.3 → `Live`
 - Coordinator + gateway inference path → `Live`
-- 90% provider credit share, weekly USDC → `Live`
+- 90% provider credit share → `Live`
+- USDC-on-Base payout → `Planned (beta)`
 - $MALIBU emission, burn-and-mint (70/12/18) → `Planned v0`
 - TOPLOC per-request verification → `Planned v1`
 - On-chain reserves floor → `Planned v0`
@@ -135,7 +136,7 @@ Keeps ambition on the page; points skeptics to the ledger.
 
 Never mix live and launch economics in one sentence.
 
-- **Today (marketplace):** 90% provider share, 10% operator; credits settle weekly in USDC on Base. Source: [Metering & billing](/docs/network/metering-and-billing).
+- **Today (pre-beta marketplace):** 90% provider share, 10% operator; credits accrue on the ledger. USDC-on-Base payout at public beta. Source: [Metering & billing](/docs/network/metering-and-billing).
 - **At token launch (planned):** 70% provider / 12% reserves / 18% buy-and-burn. Source: whitepaper §tokenomics.
 
 ### 4. Trust pointer under buyer promises

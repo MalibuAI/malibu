@@ -1,14 +1,14 @@
 ---
 title: Metering & billing
-description: How requests turn into credits and how credits turn into USDC on Base.
+description: How requests turn into credits, and how USDC-on-Base payout ships at public beta.
 icon: coins
 ---
 
 # Metering & billing
 
-> How requests turn into credits and how credits turn into USDC on Base.
+> How requests turn into credits, and how USDC-on-Base payout ships at public beta.
 
-Every billed request produces two credit rows: `providerCredits` (paid out) and `operatorCredits` (network revenue). Credits accumulate through the week; each Monday 00:00 UTC the coordinator sweeps and marks payout-ready.
+Every billed request produces two credit rows: `providerCredits` and `operatorCredits` (network revenue). Credits accrue on the ledger today. **USDC-on-Base payout is planned for public beta**, not invite-gated pre-beta.
 
 ## Credit formula
 
@@ -72,11 +72,11 @@ Full detail: [Operations → Verified model settlement](/operations/verified-mod
 
 ## Settlement cadence
 
-* **Cadence:** every 7 days at Monday 00:00 UTC.
-* **Minimum payout threshold:** 500,000 credits per provider. Below the threshold, credits roll to the next window.
-* **Rail:** USDC on Base.
+* **Today (pre-beta):** credits accrue; no USDC payout rail is active.
+* **At public beta:** weekly sweep (Monday 00:00 UTC design), minimum 500,000 credits, USDC on Base.
+* Below the threshold, credits roll to the next window.
 
-`StartWeeklySettlement` schedules the sweep to fire at the next Monday 00:00 UTC and repeat weekly. `settlement.job_enabled` must be `true` (default) for the job to execute.
+`StartWeeklySettlement` is the coordinator job that will fire that sweep when the payout rail is enabled. `settlement.job_enabled` must be `true` for the job to execute.
 
 ## Endpoints
 
