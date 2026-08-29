@@ -145,7 +145,7 @@ export function mount(root, { navigate, esc, openAccount }) {
         </div>
         <div class="panel">
           <h2>Providers (${period})</h2>
-          <p class="hint" style="margin-top:0;">MacProvider node IDs from inference receipts. Hardware/region disclosure per node is on the roadmap.</p>
+          <p class="hint" style="margin-top:0;">Provider node IDs from inference receipts. Hardware/region disclosure per node is on the roadmap.</p>
           ${providerRows(local.byProvider)}
           <div class="nav-links"><a href="/network/">Network stats</a></div>
         </div>

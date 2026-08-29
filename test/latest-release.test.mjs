@@ -13,6 +13,7 @@ import {
   loadPublicMalibuRelease,
   MALIBU_DOWNLOAD_URL,
   MALIBU_RELEASE_TAG,
+  publicMalibuDownloadUrl,
 } from '../j/release.mjs';
 
 const TAG = 'v1.8.99';
@@ -94,8 +95,9 @@ function latestReleaseJSON(overrides = {}) {
   };
 }
 
-test('isAcceptedMalibuDownload allows only immutable per-tag GitHub DMGs', () => {
+test('isAcceptedMalibuDownload allows GitHub and versioned branded DMGs', () => {
   assert.equal(isAcceptedMalibuDownload(fallbackMalibuRelease()), true);
+  assert.equal(fallbackMalibuRelease().url, publicMalibuDownloadUrl());
   assert.equal(isAcceptedMalibuDownload({
     tag: TAG,
     url: `https://github.com/Augustas11/macprovider/releases/download/${TAG}/${DMG}`,
@@ -103,7 +105,17 @@ test('isAcceptedMalibuDownload allows only immutable per-tag GitHub DMGs', () =>
   }), true);
   assert.equal(isAcceptedMalibuDownload({
     tag: TAG,
+    url: publicMalibuDownloadUrl(TAG),
+    sha256: DMG_SHA,
+  }), true);
+  assert.equal(isAcceptedMalibuDownload({
+    tag: TAG,
     url: 'https://download.malibu.tech/latest.dmg',
+    sha256: DMG_SHA,
+  }), false);
+  assert.equal(isAcceptedMalibuDownload({
+    tag: TAG,
+    url: 'https://download.malibu.tech/Malibu.dmg',
     sha256: DMG_SHA,
   }), false);
   assert.equal(isAcceptedMalibuDownload({
@@ -114,6 +126,11 @@ test('isAcceptedMalibuDownload allows only immutable per-tag GitHub DMGs', () =>
   assert.equal(isAcceptedMalibuDownload({
     tag: 'v1.8.90',
     url: `https://github.com/Augustas11/macprovider/releases/download/${TAG}/${DMG}`,
+    sha256: DMG_SHA,
+  }), false);
+  assert.equal(isAcceptedMalibuDownload({
+    tag: TAG,
+    url: `https://download.malibu.tech/Malibu-v1.8.90.dmg`,
     sha256: DMG_SHA,
   }), false);
 });
@@ -186,7 +203,11 @@ test('loadPublicMalibuRelease upgrades atomically and ignores a dishonest API', 
   };
   try {
     const got = await loadPublicMalibuRelease();
-    assert.deepEqual(got, honest);
+    assert.deepEqual(got, {
+      tag: TAG,
+      url: publicMalibuDownloadUrl(TAG),
+      sha256: DMG_SHA,
+    });
   } finally {
     globalThis.fetch = original;
   }
@@ -198,8 +219,9 @@ test('loadPublicMalibuRelease upgrades atomically and ignores a dishonest API', 
   }), { headers: { 'content-type': 'application/json' } });
   try {
     const got = await loadPublicMalibuRelease();
-    assert.equal(got.url, MALIBU_DOWNLOAD_URL);
+    assert.equal(got.url, publicMalibuDownloadUrl());
     assert.equal(got.tag, MALIBU_RELEASE_TAG);
+    assert.notEqual(got.url, MALIBU_DOWNLOAD_URL);
   } finally {
     globalThis.fetch = original;
   }

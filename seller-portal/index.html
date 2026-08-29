@@ -1017,7 +1017,7 @@
         el("nav", { class: "nav" }, navNodes),
         el("div", { class: "nav-spacer" }),
         el("div", { class: "nav-footer" },
-          el("a", { href: "https://api.streamvc.live/docs", target: "_blank", rel: "noopener noreferrer" }, "↗ API Docs"),
+          el("a", { href: "https://malibu.tech/docs", target: "_blank", rel: "noopener noreferrer" }, "↗ API Docs"),
           state.session
             ? el("button", { onclick: signOut }, "⏋ Sign out")
             : el("button", {
@@ -1070,7 +1070,7 @@
     }
 
     function renderSetupIntro() {
-      var installCmd = "curl -fsSL https://get.streamvc.live/install.sh | bash";
+      var installCmd = "curl -fsSL https://get.malibu.tech/install.sh | bash";
       var copied = state.copyEcho === "intro-install";
       var snip = el("div", { class: "intro-snip" },
         el("span", { class: "pmt" }, "$"),
@@ -1140,7 +1140,7 @@
           n: 1,
           title: "Install",
           body: "Run this once. Drops the agent binary, a LaunchAgent so it survives reboots, and the default config into ~/.config/macprovider/.",
-          snip: "curl -fsSL https://get.streamvc.live/install.sh | bash",
+          snip: "curl -fsSL https://get.malibu.tech/install.sh | bash",
           key: "step1-install",
         },
         {

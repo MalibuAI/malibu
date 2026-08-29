@@ -11,7 +11,7 @@ export function mount(root, { navigate }) {
   });
 
   root.innerHTML = `
-    <p class="sub">Malibu exposes an OpenAI-compatible API with MacProvider tool calling (SPEC-018). Run the agent loop in your client — the console does this in Agent mode.</p>
+    <p class="sub">Malibu exposes an OpenAI-compatible API with tool calling (SPEC-018). Run the agent loop in your client — the console does this in Agent mode.</p>
     <div class="panel">
       <h2>Agent-readable onboarding</h2>
       <p class="hint">Point your coding agent at <a href="https://get.malibu.tech/skill.md"><code>https://get.malibu.tech/skill.md</code></a>. It can install the provider CLI, check status, recover a broken setup, update or uninstall, and connect this SDK.</p>
