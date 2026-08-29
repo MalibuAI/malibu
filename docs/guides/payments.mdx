@@ -1,14 +1,14 @@
 ---
 title: Payments & payouts
-description: How providers earn credits and get paid in USDC on Base.
+description: How providers earn credits now, and how USDC-on-Base payout ships at public beta.
 icon: wallet
 ---
 
 # Payments & payouts
 
-> How providers earn credits and get paid in USDC on Base.
+> How providers earn credits now, and how USDC-on-Base payout ships at public beta.
 
-Every request that reaches your Mac produces credits. Credits accumulate through the week; each Monday 00:00 UTC the coordinator sweeps unsettled credits and marks providers over the payout threshold `ready`. Payouts settle in USDC on Base.
+Every request that reaches your Mac produces credits. Credits accumulate on the billing ledger at **90%** provider share. **USDC-on-Base payout is not live in pre-beta.** It ships when Malibu enters public beta. Until then, balances are visible in the app; they do not leave the ledger as USDC.
 
 ## What you earn per request
 
@@ -49,11 +49,9 @@ providerCredits     = 1,000 × 9,000 ÷ 10,000 = 900 credits (exact)
 
 ## When you get paid
 
-* **Settlement cadence:** every 7 days, at Monday 00:00 UTC.
-* **Minimum payout threshold:** 500,000 credits accumulated. Below the threshold, credits roll to the next window.
-* **Payout rail:** USDC on Base. See [Network overview → Metering & billing](/network/metering-and-billing) for the settlement path.
-
-Credits accumulate all week; at Monday 00:00 UTC the coordinator sweeps unsettled credits for every provider over the threshold and marks them `ready` for payout.
+* **Today (pre-beta):** credits accrue. No USDC leaves the ledger.
+* **At public beta:** USDC on Base, weekly sweep (Monday 00:00 UTC design), minimum payout threshold 500,000 credits. See [Network overview → Metering & billing](/network/metering-and-billing).
+* Below the threshold, credits roll to the next window.
 
 ## Settlement-capable traffic and the receipt deadline
 

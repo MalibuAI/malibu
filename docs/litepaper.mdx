@@ -22,7 +22,7 @@ New datacenter capacity takes billions of dollars and years to permit. Meanwhile
 
 Every prior decentralized AI network — Bittensor, Akash, Gensyn, Prime Intellect — hit the same wall: buyers won't come without providers; providers won't stay without buyers. A decade of permanent bootstrap.
 
-**Malibu's bet is to pay providers to be ready before buyers arrive** (PoMW + emission at v0). Today's live product is the **inference marketplace** (credits, USDC, receipts) on a small invite-gated pool. Check [Network status](/status) for the ledger.
+**Malibu's bet is to pay providers to be ready before buyers arrive** (PoMW + emission at v0). Today's live product is the **inference marketplace** (credits and receipts) on a small invite-gated pool. USDC-on-Base payout ships at public beta. Check [Network status](/status) for the ledger.
 
 ## Why now
 
@@ -37,7 +37,7 @@ Five years ago this network wasn't possible. Today, four preconditions are simul
 
 ## What we've shipped
 
-Malibu is a **live coordinated inference network** today — distributed Apple Silicon providers, centralized routing and billing. Real coordinator, real providers, real inference requests, real settlement on the marketplace rail. Admission is **private pre-beta**: a valid invite is required to register a new provider.
+Malibu is a **live coordinated inference network** today — distributed Apple Silicon providers, centralized routing and billing. Real coordinator, real providers, real inference requests, real credit ledger. Admission is **private pre-beta**: a valid invite is required to register a new provider. USDC-on-Base payout ships at public beta.
 
 <Note>
   This section mixes **live marketplace infrastructure** and **planned token-protocol features**. For the current ledger, see [Network status](/status).
@@ -55,7 +55,7 @@ Malibu is a **live coordinated inference network** today — distributed Apple S
 - **Sticky conversations.** `Live` Stable `conversation_id`; `cached_prompt_tokens` in the OpenAI `usage` object.
 - **Signed inference receipts.** `Live` v0.3 nine-field receipt, Ed25519. Verify with `malibu-verify`.
 - **Verified model settlement.** `Live` Missing or unverifiable receipts settle with zero provider credits. Late receipts are non-settling.
-- **Rate card & billing.** `Live` Credit-based metering, **90% default provider share today**, weekly USDC payouts. See [Economics](/guides/economics).
+- **Rate card & billing.** `Live` Credit-based metering, **90% default provider share today**. USDC-on-Base payout is **planned for public beta**. See [Economics](/guides/economics).
 - **Model catalog.** `Live` Qwen2.5 (7B), Qwen3.x (8B–35B-class), Llama-3.2 (3B), Llama-3.3 (70B), Gemma, gpt-oss (20B / 120B) — MLX-native, RAM-tier matched. Routes when a matching-RAM Mac is warm. Snapshot of who's online: [api.malibu.tech/v1/stats/overview](https://api.malibu.tech/v1/stats/overview). Details: [Model catalog](/operations/model-catalog).
 - **Routing tiers.** `Live` New Macs join **provisional**; operator promotion to **pinned** raises routing weight. See [Payments](/guides/payments#provisional-vs-pinned).
 - **Release cadence.** `Live` Signed installer on GitHub Releases; public download follows GitHub Latest via [malibu.tech/host](https://malibu.tech/host).
@@ -96,7 +96,7 @@ Cooperative scheduling keeps the Mac yours. Mining (planned) runs in the backgro
 
 On comparable OSS SKUs, Malibu is often cheaper than aggregator list — **sometimes a lot cheaper on small models, sometimes even or slightly higher on 20B–32B rows**. Dated snapshot: [Pricing comparison](/guides/pricing-comparison). Live card: [api.malibu.tech/v1/rate-card](https://api.malibu.tech/v1/rate-card). Every response carries a **signed receipt** you can verify offline.
 
-The catalog is the OSS frontier: Qwen2.5 7B, Qwen3 families (including 35B-class), Llama 3.2 3B, Llama 3.3 70B, Gemma 4, gpt-oss-20b and gpt-oss-120b — **they run when a matching-RAM Mac is in the pool** ([Model catalog](/operations/model-catalog)). Settled in USDC on Base via drop-in OpenAI-compatible endpoints.
+The catalog is the OSS frontier: Qwen2.5 7B, Qwen3 families (including 35B-class), Llama 3.2 3B, Llama 3.3 70B, Gemma 4, gpt-oss-20b and gpt-oss-120b — **they run when a matching-RAM Mac is in the pool** ([Model catalog](/operations/model-catalog)). Billed over drop-in OpenAI-compatible endpoints; credits accrue now, USDC payout at public beta.
 
 Why buyers switch:
 
@@ -124,7 +124,7 @@ Verification is cheap. PoMW verifies in microseconds. TOPLOC (Prime Intellect, 2
 Every dollar entering Malibu is designed to strengthen the network. Providers get paid. Reserves grow. Tokens are bought and burned automatically.
 
 <Note>
-  **Today (marketplace):** providers earn **90%** of gross credits; operator retains 10%. Weekly USDC settlement. See [Economics](/guides/economics).
+  **Today (pre-beta marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits accrue on the ledger. USDC-on-Base payout ships at public beta. See [Economics](/guides/economics).
 
   **At token launch (planned):** the flywheel below replaces the marketplace split.
 </Note>
@@ -144,7 +144,7 @@ Provider issuance runs on a deterministic emission curve — front-loaded to boo
 1. **Apple already shipped the hardware.** Two hundred million Apple Silicon Macs. Strong per-watt PoMW efficiency on consumer silicon. Deployed, paid for, and idle.
 2. **PoMW is designed to prepare the fleet before buyers arrive.** Providers earn from day one of mining launch for verifiable useful work. That layer is **not** paying in production yet.
 3. **Receipts today; TOPLOC at v1.** Signed receipts bind every response now. TOPLOC adds per-request forward-pass attestation when that milestone ships.
-4. **Every transaction is designed to strengthen the token.** At launch, buyer USDC automatically buys and burns $MALIBU; reserves grow. Not active in today's 90/10 USDC rail.
+4. **Every transaction is designed to strengthen the token.** At launch, buyer USDC automatically buys and burns $MALIBU; reserves grow. Not active on today's 90/10 credit rail.
 5. **The network compounds.** Every new provider increases coverage. Better coverage attracts more buyers. Buyer revenue increases provider earnings. Higher earnings attract more providers.
 6. **The combination is the bet — not a monopoly on the pieces.** Akash, Prime Intellect, Render, and io.net already cover overlapping slices (decentralized compute, verification lineage, GPU marketplaces). Malibu's edge is Apple Silicon + receipts now + PoMW-before-demand as a token mechanism those businesses have little reason to copy. **The hardware is not Malibu's. The mechanism has to come from outside Apple, OpenAI, and the hyperscalers.**
 

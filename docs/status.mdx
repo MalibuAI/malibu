@@ -10,7 +10,7 @@ icon: circle-check
 
 This page is the factual ledger behind the [Litepaper](/litepaper). Narrative copy may mix live and planned features in one arc; this page does not.
 
-**Last reviewed:** 16 August 2026
+**Last reviewed:** 29 August 2026
 
 ## Inference marketplace
 
@@ -26,7 +26,7 @@ This page is the factual ledger behind the [Litepaper](/litepaper). Narrative co
 | Multi-turn tool calling | **Live** | Qwen + Llama templates where the catalog marks the model tool-capable |
 | Structured output (`json_schema`) | **Live** | OpenAI strict-mode subset |
 | Sticky conversations + prefix-cache metering | **Live** | `cached_prompt_tokens` in usage |
-| Weekly USDC payout rail | **Live** | Monday 00:00 UTC sweep |
+| Weekly USDC payout rail | **Planned (beta)** | Credits accrue now. USDC-on-Base payout ships when Malibu enters public beta |
 | Provider credit share (today) | **Live** | **90%** provider / 10% operator — see [Economics](/guides/economics) |
 | Public stats snapshot | **Live** | `GET https://api.malibu.tech/v1/stats/overview` (also `malibu.tech`) |
 | Public rate card | **Live** | `GET https://api.malibu.tech/v1/rate-card` (also `malibu.tech`) |
@@ -45,7 +45,7 @@ This page is the factual ledger behind the [Litepaper](/litepaper). Narrative co
 
 ## Economics — today vs launch
 
-**Today (marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits settle weekly in USDC on Base. Details: [Economics](/guides/economics), [Payments & payouts](/guides/payments).
+**Today (pre-beta marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits accrue on the billing ledger. **USDC-on-Base payout ships at public beta** — not while admission is invite-gated pre-beta. Details: [Economics](/guides/economics), [Payments & payouts](/guides/payments).
 
 **At token launch (planned):** buyer USDC splits **70%** provider / **12%** reserves / **18%** market-buy-and-burn. Described in the Litepaper flywheel section; not active in production billing yet.
 
