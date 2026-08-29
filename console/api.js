@@ -490,6 +490,53 @@ function toolList(acc) {
     });
 }
 
+function chatErrorCode(text) {
+  try {
+    return JSON.parse(text)?.error?.code || '';
+  } catch {
+    const match = String(text || '').match(/"code"\s*:\s*"([^"]+)"/);
+    return match?.[1] || '';
+  }
+}
+
+function isRetryableChatError(status, text) {
+  if (status === 503 || status === 502) return true;
+  if (status !== 500) return false;
+  const code = chatErrorCode(text);
+  if (code === 'route_snapshot_failed') return true;
+  try {
+    return JSON.parse(text)?.error?.retryable === true;
+  } catch {
+    return /"retryable"\s*:\s*true/.test(String(text || ''));
+  }
+}
+
+async function fetchChatCompletions({ headers, body, signal }) {
+  const payload = JSON.stringify(body);
+  let lastStatus = 0;
+  let lastText = '';
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+    const r = await fetch(`${BASE}/v1/chat/completions`, {
+      method: 'POST',
+      signal,
+      headers,
+      body: payload,
+    });
+    if (r.ok) return r;
+    lastStatus = r.status;
+    lastText = await r.text().catch(() => '');
+    if (attempt === 0 && isRetryableChatError(r.status, lastText)) {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      continue;
+    }
+    break;
+  }
+  const err = new Error(`chat ${lastStatus}: ${lastText.slice(0, 200)}`);
+  err.status = lastStatus;
+  throw err;
+}
+
 /**
  * Stream a chat completion.
  * Yields { type: 'delta', text }, { type: 'tool_delta', toolCalls },
@@ -514,28 +561,16 @@ export async function* chatStream({
   };
   if (conversationId) headers['X-MacProvider-Conversation'] = conversationId;
 
-  const body = { model, messages: withQwenNoThinkDirective(model, messages), stream: true, max_tokens: maxTokens };
+  const outgoingMessages = tools?.length ? messages : withQwenNoThinkDirective(model, messages);
+  const body = { model, messages: outgoingMessages, stream: true, max_tokens: maxTokens };
   if (tools?.length) {
     body.tools = tools;
     if (toolChoice) body.tool_choice = toolChoice;
   }
   if (responseFormat) body.response_format = responseFormat;
 
-  const r = await fetch(`${BASE}/v1/chat/completions`, {
-    method: 'POST',
-    signal,
-    headers,
-    body: JSON.stringify(body),
-  });
-
+  const r = await fetchChatCompletions({ headers, body, signal });
   const meta = readResponseMeta(r.headers);
-
-  if (!r.ok) {
-    const text = await r.text().catch(() => '');
-    const err = new Error(`chat ${r.status}: ${text.slice(0, 200)}`);
-    err.status = r.status;
-    throw err;
-  }
 
   const reader = r.body.getReader();
   const decoder = new TextDecoder();

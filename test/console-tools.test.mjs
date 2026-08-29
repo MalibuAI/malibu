@@ -6,8 +6,9 @@ const toolsSource = await readFile(new URL('../console/tools.js', import.meta.ur
 const {
   normalizeToolArguments,
   normalizeToolCallForReplay,
+  extractToolCallsFromContent,
 } = Function(`${toolsSource.replaceAll('export ', '')}
-return { normalizeToolArguments, normalizeToolCallForReplay };`)();
+return { normalizeToolArguments, normalizeToolCallForReplay, extractToolCallsFromContent };`)();
 
 test('normalizes raw web_fetch arguments into JSON with an absolute URL', () => {
   assert.equal(
@@ -57,4 +58,31 @@ test('preserves calculator and json_validate as schema-shaped JSON', () => {
     normalizeToolArguments('json_validate', '{"hello":true}'),
     JSON.stringify({ text: '{"hello":true}' }),
   );
+});
+
+const builtinTools = [
+  { type: 'function', function: { name: 'calculator' } },
+  { type: 'function', function: { name: 'json_validate' } },
+  { type: 'function', function: { name: 'web_fetch' } },
+];
+
+test('extracts schema-echo calculator JSON dumped as assistant text', () => {
+  const content = "Here is a JSON object representing a call to the 'calculator' function with a valid argument: {'name': 'calculator', 'parameters': {'properties': {'expression': '42 + 1.5 * 8'}}}";
+  const calls = extractToolCallsFromContent(content, builtinTools);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].function.name, 'calculator');
+  assert.equal(JSON.parse(calls[0].function.arguments).expression, '42 + 1.5 * 8');
+});
+
+test('extracts Qwen <tool_call> markup dumped as assistant text', () => {
+  const content = '<tool_call>{"name":"web_fetch","arguments":{"url":"https://malibu.tech"}}</tool_call>';
+  const calls = extractToolCallsFromContent(content, builtinTools);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].function.name, 'web_fetch');
+  assert.equal(JSON.parse(calls[0].function.arguments).url, 'https://malibu.tech');
+});
+
+test('ignores assistant JSON that is not a declared tool', () => {
+  const content = '{"name":"shell","arguments":{"cmd":"ls"}}';
+  assert.deepEqual(extractToolCallsFromContent(content, builtinTools), []);
 });
