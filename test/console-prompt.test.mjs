@@ -26,3 +26,14 @@ test('console clamps reply tokens to the live gateway cap', () => {
   assert.match(settingsSource, /max="\$\{MAX_REPLY_TOKENS\}"/);
   assert.match(settingsSource, /maxTokEl\.value = s\.maxTokens \|\| MAX_REPLY_TOKENS/);
 });
+
+test('agent mode recovers tool calls dumped as assistant text', () => {
+  assert.match(agentSource, /extractToolCallsFromContent\(content, tools\)/);
+});
+
+test('skips Qwen no-think on tool-calling turns and retries route snapshot failures', () => {
+  assert.match(apiSource, /const outgoingMessages = tools\?\.length \? messages : withQwenNoThinkDirective\(model, messages\)/);
+  assert.match(apiSource, /code === 'route_snapshot_failed'/);
+  assert.match(apiSource, /for \(let attempt = 0; attempt < 2; attempt \+= 1\)/);
+  assert.match(consoleSource, /Could not route this request/);
+});

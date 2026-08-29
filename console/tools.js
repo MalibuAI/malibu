@@ -157,6 +157,102 @@ export function normalizeToolCallForReplay(toolCall, index = 0) {
   };
 }
 
+function parseJsonishValue(raw) {
+  const trimmed = String(raw || '').trim();
+  if (!trimmed) return null;
+  const attempts = [trimmed];
+  if (trimmed.includes("'")) attempts.push(trimmed.replaceAll("'", '"'));
+  for (const candidate of attempts) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    } catch {
+      /* try prefix repair */
+    }
+    const repaired = parseJsonPrefix(candidate);
+    if (repaired?.kind === 'object') return repaired.value;
+  }
+  return null;
+}
+
+function flattenToolArgObject(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const nested = value.properties;
+  if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+    const flat = {};
+    for (const [key, entry] of Object.entries(nested)) {
+      if (entry == null) continue;
+      if (typeof entry !== 'object') flat[key] = entry;
+      else if (typeof entry.value === 'string' || typeof entry.value === 'number') flat[key] = entry.value;
+    }
+    if (Object.keys(flat).length) return flat;
+  }
+  return value;
+}
+
+function toolCallFromObject(obj) {
+  if (!obj || typeof obj !== 'object') return null;
+  const name = String(obj.name || obj.function?.name || '').trim();
+  if (!name) return null;
+  const rawArgs = obj.arguments ?? obj.parameters ?? obj.params ?? obj.function?.arguments;
+  const args = typeof rawArgs === 'string'
+    ? (parseJsonishValue(rawArgs) || { value: rawArgs })
+    : flattenToolArgObject(rawArgs && typeof rawArgs === 'object' ? rawArgs : {});
+  return { name, arguments: args, id: obj.id ? String(obj.id) : '' };
+}
+
+/**
+ * Buyer-side fallback when the model dumps a tool call as assistant text
+ * instead of native `tool_calls[]` (Llama 3.2 and some Qwen3 turns).
+ */
+export function extractToolCallsFromContent(content, tools = []) {
+  const allowed = new Set(
+    (tools || [])
+      .map((tool) => tool?.function?.name)
+      .filter((name) => typeof name === 'string' && name),
+  );
+  if (!allowed.size) return [];
+  const text = String(content || '');
+  if (!text.trim()) return [];
+
+  const blobs = [];
+  const tagRe = /<tool_call>([\s\S]*?)<\/tool_call>/gi;
+  let tagMatch;
+  while ((tagMatch = tagRe.exec(text))) blobs.push(tagMatch[1]);
+  if (!blobs.length) {
+    let from = 0;
+    while (from < text.length) {
+      const start = text.indexOf('{', from);
+      if (start === -1) break;
+      const parsed = parseJsonishValue(text.slice(start));
+      if (parsed) {
+        blobs.push(parsed);
+        from = start + 1;
+      } else {
+        from = start + 1;
+      }
+    }
+  }
+
+  const found = [];
+  for (const blob of blobs) {
+    const obj = typeof blob === 'string' ? parseJsonishValue(blob) : blob;
+    const call = toolCallFromObject(obj);
+    if (!call || !allowed.has(call.name)) continue;
+    if (!call.arguments || typeof call.arguments !== 'object' || Array.isArray(call.arguments)) continue;
+    if (!Object.keys(call.arguments).length) continue;
+    found.push({
+      id: call.id || `call_${found.length}`,
+      type: 'function',
+      function: {
+        name: call.name,
+        arguments: JSON.stringify(call.arguments),
+      },
+    });
+  }
+  return found;
+}
+
 export async function executeTool(name, argsJson) {
   let args = {};
   try {

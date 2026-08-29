@@ -1,5 +1,5 @@
 import { chatStream } from './api.js';
-import { executeTool, normalizeToolCallForReplay } from './tools.js';
+import { executeTool, extractToolCallsFromContent, normalizeToolCallForReplay } from './tools.js';
 
 const MAX_AGENT_STEPS = 8;
 
@@ -179,6 +179,16 @@ export async function runAgentLoop({
         finishReason = event.finishReason || '';
         lastUsage = event.usage;
         lastMeta = event.meta || {};
+      }
+    }
+
+    if (!toolCalls.length) {
+      const extracted = extractToolCallsFromContent(content, tools);
+      if (extracted.length) {
+        toolCalls = extracted;
+        content = '';
+        onStreamDelta?.('');
+        onStreamToolDelta?.(toolCalls);
       }
     }
 

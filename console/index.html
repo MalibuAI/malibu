@@ -516,6 +516,12 @@
         msg: 'The provider accepted your request but failed to respond — it may be paused or overloaded. Unpause your Mac, or start a New chat to route elsewhere.',
       };
     }
+    if (status === 500 && (code === 'route_snapshot_failed' || /route_snapshot_failed/.test(raw))) {
+      return {
+        kind: 'upstream',
+        msg: 'Could not route this request. Try again in a moment, or pick the other model.',
+      };
+    }
     return { kind: 'generic', msg: raw || 'Request failed.' };
   }
 
