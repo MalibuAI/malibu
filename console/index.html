@@ -400,6 +400,7 @@
     ensureDemoToken, createThreadId, loadThreads, upsertThread, getThread,
     formatBillMeta, formatTokenCount, formatModelPrice, loadSettings, saveSettings,
     checkQuotaAlert, estimateLocalSpendUsd, quotaPct, filterPoolModels, isModelAllowed,
+    isInvalidLocalCredential,
   } from './api.js';
   import { runAgentLoop } from './agent.js';
   import { startGitHubSignIn } from './auth.js';
@@ -629,6 +630,7 @@
     toast,
     onSettingsSaved: () => setChatMode(loadSettings().chatMode || 'chat'),
     openAccount: openSettings,
+    onAuthChanged: () => refreshAuthBadge(),
   });
 
   function openReceipt(receipt) {
@@ -823,7 +825,10 @@
           toast(`Soft spend limit reached (~${spend.toFixed(2)} USD est.)`, 'error');
         }
       }
-    } catch {
+    } catch (e) {
+      if (isInvalidLocalCredential(e?.status, e?.body)) {
+        if (saveKey('')) refreshAuthBadge();
+      }
       if (quotaBarEl) quotaBarEl.hidden = true;
     }
   }

@@ -29,6 +29,7 @@ export function createWorkspace({
   toast,
   onSettingsSaved,
   openAccount,
+  onAuthChanged,
 }) {
   let activeView = null;
   let cleanup = null;
@@ -90,6 +91,7 @@ export function createWorkspace({
       esc,
       toast,
       openAccount,
+      onAuthChanged,
     });
   }
 

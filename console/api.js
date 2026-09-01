@@ -5,6 +5,11 @@ import {
   shouldFilterThinkingContent,
   withQwenNoThinkDirective,
 } from '../j/thinking-filter.mjs';
+import {
+  gatewayErrorCode,
+  isInvalidLocalCredential,
+  publicCredentialErrorMessage,
+} from './credential-state.mjs';
 
 const BASE = '/api/mp';
 const RATE_CARD_URL = '/v1/rate-card';
@@ -118,16 +123,32 @@ export async function listModels() {
   const r = await fetch(`${BASE}/v1/models`, {
     headers: { Accept: 'application/json', ...authHeaders() },
   });
-  if (!r.ok) throw new Error(`models ${r.status}`);
-  return r.json();
+  const j = await readJSON(r);
+  if (!r.ok) throwGatewayError(r, j, 'Could not load models.');
+  return j;
 }
+
+async function readJSON(r) {
+  return r.json().catch(() => ({}));
+}
+
+function throwGatewayError(r, payload, fallback) {
+  const err = new Error(publicCredentialErrorMessage(r.status, payload, fallback));
+  err.status = r.status;
+  err.body = payload;
+  err.code = gatewayErrorCode(payload);
+  throw err;
+}
+
+export { isInvalidLocalCredential };
 
 export async function getUsage() {
   const r = await fetch(`${BASE}/v1/usage`, {
     headers: { Accept: 'application/json', ...authHeaders() },
   });
-  if (!r.ok) throw new Error(`usage ${r.status}`);
-  return r.json();
+  const j = await readJSON(r);
+  if (!r.ok) throwGatewayError(r, j, 'Could not load usage.');
+  return j;
 }
 
 export async function getRateCard() {
@@ -152,8 +173,8 @@ export async function createApiKey() {
     method: 'POST',
     headers: { Accept: 'application/json', ...authHeaders() },
   });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j?.error?.message || `create key ${r.status}`);
+  const j = await readJSON(r);
+  if (!r.ok) throwGatewayError(r, j, 'Could not rotate key.');
   return j;
 }
 
@@ -162,8 +183,8 @@ export async function revokeApiKey(keyId) {
     method: 'POST',
     headers: { Accept: 'application/json', ...authHeaders() },
   });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j?.error?.message || `revoke ${r.status}`);
+  const j = await readJSON(r);
+  if (!r.ok) throwGatewayError(r, j, 'Could not revoke key.');
   return j;
 }
 
