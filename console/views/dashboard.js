@@ -1,12 +1,13 @@
 import {
   getUsage, getStatus, getRateCard, authMode, formatTokenCount, formatUsd,
   aggregateLocalUsage, estimateLocalSpendUsd, inferPlan, quotaPct,
-  malibuCreditsFromUsage, fetchNetworkOverview,
+  malibuCreditsFromUsage, fetchNetworkOverview, saveKey, isInvalidLocalCredential,
 } from '../api.js';
+import { invalidLocalKeyRecovery, clearFailedRecovery } from '../credential-state.mjs';
 
 export const title = 'Usage dashboard';
 
-export function mount(root, { navigate, esc, openAccount }) {
+export function mount(root, { navigate, esc, openAccount, onAuthChanged }) {
   let period = 'today';
   let timer = null;
 
@@ -172,6 +173,17 @@ export function mount(root, { navigate, esc, openAccount }) {
 
       bindPeriod();
     } catch (e) {
+      if (isInvalidLocalCredential(e?.status, e?.body)) {
+        const cleared = saveKey('');
+        if (cleared) {
+          onAuthChanged?.();
+          render();
+          return;
+        }
+        el.className = 'empty err';
+        el.textContent = invalidLocalKeyRecovery.title + ' ' + clearFailedRecovery.hint;
+        return;
+      }
       el.className = 'empty err';
       el.textContent = e?.message || 'Could not load dashboard.';
     }

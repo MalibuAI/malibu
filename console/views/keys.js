@@ -1,11 +1,21 @@
 import {
   getUsage, loadKey, saveKey, authMode, createApiKey, revokeApiKey,
+  isInvalidLocalCredential,
 } from '../api.js';
+import {
+  applyRevokeSuccess,
+  applyRotateSuccess,
+  shouldRefreshAccountAfterRevoke,
+  signedOutRecovery,
+  clearFailedRecovery,
+  invalidLocalKeyRecovery,
+  containsFullKeyMaterial,
+} from '../credential-state.mjs';
 import { startGitHubSignIn } from '../auth.js';
 
 export const title = 'API keys';
 
-export function mount(root, { navigate, esc, toast }) {
+export function mount(root, { navigate, esc, toast, onAuthChanged }) {
   root.innerHTML = `
     <p class="sub">Create, rotate, and revoke keys via the Malibu gateway. Keys are shown once — save immediately.</p>
     <div data-content class="empty">Loading…</div>`;
@@ -15,6 +25,40 @@ export function mount(root, { navigate, esc, toast }) {
   function maskKey(key) {
     if (!key || key.length < 12) return key || '—';
     return key.slice(0, 7) + '…' + key.slice(-4);
+  }
+
+  function assertNoFullKey(text) {
+    if (containsFullKeyMaterial(text, loadKey())) {
+      return 'Could not complete that action.';
+    }
+    return text;
+  }
+
+  function bindNoKeyActions() {
+    el.querySelector('[data-signin]')?.addEventListener('click', () => {
+      startGitHubSignIn();
+    });
+    el.querySelector('[data-action="chat"]')?.addEventListener('click', () => navigate('chat'));
+  }
+
+  function renderNoKey(copy) {
+    el.className = 'empty';
+    el.innerHTML = `
+      <p>${esc(copy.title)}</p>
+      <p class="hint">${esc(copy.hint)}</p>
+      <button class="btn" type="button" data-signin>Sign in with GitHub</button>
+      <p style="margin-top:16px;"><button type="button" class="linkish" data-action="chat">Return to chat</button> or paste a key via the Signed in badge above.</p>`;
+    bindNoKeyActions();
+  }
+
+  function renderClearFailed(copy) {
+    el.className = 'empty';
+    el.innerHTML = `
+      <p class="err">${esc(copy.title)}</p>
+      <p class="hint">${esc(copy.hint)}</p>
+      <button class="btn" type="button" data-signin>Sign in with GitHub</button>
+      <p style="margin-top:16px;"><button type="button" class="linkish" data-action="chat">Return to chat</button></p>`;
+    bindNoKeyActions();
   }
 
   function keyField(k) {
@@ -37,15 +81,7 @@ export function mount(root, { navigate, esc, toast }) {
 
   async function render() {
     if (authMode() !== 'key') {
-      el.className = 'empty';
-      el.innerHTML = `
-        <p>No API key on this device.</p>
-        <button class="btn" type="button" data-signin>Sign in with GitHub</button>
-        <p style="margin-top:16px;"><button type="button" class="linkish" data-action="chat">Return to chat</button> or paste a key via the Signed in badge above.</p>`;
-      el.querySelector('[data-signin]')?.addEventListener('click', () => {
-        startGitHubSignIn();
-      });
-      el.querySelector('[data-action="chat"]')?.addEventListener('click', () => navigate('chat'));
+      renderNoKey(signedOutRecovery);
       return;
     }
     try {
@@ -81,12 +117,13 @@ export function mount(root, { navigate, esc, toast }) {
         if (!confirm('Rotate your API key? The current key will stop working.')) return;
         try {
           const j = await createApiKey();
-          const newKey = j.api_key;
-          if (!newKey || !saveKey(newKey)) throw new Error('Could not save new key');
+          const rotated = applyRotateSuccess(j, { saveKey });
+          if (!rotated.ok) throw new Error('Could not save new key');
+          onAuthChanged?.();
           toast('New key saved to this device.');
           render();
         } catch (e) {
-          toast(e?.message || 'Rotate failed', 'error');
+          toast(assertNoFullKey(e?.message || 'Rotate failed'), 'error');
         }
       });
       el.querySelectorAll('[data-revoke]').forEach((btn) => {
@@ -94,19 +131,42 @@ export function mount(root, { navigate, esc, toast }) {
           const id = btn.dataset.revoke;
           if (!confirm(`Revoke key ${id}?`)) return;
           try {
-            await revokeApiKey(id);
+            const result = await revokeApiKey(id);
+            const transition = applyRevokeSuccess(result, { clearLocalKey: () => saveKey('') });
+            if (transition.action === 'signed_out') {
+              onAuthChanged?.();
+              toast('This device is signed out.');
+              render();
+              return;
+            }
+            if (transition.action === 'clear_failed') {
+              toast(clearFailedRecovery.title, 'error');
+              renderClearFailed(clearFailedRecovery);
+              return;
+            }
+            if (!shouldRefreshAccountAfterRevoke(transition)) return;
             toast('Key revoked.');
             render();
           } catch (e) {
-            toast(e?.message || 'Revoke failed', 'error');
+            toast(assertNoFullKey(e?.message || 'Revoke failed'), 'error');
           }
         });
       });
     } catch (e) {
+      if (isInvalidLocalCredential(e?.status, e?.body)) {
+        const cleared = saveKey('');
+        if (cleared) {
+          onAuthChanged?.();
+          renderNoKey(invalidLocalKeyRecovery);
+          return;
+        }
+        renderClearFailed(invalidLocalKeyRecovery);
+        return;
+      }
       el.className = 'empty';
       el.innerHTML = `
         <div class="key-box"><code>${esc(maskKey(loadKey()))}</code></div>
-        <p class="err">${esc(e?.message || 'Could not load keys.')}</p>
+        <p class="err">${esc(assertNoFullKey(e?.message || 'Could not load keys.'))}</p>
         <button type="button" class="linkish" data-action="chat">Back to chat</button>`;
       el.querySelector('[data-action="chat"]')?.addEventListener('click', () => navigate('chat'));
     }
