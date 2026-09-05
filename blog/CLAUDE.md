@@ -183,9 +183,11 @@ fast-paced world", "it's important to note that", "at the end of the day",
 - **Pre-publish leakage check.** Before opening the PR, search the draft for
   `streamvc`, `MacProvider`, and any internal hostname. If any appears, a research
   source leaked into the copy — remove it and re-cite from a public source.
-- Brand name: **Malibu**. Legal/operating entity: **Superposition Technologies Pte. Ltd.**
-  (Singapore). Marketing surfaces (footers, brand copy) use Malibu; Privacy, Terms, and
-  Organization JSON-LD (`name` + `legalName`) carry Superposition. Contact: `team@malibu.tech`.
+- Brand name: **Malibu**. Operating jurisdiction: **Cayman Islands**. Every surface —
+  marketing (footers, brand copy) and legal docs (Privacy, Terms) — refers to the operator
+  as **Malibu**; do not put a registered legal-entity name, company/registration number, or
+  street address on the site. Organization JSON-LD carries `name: Malibu` only (no
+  `legalName`). Contact: `team@malibu.tech`.
 
 ## 6. Honesty and data (this is what makes it "expert content")
 

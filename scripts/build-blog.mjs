@@ -37,12 +37,10 @@ const publicDir = join(root, 'public');
 const SITE = 'https://malibu.tech';
 const DEFAULT_AUTHOR = 'The Malibu team';
 const DEFAULT_HERO = '/images/brand/blog-hero-macbook-sunset-mesh.jpg';
-const LEGAL_NAME = 'Superposition Technologies Pte. Ltd.';
-/** Brand + legal split — matches homepage Organization JSON-LD. */
+/** Brand publisher — matches homepage Organization JSON-LD. */
 const PUBLISHER = {
   '@type': 'Organization',
   name: 'Malibu',
-  legalName: LEGAL_NAME,
   logo: { '@type': 'ImageObject', url: `${SITE}/favicon.png` },
 };
 const RESERVED_SLUGS = new Set(['posts', 'index', 'feed']);
@@ -366,13 +364,12 @@ const footer = () => `  <footer style="position: relative; overflow: hidden; bac
             <div style="display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: rgba(250, 251, 255,0.78);">
               <a href="/privacy/">Privacy Policy</a>
               <a href="/terms/">Terms of Service</a>
-              <a href="/company/">Company</a>
             </div>
           </div>
         </div>
       </div>
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 64px; padding-top: 32px; border-top: 1px solid rgba(250, 251, 255,0.08); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(250, 251, 255,0.66);">
-        <div>© Superposition Technologies Pte. Ltd. (UEN 201721187N) — operator of Malibu. All rights reserved.</div>
+        <div>© Malibu. All rights reserved.</div>
         <a href="/">Back to Malibu →</a>
       </div>
     </div>
@@ -781,7 +778,7 @@ ${footer()}
 // ---------------------------------------------------------------------------
 
 function renderSitemap(posts) {
-  const staticRoutes = ['/', '/blog/', '/network/', '/host/', '/company/'];
+  const staticRoutes = ['/', '/blog/', '/network/', '/host/'];
   const urls = [
     ...staticRoutes.map((path) => `  <url>\n    <loc>${escXml(SITE + path)}</loc>\n  </url>`),
     ...posts.map(
