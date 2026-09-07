@@ -173,70 +173,43 @@
   </section>
 
   <!-- JOIN CARDS -->
-  <section id="network" data-screen-label="Network" style="position: relative; overflow: hidden; background: #143A45; color: #FAFBFF; padding: clamp(96px, 16vh, 200px) clamp(28px, 5vw, 80px) clamp(80px, 12vh, 160px);">
-    <div aria-hidden="true" style="position: absolute; top: 0; left: 30%; right: 30%; height: 200px; background: radial-gradient(ellipse at top, rgba(255, 198, 41,0.18), transparent 70%); pointer-events: none;"></div>
-    <div style="position: relative; max-width: 1180px; margin: 0 auto;">
-      <div style="text-align: center; margin-bottom: 56px;">
-        <h2 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 400; font-size: clamp(56px, 8vw, 120px); line-height: 0.94; letter-spacing: -0.035em; color: #FAFBFF; margin: 0 0 24px;">
-          Two ways in<span class="brand-period brand-period--square" aria-hidden="true"></span>
-        </h2>
-        <p style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(17px, 1.6vw, 20px); line-height: 1.5; color: rgba(250, 251, 255,0.78); margin: 0 auto; max-width: 60ch; text-wrap: balance;">
-          Build with the API or host a Mac. Real hardware, real models, real settlement.
-        </p>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto;">
-        <a href="/console/?mode=agent" data-join-card style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, #F76B57 0%, #E05A48 46%, #0C3A45 100%); color: #FAFBFF; transition: transform 240ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms ease; box-shadow: 0 18px 50px -22px rgba(12, 58, 69,0.55);">
-          <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 62%; overflow: hidden;">
-            <picture>
-              <source srcset="/images/brand/card-buy-screen-streaming.avif" type="image/avif" />
-              <source srcset="/images/brand/card-buy-screen-streaming.webp" type="image/webp" />
-              <img src="/images/brand/card-buy-screen-streaming.png" alt="Malibu console for running AI models" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" />
-            </picture>
-            <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(247, 107, 87,0.32) 0%, transparent 30%); pointer-events: none;"></div>
-            <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(20, 58, 69,0.30) 100%); pointer-events: none;"></div>
-          </div>
-          <div style="position: absolute; left: 0; right: 0; top: 0; height: 38%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 32px 0; text-align: center;">
-            <div style="display: inline-flex; align-items: center; gap: 12px;">
-              <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -0.02em; color: #FAFBFF; line-height: 1;">Build</span>
-            </div>
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; color: rgba(250, 251, 255,0.92);">
-              OpenAI-compatible API for agents &amp; coding tools.
-            </div>
-          </div>
-        </a>
-        <a href="/host/" data-join-card style="position: relative; display: block; aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: linear-gradient(180deg, #4BB8D0 0%, #1A8FA8 50%, #0C3A45 100%); color: #FAFBFF; transition: transform 240ms cubic-bezier(.2,.7,.3,1), box-shadow 240ms ease; box-shadow: 0 18px 50px -22px rgba(12, 58, 69,0.5);">
-          <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 62%; overflow: hidden;">
-            <picture>
-              <source srcset="/images/brand/card-sell-mac-window.avif" type="image/avif" />
-              <source srcset="/images/brand/card-sell-mac-window.webp" type="image/webp" />
-              <img src="/images/brand/card-sell-mac-window.png" alt="Malibu host app earning from a Mac" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;" />
-            </picture>
-            <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(79, 191, 212,0.30) 0%, transparent 35%); pointer-events: none;"></div>
-            <div aria-hidden="true" style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(12, 58, 69,0.35) 100%); pointer-events: none;"></div>
-          </div>
-          <div style="position: absolute; left: 0; right: 0; top: 0; height: 38%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 40px 32px 0; text-align: center;">
-            <div style="display: inline-flex; align-items: center; gap: 12px;">
-              <span style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -0.02em; color: #FAFBFF; line-height: 1;">Host</span>
-            </div>
-            <div style="font-family: 'Hanken Grotesk', sans-serif; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.15; color: rgba(250, 251, 255,0.92);">
-              Earn credits from idle Mac time.<br />USDC payout at public beta. $MALIBU at token launch.
-            </div>
-          </div>
-        </a>
-      </div>
-      <div id="agent-onboarding" class="home-agent-inner" style="margin: 32px auto 0; max-width: 1000px;" role="region" aria-label="Agent-readable onboarding">
-        <div class="home-agent-copy">
-          <div class="home-strip-eyebrow" style="margin-bottom: 10px;">New</div>
-          <h2>Agent-readable onboarding.</h2>
-          <p>Point your coding agent at <code>https://get.malibu.tech/skill.md</code>. It can install the provider CLI, check status, recover a broken setup, update or uninstall, and connect apps to the OpenAI-compatible API at <code>api.malibu.tech</code>.</p>
+  <section id="network" class="home-strip home-ways" data-screen-label="Network">
+    <div aria-hidden="true" class="home-ways-glow"></div>
+    <div class="home-strip-inner">
+      <div class="home-section-heading">
+        <div>
+          <p class="home-strip-eyebrow">Two ways to use Malibu</p>
+          <h2>Build something.<br />Or help run it.</h2>
         </div>
-        <div class="home-agent-actions">
-          <div class="home-code-snippet" style="background: #0C3A45;">https://get.malibu.tech/skill.md</div>
-          <div class="home-strip-actions" style="margin-top: 16px;">
-            <a href="https://malibu.tech/docs/getting-started/agent-onboarding" class="home-btn home-btn-primary">Read the docs →</a>
-            <a href="/host/" class="home-btn home-btn-ghost">Host a Mac</a>
+        <p class="home-strip-lead">Developers bring the requests. Mac owners bring the compute. Choose your side of the network.</p>
+      </div>
+      <div class="home-paths">
+        <a class="home-path home-path-build" href="#build">
+          <div>
+            <p class="home-strip-eyebrow">For developers</p>
+            <h3>Your tools. An open-model backend.</h3>
+            <p>Connect your app or agent through a familiar API.</p>
+            <span class="home-path-link">Explore the API <span aria-hidden="true">→</span></span>
           </div>
-        </div>
+          <picture>
+            <source srcset="/images/brand/card-buy-screen-streaming.avif" type="image/avif" />
+            <source srcset="/images/brand/card-buy-screen-streaming.webp" type="image/webp" />
+            <img src="/images/brand/card-buy-screen-streaming.png" loading="lazy" decoding="async" width="960" height="600" alt="" />
+          </picture>
+        </a>
+        <a class="home-path home-path-host" href="/host/">
+          <div>
+            <p class="home-strip-eyebrow">For Mac owners</p>
+            <h3>Put your Mac on the network.</h3>
+            <p>Check compatibility, set up a model, and choose when to serve.</p>
+            <span class="home-path-link">Check hosting requirements <span aria-hidden="true">→</span></span>
+          </div>
+          <picture>
+            <source srcset="/images/brand/card-sell-mac-window.avif" type="image/avif" />
+            <source srcset="/images/brand/card-sell-mac-window.webp" type="image/webp" />
+            <img src="/images/brand/card-sell-mac-window.png" loading="lazy" decoding="async" width="960" height="600" alt="" />
+          </picture>
+        </a>
       </div>
     </div>
   </section>
