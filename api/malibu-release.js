@@ -22,7 +22,16 @@ module.exports = async function handler(req, res) {
     }
     sendJSON(
       200,
-      { tag: release.tag, url: release.url, sha256: release.sha256 },
+      {
+        tag: release.tag,
+        url: release.url,
+        sha256: release.sha256,
+        // Signed checksum list + detached ECDSA-P256 signature. The browser
+        // re-verifies these against the committed release public key before
+        // trusting the tag/SHA (j/release.mjs -> j/release-signature.mjs).
+        checksums: release.checksums,
+        checksumsSig: release.checksumsSig,
+      },
       'public, s-maxage=300, stale-while-revalidate=3600',
     );
   } catch {

@@ -161,12 +161,14 @@ test('production download gate accepts only the frozen commit and asset digests'
   const sourceCommit = '4c7f92c157f28477e28a6f8e4538012904aed0bd';
   const dmgAsset = 'Malibu-v1.8.122.dmg';
   const checksumAsset = 'checksums.txt';
+  const checksumSigAsset = 'checksums.txt.sig';
   const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
     'https://github.com/Augustas11/macprovider/releases/download/v1.8.122/';
   const acceptedDigests = new Map([
     [dmgAsset, '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3'],
     [checksumAsset, '09e7f66fde11303338f64f0275dca09e35e6c779f8845e28e022d636e1a16ed0'],
+    [checksumSigAsset, '7f45119c8703b2c1a84cf58b151a4de434a81679992394ff3aaa9a0ca03f76a0'],
     [provenanceAsset, '5710efd32b5ec3ae8cd059807604b4ba2e0d617ab41090574e441b8b7aa9cc37'],
   ]);
   const release = {
@@ -195,6 +197,16 @@ test('production download gate accepts only the frozen commit and asset digests'
       target_commitish: 'd'.repeat(40),
     }),
     /does not match the accepted immutable source/,
+  );
+
+  // A release missing the signed checksum list must be rejected, so the pinned
+  // release always ships what the runtime latest path needs.
+  assert.throws(
+    () => validateReferralRelease({
+      ...release,
+      assets: release.assets.filter((asset) => asset.name !== checksumSigAsset),
+    }),
+    /assets are missing or ambiguous/,
   );
 
   for (const name of acceptedDigests.keys()) {
