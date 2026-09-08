@@ -64,6 +64,8 @@ export default defineConfig({
               tag: release.tag,
               url: release.url,
               sha256: release.sha256,
+              checksums: release.checksums,
+              checksumsSig: release.checksumsSig,
             }));
           } catch {
             res.statusCode = 502;

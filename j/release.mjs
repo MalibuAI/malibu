@@ -13,6 +13,11 @@
 // produced 404s. publicMalibuDownloadUrl and the branded validator branch remain
 // only so isAcceptedMalibuDownload still accepts a branded URL if the API ever
 // returns one.
+import {
+  signedDmgSha256,
+  verifyReleaseChecksumsSignature,
+} from './release-signature.mjs';
+
 export const MALIBU_RELEASE_TAG = 'v1.8.122';
 export const MALIBU_DMG_SHA256 =
   '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3';
@@ -35,6 +40,23 @@ export function publicMalibuDownloadUrl(tag = MALIBU_RELEASE_TAG) {
 // fixed here so a compromised API cannot point the button at an arbitrary asset.
 export function githubMalibuDownloadUrl(tag = MALIBU_RELEASE_TAG) {
   return `https://github.com/Augustas11/macprovider/releases/download/${tag}/Malibu-${tag}.dmg`;
+}
+
+// True when `tag` (vX.Y.Z) is greater than or equal to `floor`. Used to refuse a
+// runtime downgrade below the trusted build-time pin.
+export function isTagAtLeast(tag, floor) {
+  const parse = (value) => {
+    const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(value);
+    // BigInt so version components above Number.MAX_SAFE_INTEGER cannot miscompare.
+    return match ? match.slice(1).map((part) => BigInt(part)) : null;
+  };
+  const a = parse(tag);
+  const b = parse(floor);
+  if (!a || !b) return false;
+  for (let i = 0; i < 3; i += 1) {
+    if (a[i] !== b[i]) return a[i] > b[i];
+  }
+  return true;
 }
 
 export function fallbackMalibuRelease() {
@@ -101,15 +123,26 @@ export async function loadPublicMalibuRelease() {
       return fallback;
     }
     const body = await response.json();
-    if (isAcceptedMalibuDownload(body)) {
-      return {
-        tag: body.tag,
-        // Construct the served URL locally from the validated tag and a trusted
-        // host; never serve body.url verbatim (defense in depth against a
-        // compromised same-origin API rolling users to an arbitrary asset).
-        url: githubMalibuDownloadUrl(body.tag),
-        sha256: body.sha256,
-      };
+    // Trust the API's tag/SHA only after: (1) shape validation, (2) the tag is
+    // not a downgrade below the trusted pin, (3) the release pipeline's ECDSA
+    // signature over the checksum list verifies against the committed public
+    // key, and (4) the displayed SHA is the one the SIGNED checksum list binds
+    // to this DMG. Otherwise fall through to the verified fallback pin.
+    if (
+      isAcceptedMalibuDownload(body)
+      && isTagAtLeast(body.tag, MALIBU_RELEASE_TAG)
+      && await verifyReleaseChecksumsSignature(body.checksums, body.checksumsSig)
+    ) {
+      const signedSha = signedDmgSha256(body.checksums, body.tag);
+      if (signedSha && signedSha === body.sha256) {
+        return {
+          tag: body.tag,
+          // Construct the served URL locally from the validated tag and a
+          // trusted host; never serve body.url verbatim.
+          url: githubMalibuDownloadUrl(body.tag),
+          sha256: signedSha,
+        };
+      }
     }
   } catch {
     // Keep the verified fallback pin. The download must still be a real DMG.

@@ -12,6 +12,7 @@ export const LATEST_RELEASE_API_URL =
   `https://api.github.com/repos/${REPO}/releases/latest`;
 
 const CHECKSUM_ASSET = 'checksums.txt';
+const CHECKSUM_SIG_ASSET = 'checksums.txt.sig';
 const PROVENANCE_ASSET = 'release-provenance.json';
 const TAG_RE = /^v\d+\.\d+\.\d+$/;
 const SHA256_RE = /^[0-9a-f]{64}$/;
@@ -193,18 +194,26 @@ export async function resolveLatestMalibuRelease(fetchImpl = fetch) {
   const base = githubDownloadBase(tag);
   const assets = assetMap(release);
   const checksumMeta = assets.get(CHECKSUM_ASSET);
+  const checksumSigMeta = assets.get(CHECKSUM_SIG_ASSET);
   const provenanceMeta = assets.get(PROVENANCE_ASSET);
-  if (!checksumMeta || !provenanceMeta) {
-    throw new Error('latest-release is missing checksums or provenance');
+  if (!checksumMeta || !checksumSigMeta || !provenanceMeta) {
+    throw new Error('latest-release is missing checksums, signature, or provenance');
   }
 
-  const [checksumBytes, provenanceBytes] = await Promise.all([
+  const [checksumBytes, checksumSigBytes, provenanceBytes] = await Promise.all([
     fetchBounded(
       fetchImpl,
       base + CHECKSUM_ASSET,
       TRUSTED_DOWNLOAD_HOSTS,
       128 * 1024,
       'text/plain',
+    ),
+    fetchBounded(
+      fetchImpl,
+      base + CHECKSUM_SIG_ASSET,
+      TRUSTED_DOWNLOAD_HOSTS,
+      8 * 1024,
+      'application/octet-stream',
     ),
     fetchBounded(
       fetchImpl,
@@ -216,17 +225,30 @@ export async function resolveLatestMalibuRelease(fetchImpl = fetch) {
   ]);
 
   const checksumSHA = sha256Hex(checksumBytes);
+  const checksumSigSHA = sha256Hex(checksumSigBytes);
   const provenanceSHA = sha256Hex(provenanceBytes);
   if (checksumMeta.digest !== `sha256:${checksumSHA}`) {
     throw new Error('latest-release checksum list digest mismatch');
+  }
+  if (checksumSigMeta.digest !== `sha256:${checksumSigSHA}`) {
+    throw new Error('latest-release checksum signature digest mismatch');
   }
   if (provenanceMeta.digest !== `sha256:${provenanceSHA}`) {
     throw new Error('latest-release provenance digest mismatch');
   }
 
-  return bindLatestMalibuRelease(
+  const checksums = decodeUTF8(checksumBytes, 'checksums');
+  const bound = bindLatestMalibuRelease(
     release,
-    decodeUTF8(checksumBytes, 'checksums'),
+    checksums,
     decodeJSON(provenanceBytes, 'provenance'),
   );
+  // Pass the signed checksum list and its detached signature through to the
+  // browser, which re-verifies them against the committed release public key
+  // (see j/release-signature.mjs) rather than trusting this endpoint.
+  return {
+    ...bound,
+    checksums,
+    checksumsSig: Buffer.from(checksumSigBytes).toString('base64'),
+  };
 }

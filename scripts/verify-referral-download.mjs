@@ -13,16 +13,21 @@ const TAG = MALIBU_RELEASE_TAG;
 const VERSION = TAG.replace(/^v/, '');
 const DMG_ASSET = `Malibu-v${VERSION}.dmg`;
 const CHECKSUM_ASSET = 'checksums.txt';
+// The runtime latest path (j/latest-release.mjs) now requires the signed
+// checksum list, so the pinned release must ship it too — otherwise a release
+// could pass this build gate while /api/malibu-release rejects it.
+const CHECKSUM_SIG_ASSET = 'checksums.txt.sig';
 const PROVENANCE_ASSET = 'release-provenance.json';
 const RELEASE_API_URL =
   `https://api.github.com/repos/Augustas11/macprovider/releases/tags/${TAG}`;
 const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
-const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, PROVENANCE_ASSET];
+const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, CHECKSUM_SIG_ASSET, PROVENANCE_ASSET];
 const ACCEPTED_SOURCE_COMMIT = '4c7f92c157f28477e28a6f8e4538012904aed0bd';
 const ACCEPTED_ASSET_SHA256 = Object.freeze({
   [DMG_ASSET]: '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3',
   [CHECKSUM_ASSET]: '09e7f66fde11303338f64f0275dca09e35e6c779f8845e28e022d636e1a16ed0',
+  [CHECKSUM_SIG_ASSET]: '7f45119c8703b2c1a84cf58b151a4de434a81679992394ff3aaa9a0ca03f76a0',
   [PROVENANCE_ASSET]: '5710efd32b5ec3ae8cd059807604b4ba2e0d617ab41090574e441b8b7aa9cc37',
 });
 const ACCEPTED_DOWNLOAD_URL = GITHUB_DOWNLOAD_BASE + DMG_ASSET;
@@ -151,7 +156,7 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
   const release = decodeJSON(releaseBytes, 'release');
   const assets = validateReferralRelease(release);
 
-  const [dmgBytes, checksumBytes, provenanceBytes] = await Promise.all([
+  const [dmgBytes, checksumBytes, checksumSigBytes, provenanceBytes] = await Promise.all([
     fetchBounded(
       fetchImpl,
       MALIBU_DOWNLOAD_URL,
@@ -168,6 +173,13 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
     ),
     fetchBounded(
       fetchImpl,
+      GITHUB_DOWNLOAD_BASE + CHECKSUM_SIG_ASSET,
+      TRUSTED_DOWNLOAD_HOSTS,
+      8 * 1024,
+      'application/octet-stream',
+    ),
+    fetchBounded(
+      fetchImpl,
       GITHUB_DOWNLOAD_BASE + PROVENANCE_ASSET,
       TRUSTED_DOWNLOAD_HOSTS,
       128 * 1024,
@@ -177,6 +189,7 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
 
   const dmgSHA = verifyAssetDigest(DMG_ASSET, dmgBytes, assets);
   verifyAssetDigest(CHECKSUM_ASSET, checksumBytes, assets);
+  verifyAssetDigest(CHECKSUM_SIG_ASSET, checksumSigBytes, assets);
   verifyAssetDigest(PROVENANCE_ASSET, provenanceBytes, assets);
 
   const checksum = new TextDecoder('utf-8', { fatal: true }).decode(checksumBytes);
