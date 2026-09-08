@@ -97,7 +97,7 @@ function latestReleaseJSON(overrides = {}) {
 
 test('isAcceptedMalibuDownload allows GitHub and versioned branded DMGs', () => {
   assert.equal(isAcceptedMalibuDownload(fallbackMalibuRelease()), true);
-  assert.equal(fallbackMalibuRelease().url, publicMalibuDownloadUrl());
+  assert.equal(fallbackMalibuRelease().url, MALIBU_DOWNLOAD_URL);
   assert.equal(isAcceptedMalibuDownload({
     tag: TAG,
     url: `https://github.com/Augustas11/macprovider/releases/download/${TAG}/${DMG}`,
@@ -205,7 +205,7 @@ test('loadPublicMalibuRelease upgrades atomically and ignores a dishonest API', 
     const got = await loadPublicMalibuRelease();
     assert.deepEqual(got, {
       tag: TAG,
-      url: publicMalibuDownloadUrl(TAG),
+      url: honest.url,
       sha256: DMG_SHA,
     });
   } finally {
@@ -219,9 +219,8 @@ test('loadPublicMalibuRelease upgrades atomically and ignores a dishonest API', 
   }), { headers: { 'content-type': 'application/json' } });
   try {
     const got = await loadPublicMalibuRelease();
-    assert.equal(got.url, publicMalibuDownloadUrl());
+    assert.equal(got.url, MALIBU_DOWNLOAD_URL);
     assert.equal(got.tag, MALIBU_RELEASE_TAG);
-    assert.notEqual(got.url, MALIBU_DOWNLOAD_URL);
   } finally {
     globalThis.fetch = original;
   }

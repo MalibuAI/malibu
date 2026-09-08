@@ -3,11 +3,21 @@
 // /api/malibu-release, which binds GitHub Latest (immutable tag + checksums +
 // provenance). scripts/verify-referral-download.mjs still gates production
 // builds against the GitHub bytes so a broken pin cannot ship.
-export const MALIBU_RELEASE_TAG = 'v1.8.117';
+//
+// Downloads are served from the immutable GitHub release asset, with the URL
+// always constructed locally (githubMalibuDownloadUrl) from a trusted host and a
+// validated tag — the API supplies only the tag and displayed SHA-256, never the
+// served URL verbatim. The branded download.malibu.tech mirror is intentionally
+// not used here: it lags releases and cannot host the current build while the
+// frozen-Sparkle-bridge publish gate is being retired, so rewriting to it
+// produced 404s. publicMalibuDownloadUrl and the branded validator branch remain
+// only so isAcceptedMalibuDownload still accepts a branded URL if the API ever
+// returns one.
+export const MALIBU_RELEASE_TAG = 'v1.8.122';
 export const MALIBU_DMG_SHA256 =
-  'b8b01a3637b24184f74cf8a013506a990324772e56b6a2efd492d84758c694b9';
+  '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3';
 export const MALIBU_DOWNLOAD_URL =
-  'https://github.com/Augustas11/macprovider/releases/download/v1.8.117/Malibu-v1.8.117.dmg';
+  'https://github.com/Augustas11/macprovider/releases/download/v1.8.122/Malibu-v1.8.122.dmg';
 
 const TAG_RE = /^v\d+\.\d+\.\d+$/;
 const SHA256_RE = /^[0-9a-f]{64}$/;
@@ -19,10 +29,18 @@ export function publicMalibuDownloadUrl(tag = MALIBU_RELEASE_TAG) {
   return `https://download.malibu.tech/Malibu-${tag}.dmg`;
 }
 
+// The served download URL is always locally constructed from a trusted host and
+// a validated tag, never taken verbatim from the API response. Only the tag (and
+// the displayed SHA-256) come from /api/malibu-release; the host and path are
+// fixed here so a compromised API cannot point the button at an arbitrary asset.
+export function githubMalibuDownloadUrl(tag = MALIBU_RELEASE_TAG) {
+  return `https://github.com/Augustas11/macprovider/releases/download/${tag}/Malibu-${tag}.dmg`;
+}
+
 export function fallbackMalibuRelease() {
   return {
     tag: MALIBU_RELEASE_TAG,
-    url: publicMalibuDownloadUrl(),
+    url: MALIBU_DOWNLOAD_URL,
     sha256: MALIBU_DMG_SHA256,
   };
 }
@@ -42,6 +60,8 @@ export function isAcceptedMalibuDownload(release) {
   }
   if (
     parsed.protocol !== 'https:'
+    || parsed.username
+    || parsed.password
     || parsed.search
     || parsed.hash
     || parsed.port
@@ -84,7 +104,10 @@ export async function loadPublicMalibuRelease() {
     if (isAcceptedMalibuDownload(body)) {
       return {
         tag: body.tag,
-        url: publicMalibuDownloadUrl(body.tag),
+        // Construct the served URL locally from the validated tag and a trusted
+        // host; never serve body.url verbatim (defense in depth against a
+        // compromised same-origin API rolling users to an arbitrary asset).
+        url: githubMalibuDownloadUrl(body.tag),
         sha256: body.sha256,
       };
     }

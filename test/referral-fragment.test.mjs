@@ -16,7 +16,6 @@ import {
   MALIBU_DMG_SHA256,
   MALIBU_DOWNLOAD_URL,
   MALIBU_RELEASE_TAG,
-  publicMalibuDownloadUrl,
 } from '../j/release.mjs';
 
 const code = `MAL1-S-key_1-issuer_1-${'A'.repeat(26)}`;
@@ -124,7 +123,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.117/Malibu-v1.8.117.dmg',
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.122/Malibu-v1.8.122.dmg',
   );
   assert.match(runtime, /loadPublicMalibuRelease/);
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
@@ -159,19 +158,19 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
 });
 
 test('production download gate accepts only the frozen commit and asset digests', () => {
-  const sourceCommit = 'd227b6ac82654c101c4c064d64e24ee6e3f590b6';
-  const dmgAsset = 'Malibu-v1.8.117.dmg';
+  const sourceCommit = '4c7f92c157f28477e28a6f8e4538012904aed0bd';
+  const dmgAsset = 'Malibu-v1.8.122.dmg';
   const checksumAsset = 'checksums.txt';
   const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.117/';
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.122/';
   const acceptedDigests = new Map([
-    [dmgAsset, 'b8b01a3637b24184f74cf8a013506a990324772e56b6a2efd492d84758c694b9'],
-    [checksumAsset, 'b245ff1966b2d88417b53de32311da88a6a37e086034ce6b6ba062e8ad7fc7bb'],
-    [provenanceAsset, 'f0bcb2a648738ef6c4fa7050a1a230d21e34decdcd6cc5fce9493c99ad2135cb'],
+    [dmgAsset, '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3'],
+    [checksumAsset, '09e7f66fde11303338f64f0275dca09e35e6c779f8845e28e022d636e1a16ed0'],
+    [provenanceAsset, '5710efd32b5ec3ae8cd059807604b4ba2e0d617ab41090574e441b8b7aa9cc37'],
   ]);
   const release = {
-    tag_name: 'v1.8.117',
+    tag_name: 'v1.8.122',
     draft: false,
     prerelease: false,
     immutable: true,
@@ -181,9 +180,9 @@ test('production download gate accepts only the frozen commit and asset digests'
       browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest}`,
     })).concat({
-      name: 'macprovider-cli-v1.8.117-darwin-arm64.tar.gz',
+      name: 'macprovider-cli-v1.8.122-darwin-arm64.tar.gz',
       browser_download_url:
-        githubDownloadBase + 'macprovider-cli-v1.8.117-darwin-arm64.tar.gz',
+        githubDownloadBase + 'macprovider-cli-v1.8.122-darwin-arm64.tar.gz',
       digest: `sha256:${'b'.repeat(64)}`,
     }),
   };
@@ -219,19 +218,25 @@ test('host download button, version, and digest all serve the pinned release', a
     readFile(new URL('../j/release.mjs', import.meta.url), 'utf8'),
   ]);
 
-  // The button once pointed at the mutable download.malibu.tech/latest.dmg while
-  // the page rendered a version and SHA-256 fetched live from the GitHub API, so
-  // it advertised a digest that did not match the bytes it delivered.
+  // The button serves the immutable GitHub release DMG directly (the same
+  // MALIBU_DOWNLOAD_URL the fallback pin and the checksum-bound API resolve to),
+  // so the printed version and SHA-256 always match the bytes it delivers. The
+  // branded download.malibu.tech mirror is intentionally not used: it lags
+  // releases and 404s the current build while the frozen-Sparkle publish gate is
+  // retired.
   assert.doesNotMatch(host, /latest\.dmg/);
   assert.doesNotMatch(host, /api\.github\.com/);
+  assert.doesNotMatch(host, /download\.malibu\.tech/);
   assert.doesNotMatch(releaseSource, /latest\.dmg/);
   assert.match(releaseSource, /\/api\/malibu-release/);
   assert.match(host, /loadPublicMalibuRelease/);
 
   const href = host.match(/id="mac-download"[^>]*href="([^"]+)"/)?.[1];
-  assert.equal(href, publicMalibuDownloadUrl());
-  assert.equal(href, `https://download.malibu.tech/Malibu-${MALIBU_RELEASE_TAG}.dmg`);
-  assert.notEqual(href, MALIBU_DOWNLOAD_URL);
+  assert.equal(href, MALIBU_DOWNLOAD_URL);
+  assert.equal(
+    href,
+    `https://github.com/Augustas11/macprovider/releases/download/${MALIBU_RELEASE_TAG}/Malibu-${MALIBU_RELEASE_TAG}.dmg`,
+  );
   assert.match(
     host,
     new RegExp(`id="mac-version">${MALIBU_RELEASE_TAG.replace(/\./g, '\\.')}<`),
