@@ -1,9 +1,9 @@
 /** GitHub OAuth entrypoint for Malibu console (gateway handoff flow). */
 
 // OAuth must start on the gateway host: GitHub callbacks land on
-// api.streamvc.live, and mp_oauth_session is scoped to that origin.
+// api.malibu.tech, and mp_oauth_session is scoped to that origin.
 // Starting via malibu.tech/auth/* sets the cookie on the wrong domain.
-const OAUTH_ORIGIN = 'https://api.streamvc.live';
+const OAUTH_ORIGIN = 'https://api.malibu.tech';
 
 export function authCallbackUrl() {
   return `${location.origin}/console/auth/callback.html`;

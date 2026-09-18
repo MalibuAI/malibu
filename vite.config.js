@@ -80,15 +80,15 @@ export default defineConfig({
   server: {
     proxy: {
       '/auth': {
-        target: 'https://api.streamvc.live',
+        target: 'https://api.malibu.tech',
         changeOrigin: true,
       },
       '/account': {
-        target: 'https://api.streamvc.live',
+        target: 'https://api.malibu.tech',
         changeOrigin: true,
       },
       '/api/mp': {
-        target: 'https://api.streamvc.live',
+        target: 'https://api.malibu.tech',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/mp/, ''),
       },

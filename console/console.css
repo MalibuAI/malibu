@@ -1,5 +1,7 @@
 @import url("../src/brand.css");
 
+[hidden] { display: none !important; }
+
 html, body { margin: 0; background: #101D29; color: #FAFBFF; font-family: 'Hanken Grotesk', system-ui, sans-serif; min-height: 100vh; }
 a { color: #FFC629; text-decoration: none; }
 a:hover { text-decoration: underline; }

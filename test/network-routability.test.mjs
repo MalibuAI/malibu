@@ -223,3 +223,19 @@ test('same-origin stats rewrites target the API host that serves routability', a
   assert.equal(vite.includes("target: 'https://api.malibu.tech'"), true);
   assert.equal(vite.includes("target: 'https://stats.streamvc.live'"), false);
 });
+
+test('console and same-origin gateway proxies target api.malibu.tech, not the parked streamvc host', async () => {
+  const [vercel, vite, auth] = await Promise.all([
+    readFile(new URL('../vercel.json', import.meta.url), 'utf8'),
+    readFile(new URL('../vite.config.js', import.meta.url), 'utf8'),
+    readFile(new URL('../console/auth.js', import.meta.url), 'utf8'),
+  ]);
+
+  assert.equal(vercel.includes('"destination": "https://api.malibu.tech/:path*"'), true);
+  assert.equal(vercel.includes('"destination": "https://api.malibu.tech/auth/:path*"'), true);
+  assert.equal(vercel.includes('api.streamvc.live'), false);
+  assert.match(vite, /'\/api\/mp': \{\s*target: 'https:\/\/api\.malibu\.tech'/);
+  assert.equal(vite.includes('api.streamvc.live'), false);
+  assert.match(auth, /const OAUTH_ORIGIN = 'https:\/\/api\.malibu\.tech'/);
+  assert.equal(auth.includes('api.streamvc.live'), false);
+});
