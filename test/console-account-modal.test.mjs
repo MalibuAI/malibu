@@ -18,11 +18,15 @@ test('signed-in account modal does not keep GitHub sign-in in the same actions r
   assert.match(signinBlock, /data-github-signin/);
   assert.doesNotMatch(signinBlock, /data-clear-key/);
   assert.match(consoleSource, /data-account-actions hidden/);
-  assert.match(consoleSource, /<form data-advanced hidden>/);
+  assert.match(consoleSource, /<form data-advanced hidden onsubmit="return false;">/);
 });
 
-test('Save key submits the key form and refuses an empty value instead of clearing', () => {
-  assert.match(consoleSource, /advancedEl\.addEventListener\('submit', persistApiKey\)/);
+test('Save key is a button click and does not clear the key after a usage 401', () => {
+  assert.match(consoleSource, /saveKeyBtn\.addEventListener\('click', persistApiKey\)/);
+  assert.match(consoleSource, /type="button" data-save-key/);
+  assert.match(consoleSource, /onsubmit="return false;"/);
+  assert.match(consoleSource, /refreshUsage\(\{ userJustSaved: true \}\)/);
+  assert.match(consoleSource, /shouldClearInvalidKeyAfterUsageFailure/);
   assert.match(consoleSource, /Paste an API key first/);
   assert.match(consoleSource, /fetchNetworkOverview/);
   assert.match(consoleSource, /gateway unreachable/);

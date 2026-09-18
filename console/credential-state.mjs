@@ -34,6 +34,12 @@ export function isInvalidLocalCredential(status, payload) {
   return INVALID_LOCAL_CREDENTIAL_CODES.includes(gatewayErrorCode(payload));
 }
 
+/** Page-load recovery may drop a stale key. An explicit Save must not. */
+export function shouldClearInvalidKeyAfterUsageFailure(status, payload, { userJustSaved = false } = {}) {
+  if (userJustSaved) return false;
+  return isInvalidLocalCredential(status, payload);
+}
+
 export function publicCredentialErrorMessage(status, payload, fallback) {
   if (isInvalidLocalCredential(status, payload)) return invalidLocalKeyRecovery.title;
   const message = payload && typeof payload === 'object' ? payload.error?.message : '';

@@ -9,6 +9,7 @@ import {
   gatewayErrorCode,
   isInvalidLocalCredential,
   publicCredentialErrorMessage,
+  shouldClearInvalidKeyAfterUsageFailure,
 } from './credential-state.mjs';
 
 const BASE = '/api/mp';
@@ -140,7 +141,7 @@ function throwGatewayError(r, payload, fallback) {
   throw err;
 }
 
-export { isInvalidLocalCredential };
+export { isInvalidLocalCredential, shouldClearInvalidKeyAfterUsageFailure };
 
 export async function getUsage() {
   const r = await fetch(`${BASE}/v1/usage`, {
