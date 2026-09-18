@@ -31,3 +31,16 @@ test('Save key is a button click and does not clear the key after a usage 401', 
   assert.match(consoleSource, /fetchNetworkOverview/);
   assert.match(consoleSource, /gateway unreachable/);
 });
+
+test('API key field is copyable text, not a password input', async () => {
+  const keysSource = await readFile(new URL('../console/views/keys.js', import.meta.url), 'utf8');
+  assert.match(consoleSource, /id="mp-key" type="text"/);
+  assert.doesNotMatch(consoleSource, /id="mp-key" type="password"/);
+  assert.match(consoleSource, /data-copy-key/);
+  assert.match(consoleSource, /keyInput\.value = '';/);
+  assert.doesNotMatch(consoleSource, /keyInput\.value = loadKey\(\)/);
+  assert.match(consoleSource, /keyInput\.addEventListener\('paste'/);
+  assert.match(consoleSource, /event\.preventDefault\(\);\s*keyInput\.value = text\.trim\(\)/s);
+  assert.match(keysSource, /data-copy-device-key/);
+  assert.match(keysSource, /navigator\.clipboard\.writeText\(key\)/);
+});

@@ -90,7 +90,10 @@ export function mount(root, { navigate, esc, toast, onAuthChanged }) {
       let html = `
         <div class="key-box">
           <div class="lbl" style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,251,242,0.45);margin-bottom:8px;">Active on this device</div>
-          <code>${esc(maskKey(loadKey()))}</code>
+          <div class="row" style="margin-top:0;">
+            <code>${esc(maskKey(loadKey()))}</code>
+            <button class="btn ghost" type="button" data-copy-device-key>Copy</button>
+          </div>
         </div>
         <div class="row">
           <button class="btn" type="button" data-rotate>Rotate key</button>
@@ -112,6 +115,20 @@ export function mount(root, { navigate, esc, toast, onAuthChanged }) {
 
       el.querySelector('[data-mint]')?.addEventListener('click', () => {
         startGitHubSignIn();
+      });
+      el.querySelector('[data-copy-device-key]')?.addEventListener('click', async () => {
+        const key = loadKey();
+        if (!key) {
+          toast('No API key on this device.', 'error');
+          return;
+        }
+        try {
+          if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+          await navigator.clipboard.writeText(key);
+          toast('API key copied.');
+        } catch {
+          toast(assertNoFullKey('Could not copy the API key.'), 'error');
+        }
       });
       el.querySelector('[data-rotate]')?.addEventListener('click', async () => {
         if (!confirm('Rotate your API key? The current key will stop working.')) return;

@@ -157,6 +157,9 @@
     .modal label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(250, 251, 255,0.5); margin: 12px 0 6px; }
     .modal input { width: 100%; padding: 10px 12px; background: #0C3A45; border: 1px solid rgba(250, 251, 255,0.10); border-radius: 8px; color: #FAFBFF; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; outline: 0; }
     .modal input:focus { border-color: rgba(255,198,41,0.55); box-shadow: 0 0 0 4px rgba(255,198,41,0.08); }
+    .key-on-device { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+    .key-on-device code { flex: 1; min-width: 0; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #FAFBFF; word-break: break-all; }
+    .key-on-device .btn { flex-shrink: 0; margin: 0; }
     .modal .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
     .modal .btn { padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
     .modal .btn.primary { background: #F76B57; color: #FAFBFF; }
@@ -359,8 +362,15 @@
       <button class="btn ghost" type="button" data-toggle-advanced>Paste an API key instead</button>
     </div>
     <form data-advanced hidden onsubmit="return false;">
-      <label for="mp-key">API key on this device</label>
-      <input id="mp-key" type="password" placeholder="mp_…" autocomplete="off" spellcheck="false" />
+      <div data-saved-key hidden>
+        <label>On this device</label>
+        <div class="key-on-device">
+          <code data-key-mask></code>
+          <button class="btn ghost" type="button" data-copy-key>Copy</button>
+        </div>
+      </div>
+      <label for="mp-key">Paste an API key</label>
+      <input id="mp-key" type="text" inputmode="text" placeholder="mp_…" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" data-form-type="other" />
       <div class="actions">
         <button class="btn ghost" type="button" data-save-key>Save key</button>
       </div>
@@ -435,6 +445,9 @@
   const modalEl = document.querySelector('[data-modal]');
   const keyInput = document.getElementById('mp-key');
   const saveKeyBtn = document.querySelector('[data-save-key]');
+  const copyKeyBtn = document.querySelector('[data-copy-key]');
+  const savedKeyEl = document.querySelector('[data-saved-key]');
+  const keyMaskEl = document.querySelector('[data-key-mask]');
   const clearKeyBtn = document.querySelector('[data-clear-key]');
   const githubSignInBtn = document.querySelector('[data-github-signin]');
   const toggleAdvancedBtn = document.querySelector('[data-toggle-advanced]');
@@ -674,11 +687,48 @@
       advancedEl.setAttribute('hidden', '');
       toggleAdvancedBtn.textContent = 'Paste an API key instead';
     }
+    renderSavedKey();
+  }
+
+  function maskApiKey(key) {
+    if (!key) return '';
+    if (key.length < 12) return 'mp_…';
+    return key.slice(0, 7) + '…' + key.slice(-4);
+  }
+
+  function renderSavedKey() {
+    const key = loadKey();
+    if (!savedKeyEl || !keyMaskEl) return;
+    if (key) {
+      savedKeyEl.removeAttribute('hidden');
+      keyMaskEl.textContent = maskApiKey(key);
+    } else {
+      savedKeyEl.setAttribute('hidden', '');
+      keyMaskEl.textContent = '';
+    }
+  }
+
+  async function copyText(text) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    if (!ok) throw new Error('copy failed');
   }
 
   function openSettings() {
     syncAuthModal();
-    keyInput.value = loadKey();
+    keyInput.value = '';
+    renderSavedKey();
     modalEl.classList.add('open');
     const focusEl = authMode() === 'key' ? keyInput : githubSignInBtn;
     setTimeout(() => focusEl?.focus(), 30);
@@ -713,8 +763,10 @@
       toast('Could not save API key in this browser.', 'error');
       return;
     }
+    keyInput.value = '';
     refreshAuthBadge();
     syncAuthModal();
+    renderSavedKey();
     closeSettings();
     toast('API key saved.');
     refreshStatus();
@@ -722,6 +774,25 @@
   }
   advancedEl.addEventListener('submit', persistApiKey);
   saveKeyBtn.addEventListener('click', persistApiKey);
+  keyInput.addEventListener('paste', (event) => {
+    const text = event.clipboardData?.getData('text/plain');
+    if (text == null) return;
+    event.preventDefault();
+    keyInput.value = text.trim();
+  });
+  copyKeyBtn?.addEventListener('click', async () => {
+    const key = loadKey();
+    if (!key) {
+      toast('No API key on this device.', 'error');
+      return;
+    }
+    try {
+      await copyText(key);
+      toast('API key copied.');
+    } catch {
+      toast('Could not copy the API key.', 'error');
+    }
+  });
   clearKeyBtn.addEventListener('click', () => {
     saveDemoToken('');
     if (!saveKey('')) {
@@ -732,6 +803,7 @@
     keyInput.value = '';
     refreshAuthBadge();
     syncAuthModal();
+    renderSavedKey();
     toast('Signed out.');
     refreshStatus();
     refreshUsage();
