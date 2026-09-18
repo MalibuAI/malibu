@@ -12,6 +12,7 @@ import {
   signedOutRecovery,
   clearFailedRecovery,
   invalidLocalKeyRecovery,
+  shouldClearInvalidKeyAfterUsageFailure,
 } from '../console/credential-state.mjs';
 
 const SAMPLE_KEY = 'mp_abcdefghijklmnopqrstuvwxyz012345';
@@ -104,6 +105,16 @@ test('invalid local credential recovery uses gateway error codes, not every 403'
   assert.equal(publicCredentialErrorMessage(403, { error: { code: 'api_key_revoked' } }, 'usage 403'), invalidLocalKeyRecovery.title);
   assert.equal(publicCredentialErrorMessage(403, { error: { code: 'account_blocked', message: 'Account blocked' } }, 'usage 403'), 'Account blocked');
   assert.doesNotMatch(publicCredentialErrorMessage(403, { error: { code: 'api_key_revoked' } }, 'usage 403'), /usage 403/);
+});
+
+test('explicit Save does not drop the local key when usage then returns invalid_api_key', () => {
+  const store = memoryStore('');
+  const payload = { error: { code: 'invalid_api_key' } };
+  store.saveKey(SAMPLE_KEY);
+  assert.equal(shouldClearInvalidKeyAfterUsageFailure(401, payload, { userJustSaved: true }), false);
+  if (shouldClearInvalidKeyAfterUsageFailure(401, payload, { userJustSaved: true })) store.saveKey('');
+  assert.equal(store.loadKey(), SAMPLE_KEY);
+  assert.equal(shouldClearInvalidKeyAfterUsageFailure(401, payload, { userJustSaved: false }), true);
 });
 
 test('recovery copy never includes full key material', () => {

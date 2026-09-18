@@ -358,11 +358,11 @@
       </button>
       <button class="btn ghost" type="button" data-toggle-advanced>Paste an API key instead</button>
     </div>
-    <form data-advanced hidden>
+    <form data-advanced hidden onsubmit="return false;">
       <label for="mp-key">API key on this device</label>
       <input id="mp-key" type="password" placeholder="mp_…" autocomplete="off" spellcheck="false" />
       <div class="actions">
-        <button class="btn ghost" type="submit" data-save-key>Save key</button>
+        <button class="btn ghost" type="button" data-save-key>Save key</button>
       </div>
     </form>
     <div class="actions" data-account-actions hidden>
@@ -403,7 +403,7 @@
     ensureDemoToken, createThreadId, loadThreads, upsertThread, getThread,
     formatBillMeta, formatTokenCount, formatModelPrice, loadSettings, saveSettings,
     checkQuotaAlert, estimateLocalSpendUsd, quotaPct, filterPoolModels, isModelAllowed,
-    isInvalidLocalCredential, fetchNetworkOverview,
+    isInvalidLocalCredential, fetchNetworkOverview, shouldClearInvalidKeyAfterUsageFailure,
   } from './api.js';
   import { runAgentLoop } from './agent.js';
   import { startGitHubSignIn } from './auth.js';
@@ -434,6 +434,7 @@
   const settingsBtn = document.querySelector('[data-open-settings]');
   const modalEl = document.querySelector('[data-modal]');
   const keyInput = document.getElementById('mp-key');
+  const saveKeyBtn = document.querySelector('[data-save-key]');
   const clearKeyBtn = document.querySelector('[data-clear-key]');
   const githubSignInBtn = document.querySelector('[data-github-signin]');
   const toggleAdvancedBtn = document.querySelector('[data-toggle-advanced]');
@@ -717,9 +718,10 @@
     closeSettings();
     toast('API key saved.');
     refreshStatus();
-    refreshUsage();
+    refreshUsage({ userJustSaved: true });
   }
   advancedEl.addEventListener('submit', persistApiKey);
+  saveKeyBtn.addEventListener('click', persistApiKey);
   clearKeyBtn.addEventListener('click', () => {
     saveDemoToken('');
     if (!saveKey('')) {
@@ -814,7 +816,7 @@
     updateModelPrice();
   }
 
-  async function refreshUsage() {
+  async function refreshUsage({ userJustSaved = false } = {}) {
     if (authMode() !== 'key') {
       if (quotaBarEl) quotaBarEl.hidden = true;
       return;
@@ -840,8 +842,10 @@
         }
       }
     } catch (e) {
-      if (isInvalidLocalCredential(e?.status, e?.body)) {
+      if (shouldClearInvalidKeyAfterUsageFailure(e?.status, e?.body, { userJustSaved })) {
         if (saveKey('')) refreshAuthBadge();
+      } else if (userJustSaved && isInvalidLocalCredential(e?.status, e?.body)) {
+        toast('API key saved on this device, but the gateway rejected it.', 'error');
       }
       if (quotaBarEl) quotaBarEl.hidden = true;
     }
