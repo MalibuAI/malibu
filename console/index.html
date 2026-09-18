@@ -14,6 +14,7 @@
   <style>
     html, body { margin: 0; padding: 0; background: #143A45; color: #FAFBFF; font-family: 'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     ::selection { background: #F76B57; color: #FAFBFF; }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
@@ -356,14 +357,16 @@
         <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3 H11 V9 M11 3 L3 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       </button>
       <button class="btn ghost" type="button" data-toggle-advanced>Paste an API key instead</button>
-      <button class="btn danger" type="button" data-clear-key>Sign out</button>
     </div>
-    <div data-advanced hidden>
-      <label for="mp-key">API key</label>
+    <form data-advanced hidden>
+      <label for="mp-key">API key on this device</label>
       <input id="mp-key" type="password" placeholder="mp_…" autocomplete="off" spellcheck="false" />
       <div class="actions">
-        <button class="btn ghost" type="button" data-save-key>Save key</button>
+        <button class="btn ghost" type="submit" data-save-key>Save key</button>
       </div>
+    </form>
+    <div class="actions" data-account-actions hidden>
+      <button class="btn danger" type="button" data-clear-key>Sign out</button>
     </div>
   </div>
 </div>
@@ -400,7 +403,7 @@
     ensureDemoToken, createThreadId, loadThreads, upsertThread, getThread,
     formatBillMeta, formatTokenCount, formatModelPrice, loadSettings, saveSettings,
     checkQuotaAlert, estimateLocalSpendUsd, quotaPct, filterPoolModels, isModelAllowed,
-    isInvalidLocalCredential,
+    isInvalidLocalCredential, fetchNetworkOverview,
   } from './api.js';
   import { runAgentLoop } from './agent.js';
   import { startGitHubSignIn } from './auth.js';
@@ -431,7 +434,6 @@
   const settingsBtn = document.querySelector('[data-open-settings]');
   const modalEl = document.querySelector('[data-modal]');
   const keyInput = document.getElementById('mp-key');
-  const saveKeyBtn = document.querySelector('[data-save-key]');
   const clearKeyBtn = document.querySelector('[data-clear-key]');
   const githubSignInBtn = document.querySelector('[data-github-signin]');
   const toggleAdvancedBtn = document.querySelector('[data-toggle-advanced]');
@@ -439,6 +441,7 @@
   const modalTitleEl = document.getElementById('modal-title');
   const modalDescEl = document.querySelector('[data-modal-desc]');
   const signinActionsEl = document.querySelector('[data-signin-actions]');
+  const accountActionsEl = document.querySelector('[data-account-actions]');
   const toastEl = document.querySelector('[data-toast]');
   const recentSection = document.querySelector('[data-recent-section]');
   const recentEl = document.querySelector('[data-recent]');
@@ -650,10 +653,11 @@
     const signedIn = mode === 'key';
     if (signedIn) {
       modalTitleEl.textContent = 'Account';
-      modalDescEl.textContent = 'Signed in with GitHub. Usage and quota are on the Dashboard.';
+      modalDescEl.textContent = 'Signed in. Usage and quota are on the Dashboard. Replace the key below only if you have another one.';
       signinActionsEl.hidden = true;
       advancedEl.removeAttribute('hidden');
       toggleAdvancedBtn.hidden = true;
+      if (accountActionsEl) accountActionsEl.hidden = false;
       clearKeyBtn.hidden = false;
       return;
     }
@@ -663,6 +667,7 @@
       : 'Start chatting instantly with a demo session. For full quota (100k tokens/day), sign in with GitHub — you\'ll return here automatically.';
     signinActionsEl.hidden = false;
     toggleAdvancedBtn.hidden = false;
+    if (accountActionsEl) accountActionsEl.hidden = mode !== 'demo';
     clearKeyBtn.hidden = mode !== 'demo';
     if (!loadKey() && !advancedEl.hasAttribute('hidden')) {
       advancedEl.setAttribute('hidden', '');
@@ -674,8 +679,8 @@
     syncAuthModal();
     keyInput.value = loadKey();
     modalEl.classList.add('open');
-    const focusEl = authMode() === 'key' ? clearKeyBtn : (signinActionsEl.hidden ? keyInput : githubSignInBtn);
-    setTimeout(() => focusEl.focus(), 30);
+    const focusEl = authMode() === 'key' ? keyInput : githubSignInBtn;
+    setTimeout(() => focusEl?.focus(), 30);
   }
   function closeSettings() { modalEl.classList.remove('open'); }
 
@@ -694,19 +699,27 @@
     if (open) setTimeout(() => keyInput.focus(), 30);
   });
 
-  saveKeyBtn.addEventListener('click', () => {
+  function persistApiKey(event) {
+    event?.preventDefault();
     const k = keyInput.value.trim();
+    if (!k) {
+      toast('Paste an API key first.', 'error');
+      keyInput.focus();
+      return;
+    }
     if (!saveKey(k)) {
       refreshAuthBadge();
       toast('Could not save API key in this browser.', 'error');
       return;
     }
     refreshAuthBadge();
+    syncAuthModal();
     closeSettings();
-    toast(k ? 'API key saved.' : 'API key cleared.');
+    toast('API key saved.');
     refreshStatus();
     refreshUsage();
-  });
+  }
+  advancedEl.addEventListener('submit', persistApiKey);
   clearKeyBtn.addEventListener('click', () => {
     saveDemoToken('');
     if (!saveKey('')) {
@@ -716,6 +729,7 @@
     }
     keyInput.value = '';
     refreshAuthBadge();
+    syncAuthModal();
     toast('Signed out.');
     refreshStatus();
     refreshUsage();
@@ -852,11 +866,13 @@
       setPoolDot(ready > 0 ? 'ok' : (total > 0 ? 'warn' : 'bad'));
       if (Array.isArray(s?.models)) populateModels(s.models);
     } catch {
+      const overview = await fetchNetworkOverview().catch(() => null);
+      const nodes = Number(overview?.network?.nodes_online) || 0;
       liveNodesEls.forEach((el) => {
-        el.textContent = 'pool offline';
+        el.textContent = nodes > 0 ? `${nodes} node${nodes === 1 ? '' : 's'} · gateway unreachable` : 'pool offline';
         el.classList.remove('skeleton-pulse');
       });
-      setPoolDot('bad');
+      setPoolDot(nodes > 0 ? 'warn' : 'bad');
     }
   }
 
