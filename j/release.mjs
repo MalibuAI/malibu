@@ -1,8 +1,10 @@
 // Fallback pin for no-JS first paint and for when live Latest resolution
 // fails. The /host button and /j invite flow upgrade at request time via
 // /api/malibu-release, which binds GitHub Latest (immutable tag + checksums +
-// provenance). scripts/verify-referral-download.mjs still gates production
-// builds against the GitHub bytes so a broken pin cannot ship.
+// provenance). Production prebuild fail-closes if Latest resolves to a
+// different Malibu GUI tag than this pin; if Latest cannot resolve, this pin
+// remains deploy authority. The same script still gates the GitHub bytes so a
+// broken pin cannot ship.
 //
 // Downloads are served from the immutable GitHub release asset, with the URL
 // always constructed locally (githubMalibuDownloadUrl) from a trusted host and a
@@ -18,11 +20,11 @@ import {
   verifyReleaseChecksumsSignature,
 } from './release-signature.mjs';
 
-export const MALIBU_RELEASE_TAG = 'v1.8.122';
+export const MALIBU_RELEASE_TAG = 'v1.8.123';
 export const MALIBU_DMG_SHA256 =
-  '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3';
+  '9c3538bf5ac620f3d0e576576f7c8761b965c8405ed24b0a410cbb7826d77947';
 export const MALIBU_DOWNLOAD_URL =
-  'https://github.com/Augustas11/macprovider/releases/download/v1.8.122/Malibu-v1.8.122.dmg';
+  'https://github.com/Augustas11/macprovider/releases/download/v1.8.123/Malibu-v1.8.123.dmg';
 
 const TAG_RE = /^v\d+\.\d+\.\d+$/;
 const SHA256_RE = /^[0-9a-f]{64}$/;

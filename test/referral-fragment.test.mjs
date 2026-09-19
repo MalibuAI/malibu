@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
@@ -9,8 +10,11 @@ import {
   readBoundedUTF8,
   validationView,
 } from '../j/referral-fragment.mjs';
+import { LATEST_RELEASE_API_URL } from '../j/latest-release.mjs';
 import {
+  assertFallbackPinMatchesResolvedLatest,
   validateReferralRelease,
+  verifyReferralDownload,
 } from '../scripts/verify-referral-download.mjs';
 import {
   MALIBU_DMG_SHA256,
@@ -123,7 +127,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.122/Malibu-v1.8.122.dmg',
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.123/Malibu-v1.8.123.dmg',
   );
   assert.match(runtime, /loadPublicMalibuRelease/);
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
@@ -158,21 +162,21 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
 });
 
 test('production download gate accepts only the frozen commit and asset digests', () => {
-  const sourceCommit = '4c7f92c157f28477e28a6f8e4538012904aed0bd';
-  const dmgAsset = 'Malibu-v1.8.122.dmg';
+  const sourceCommit = '37e2d232389ba37d94f138b5a7d52a12c2b12106';
+  const dmgAsset = 'Malibu-v1.8.123.dmg';
   const checksumAsset = 'checksums.txt';
   const checksumSigAsset = 'checksums.txt.sig';
   const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.122/';
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.123/';
   const acceptedDigests = new Map([
-    [dmgAsset, '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3'],
-    [checksumAsset, '09e7f66fde11303338f64f0275dca09e35e6c779f8845e28e022d636e1a16ed0'],
-    [checksumSigAsset, '7f45119c8703b2c1a84cf58b151a4de434a81679992394ff3aaa9a0ca03f76a0'],
-    [provenanceAsset, '5710efd32b5ec3ae8cd059807604b4ba2e0d617ab41090574e441b8b7aa9cc37'],
+    [dmgAsset, '9c3538bf5ac620f3d0e576576f7c8761b965c8405ed24b0a410cbb7826d77947'],
+    [checksumAsset, '2b24ccdab5a907a86681674359fcc68430fc93c2f7f9048b33455d1f447a06ac'],
+    [checksumSigAsset, '8d9ab55df98ff8e08428955471b12ae05ca8551cc73ec5b18ee88648f628681e'],
+    [provenanceAsset, 'ef0d81181ff566883f73f93697c2edfc012ed4c15169f72b180ef07c2c270d1d'],
   ]);
   const release = {
-    tag_name: 'v1.8.122',
+    tag_name: 'v1.8.123',
     draft: false,
     prerelease: false,
     immutable: true,
@@ -182,9 +186,9 @@ test('production download gate accepts only the frozen commit and asset digests'
       browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest}`,
     })).concat({
-      name: 'macprovider-cli-v1.8.122-darwin-arm64.tar.gz',
+      name: 'macprovider-cli-v1.8.123-darwin-arm64.tar.gz',
       browser_download_url:
-        githubDownloadBase + 'macprovider-cli-v1.8.122-darwin-arm64.tar.gz',
+        githubDownloadBase + 'macprovider-cli-v1.8.123-darwin-arm64.tar.gz',
       digest: `sha256:${'b'.repeat(64)}`,
     }),
   };
@@ -224,6 +228,149 @@ test('production download gate accepts only the frozen commit and asset digests'
   }
 });
 
+test('production download gate refuses a fallback pin that is not GitHub Latest', () => {
+  assert.equal(MALIBU_RELEASE_TAG, 'v1.8.123');
+  assert.doesNotThrow(() => assertFallbackPinMatchesResolvedLatest(MALIBU_RELEASE_TAG));
+  assert.throws(
+    () => assertFallbackPinMatchesResolvedLatest('v1.8.122'),
+    /does not match resolved GitHub Latest v1\.8\.122/,
+  );
+  assert.throws(
+    () => assertFallbackPinMatchesResolvedLatest('v1.8.124'),
+    /does not match resolved GitHub Latest v1\.8\.124/,
+  );
+  assert.throws(
+    () => assertFallbackPinMatchesResolvedLatest(null),
+    /does not match resolved GitHub Latest null/,
+  );
+});
+
+function sha256Hex(text) {
+  return createHash('sha256').update(text).digest('hex');
+}
+
+function utf8Bytes(text) {
+  return new TextEncoder().encode(text);
+}
+
+function fakeGitHubResponse(url, body, contentType = 'application/json') {
+  const bytes = typeof body === 'string' ? utf8Bytes(body) : body;
+  return {
+    ok: true,
+    status: 200,
+    url,
+    headers: new Headers({
+      'content-type': contentType,
+      'content-length': String(bytes.byteLength),
+    }),
+    body: {
+      getReader() {
+        let done = false;
+        return {
+          async read() {
+            if (done) return { done: true, value: undefined };
+            done = true;
+            return { done: false, value: bytes };
+          },
+          async cancel() {},
+        };
+      },
+    },
+  };
+}
+
+function bindableLatest(tag) {
+  const dmg = `Malibu-${tag}.dmg`;
+  const dmgSHA = 'b'.repeat(64);
+  const checksumText = `${dmgSHA}  ${dmg}\n`;
+  const checksumSig = 'test-detached-signature-bytes';
+  const commit = 'a'.repeat(40);
+  const provenance = {
+    schema_version: 1,
+    repository: 'Augustas11/macprovider',
+    commit,
+    tag,
+    prerelease: false,
+    assets: { [dmg]: dmgSHA },
+  };
+  const base = `https://github.com/Augustas11/macprovider/releases/download/${tag}/`;
+  return {
+    base,
+    checksumSig,
+    checksumText,
+    provenance,
+    release: {
+      tag_name: tag,
+      draft: false,
+      prerelease: false,
+      immutable: true,
+      target_commitish: commit,
+      assets: [
+        { name: dmg, browser_download_url: base + dmg, digest: `sha256:${dmgSHA}` },
+        {
+          name: 'checksums.txt',
+          browser_download_url: base + 'checksums.txt',
+          digest: `sha256:${sha256Hex(checksumText)}`,
+        },
+        {
+          name: 'checksums.txt.sig',
+          browser_download_url: base + 'checksums.txt.sig',
+          digest: `sha256:${sha256Hex(checksumSig)}`,
+        },
+        {
+          name: 'release-provenance.json',
+          browser_download_url: base + 'release-provenance.json',
+          digest: `sha256:${sha256Hex(JSON.stringify(provenance))}`,
+        },
+      ],
+    },
+  };
+}
+
+test('verifyReferralDownload fail-closes when resolved Latest is a different Malibu tag', async () => {
+  const other = bindableLatest('v1.8.124');
+  const seen = [];
+  const fetchImpl = async (url) => {
+    const href = String(url);
+    seen.push(href);
+    if (href === LATEST_RELEASE_API_URL) {
+      return fakeGitHubResponse(href, JSON.stringify(other.release));
+    }
+    if (href === `${other.base}checksums.txt`) {
+      return fakeGitHubResponse(href, other.checksumText, 'text/plain');
+    }
+    if (href === `${other.base}checksums.txt.sig`) {
+      return fakeGitHubResponse(href, other.checksumSig, 'application/octet-stream');
+    }
+    if (href === `${other.base}release-provenance.json`) {
+      return fakeGitHubResponse(href, JSON.stringify(other.provenance));
+    }
+    throw new Error(`unexpected fetch ${href}`);
+  };
+  await assert.rejects(
+    () => verifyReferralDownload(fetchImpl),
+    /fallback pin v1\.8\.123 does not match resolved GitHub Latest v1\.8\.124/,
+  );
+  assert.equal(seen.some((href) => href.includes('/releases/tags/v1.8.123')), false);
+});
+
+test('verifyReferralDownload keeps the pin byte gate when GitHub Latest cannot resolve', async () => {
+  let sawPinTag = false;
+  const fetchImpl = async (url) => {
+    const href = String(url);
+    if (href === LATEST_RELEASE_API_URL) {
+      throw new Error('latest-release request failed for /releases/latest: HTTP 502');
+    }
+    if (href.includes('/releases/tags/v1.8.123')) {
+      sawPinTag = true;
+      throw new Error('pin probe');
+    }
+    throw new Error(`unexpected fetch ${href}`);
+  };
+  await assert.rejects(() => verifyReferralDownload(fetchImpl), /pin probe/);
+  assert.equal(sawPinTag, true);
+});
+
 test('host download button, version, and digest all serve the pinned release', async () => {
   const [host, releaseSource] = await Promise.all([
     readFile(new URL('../host/index.html', import.meta.url), 'utf8'),
@@ -239,6 +386,8 @@ test('host download button, version, and digest all serve the pinned release', a
   assert.doesNotMatch(host, /latest\.dmg/);
   assert.doesNotMatch(host, /api\.github\.com/);
   assert.doesNotMatch(host, /download\.malibu\.tech/);
+  assert.doesNotMatch(host, /v1\.8\.122/);
+  assert.doesNotMatch(releaseSource, /v1\.8\.122/);
   assert.doesNotMatch(releaseSource, /latest\.dmg/);
   assert.match(releaseSource, /\/api\/malibu-release/);
   assert.match(host, /loadPublicMalibuRelease/);
