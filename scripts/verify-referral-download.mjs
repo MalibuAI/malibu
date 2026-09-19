@@ -3,6 +3,7 @@
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 
+import { resolveLatestMalibuRelease } from '../j/latest-release.mjs';
 import {
   MALIBU_DMG_SHA256,
   MALIBU_DOWNLOAD_URL,
@@ -23,12 +24,12 @@ const RELEASE_API_URL =
 const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
 const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, CHECKSUM_SIG_ASSET, PROVENANCE_ASSET];
-const ACCEPTED_SOURCE_COMMIT = '4c7f92c157f28477e28a6f8e4538012904aed0bd';
+const ACCEPTED_SOURCE_COMMIT = '37e2d232389ba37d94f138b5a7d52a12c2b12106';
 const ACCEPTED_ASSET_SHA256 = Object.freeze({
-  [DMG_ASSET]: '05ae1188488a95a29f13f952bbcd4f49e06f968694ab82c1b4414c0daa62b9d3',
-  [CHECKSUM_ASSET]: '09e7f66fde11303338f64f0275dca09e35e6c779f8845e28e022d636e1a16ed0',
-  [CHECKSUM_SIG_ASSET]: '7f45119c8703b2c1a84cf58b151a4de434a81679992394ff3aaa9a0ca03f76a0',
-  [PROVENANCE_ASSET]: '5710efd32b5ec3ae8cd059807604b4ba2e0d617ab41090574e441b8b7aa9cc37',
+  [DMG_ASSET]: '9c3538bf5ac620f3d0e576576f7c8761b965c8405ed24b0a410cbb7826d77947',
+  [CHECKSUM_ASSET]: '2b24ccdab5a907a86681674359fcc68430fc93c2f7f9048b33455d1f447a06ac',
+  [CHECKSUM_SIG_ASSET]: '8d9ab55df98ff8e08428955471b12ae05ca8551cc73ec5b18ee88648f628681e',
+  [PROVENANCE_ASSET]: 'ef0d81181ff566883f73f93697c2edfc012ed4c15169f72b180ef07c2c270d1d',
 });
 const ACCEPTED_DOWNLOAD_URL = GITHUB_DOWNLOAD_BASE + DMG_ASSET;
 const TRUSTED_API_HOSTS = new Set(['api.github.com']);
@@ -98,6 +99,19 @@ function decodeJSON(bytes, label) {
   }
 }
 
+// When GitHub Latest successfully binds as a Malibu GUI release, the deploy-time
+// no-JS pin must be that same tag. A lagging pin is the #1604 skew: curl of
+// /host and a click before JS still serve the older DMG. If Latest cannot
+// resolve (outage, non-GUI latest pointer), the accepted pin remains deploy
+// authority — do not hostage production to /releases/latest.
+export function assertFallbackPinMatchesResolvedLatest(resolvedTag) {
+  if (typeof resolvedTag !== 'string' || resolvedTag !== MALIBU_RELEASE_TAG) {
+    throw new Error(
+      `fallback pin ${MALIBU_RELEASE_TAG} does not match resolved GitHub Latest ${resolvedTag}; bump MALIBU_RELEASE_TAG, host/index.html, and ACCEPTED_* before production deploy`,
+    );
+  }
+}
+
 export function validateReferralRelease(release) {
   if (
     MALIBU_DOWNLOAD_URL !== ACCEPTED_DOWNLOAD_URL
@@ -146,6 +160,20 @@ function verifyAssetDigest(name, bytes, assets) {
 }
 
 export async function verifyReferralDownload(fetchImpl = fetch) {
+  let latest = null;
+  try {
+    latest = await resolveLatestMalibuRelease(fetchImpl);
+  } catch (error) {
+    // Pin remains the deploy authority when Latest is down or is not a
+    // conforming Malibu GUI release. Fail-close only on a successful Latest
+    // that is a different tag. Log the message only — never headers or tokens.
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`GitHub Latest unresolved; keeping pin: ${message}`);
+  }
+  if (latest !== null) {
+    assertFallbackPinMatchesResolvedLatest(latest.tag);
+  }
+
   const releaseBytes = await fetchBounded(
     fetchImpl,
     RELEASE_API_URL,
