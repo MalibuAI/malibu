@@ -123,7 +123,8 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   const packageJSON = JSON.parse(packageSource);
   const rewrites = config.rewrites.map(({ source, destination }) => `${source} ${destination}`);
   assert.equal(rewrites.some((rewrite) => rewrite.includes('/v1/referrals/validate')), false);
-  assert.match(runtime, /https:\/\/coordinator\.streamvc\.live\/v1\/referrals\/validate/);
+  assert.match(runtime, /https:\/\/coordinator\.malibu\.tech\/v1\/referrals\/validate/);
+  assert.doesNotMatch(runtime, /coordinator\.streamvc\.live\/v1\/referrals\/validate/);
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
@@ -156,7 +157,8 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   for (const { headers } of inviteHeaders) {
     const csp = headers.find(({ key }) => key === 'Content-Security-Policy')?.value ?? '';
     assert.match(csp, /img-src 'self'/);
-    assert.match(csp, /connect-src 'self' https:\/\/coordinator\.streamvc\.live/);
+    assert.match(csp, /connect-src 'self' https:\/\/coordinator\.malibu\.tech/);
+    assert.doesNotMatch(csp, /coordinator\.streamvc\.live/);
     assert.doesNotMatch(csp, /img-src 'none'/);
   }
 });
