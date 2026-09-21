@@ -7,7 +7,7 @@ import {
 } from './referral-fragment.mjs';
 import { loadPublicMalibuRelease } from './release.mjs';
 
-const VALIDATION_URL = 'https://coordinator.streamvc.live/v1/referrals/validate';
+const VALIDATION_URL = 'https://coordinator.malibu.tech/v1/referrals/validate';
 const MAX_RESPONSE_BYTES = 4096;
 
 let referralCode = isCanonicalLandingLocation(window.location)
