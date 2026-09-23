@@ -1,89 +1,116 @@
 ---
 title: Metering & billing
-description: How requests turn into credits, and how USDC-on-Base payout ships at public beta.
+description: How requests turn into credits, how settlement decides who is paid, and where USDC payout stands.
 icon: coins
 ---
 
 # Metering & billing
 
-> How requests turn into credits, and how USDC-on-Base payout ships at public beta.
+> How requests turn into credits, how settlement decides who is paid, and where USDC payout stands.
 
-Every billed request produces two credit rows: `providerCredits` and `operatorCredits` (network revenue). Credits accrue on the ledger today. **USDC-on-Base payout is planned for public beta**, not invite-gated pre-beta.
+Every billed request writes one ledger row with two credit amounts: `providerCredits` and `operatorCredits` (network revenue). Credits accrue on the ledger today. **USDC payout is not enabled.** It is planned for public beta and is not active in invite-gated pre-beta.
 
 ## Credit formula
 
 ```
-grossCredits    = ((promptTokens × promptRate) + (completionTokens × completionRate))
-                  × globalMultiplier
-                  ÷ (1M × 1M)
+uncachedPrompt  = promptTokens − cachedPromptTokens
+
+grossCredits    = ( uncachedPrompt     × promptRate
+                  + cachedPromptTokens × promptCacheHitRate
+                  + completionTokens   × completionRate )
+                  × globalMultiplierPpm
+                  ÷ (1,000,000 × 1,000,000)
 
 providerCredits = grossCredits × providerShareBps ÷ 10,000
 operatorCredits = grossCredits − providerCredits
 ```
 
-Both values use banker's rounding — ties round to the nearest even quotient, eliminating systematic bias across large volumes of small requests.
+Both divisions use banker's rounding: ties round to the nearest even value, so small requests carry no systematic bias across large volumes.
 
 Constants:
 
-| Symbol                  | Default    | Meaning                  |
+| Symbol                  | Value      | Meaning                  |
 | ----------------------- | ---------- | ------------------------ |
 | `tokensPerMillion`      | 1,000,000  | Rate card denominator    |
 | `globalMultiplierDenom` | 1,000,000  | PPM denominator          |
 | `providerShareDenom`    | 10,000     | Basis-points denominator |
 | `maxBillableTokens`     | 10,000,000 | Per-field overflow guard |
 
-Default rate card:
+If a reported completion count exceeds what the delivered bytes could hold, the billed count is capped at a byte-based estimate.
 
-| Token type | Rate                            |
-| ---------- | ------------------------------- |
-| Prompt     | 500,000 credits per 1M tokens   |
-| Completion | 1,000,000 credits per 1M tokens |
+## Rate card
 
-Default provider share: **90%**. Default global multiplier: **1.0**. The operator can override rates per model or add model-specific entries.
+The live rate card is a signed feed. Each row sets `prompt_rate_per_mtok`, `prompt_cache_hit_rate_per_mtok`, `completion_rate_per_mtok`, `global_multiplier_ppm` and `provider_share_bps`. Rates are **credits per million tokens**, and `usd_per_million_credits` is `1.0`, so `1,000,000` means **$1.00 per million tokens**.
 
-Faulted requests (`breaker_qualifying` or `null_usage_error`) produce **zero credits**.
+The `default` row today:
+
+| Token type        | Credits per 1M tokens | USD per 1M tokens |
+| ----------------- | --------------------- | ----------------- |
+| Prompt            | 500,000               | $0.50             |
+| Prompt, cache hit | 125,000               | $0.125            |
+| Completion        | 1,000,000             | $1.00             |
+
+Per-model rows override the default. Every row today has provider share **90%** (`9000` bps) and multiplier **1.0** (`1000000` ppm). Current rows: [`GET https://api.malibu.tech/v1/rate-card`](https://api.malibu.tech/v1/rate-card).
+
+## Faults
+
+Faulted requests produce **zero credits**:
+
+* `breaker_qualifying`: the request faulted. The buyer is not debited and the provider is not credited.
+* `null_usage_error`: usage was missing, negative, above the overflow guard, or reported more cached tokens than prompt tokens.
+
+A request that never reached a provider (for example `503 no_provider_available`) writes no credit row.
 
 ## Prefix-cache billing
 
-For sticky-routed requests where the provider reuses its warm KV-cache, `usage.cached_prompt_tokens` reports the count of prefix-cache tokens. These are billed at the per-model `prompt_cache_hit_rate_per_mtok` rate instead of the full `promptRate`.
+Cached prompt tokens are billed at the row's `prompt_cache_hit_rate_per_mtok` only on a **sticky-conversation hit**: the request sent `X-MacProvider-Conversation`, actually routed back to the provider that served the earlier turn within the sticky TTL (1,800 seconds), and that provider reused the shared prefix. The sticky preference often does not win, so many tagged turns bill at the full prompt rate. The discount applies only on the request's first routing attempt. A retry on another provider bills at the full prompt rate. See [Sticky conversations](/guides/sticky-conversations).
 
-The OpenAI `usage` object is extended with one field:
+Authenticated chat completions also carry an automatic prefix-cache key, so a Mac can reuse its KV cache for a repeated prompt prefix without any header. Those automatic hits are billed at the **full** prompt rate.
+
+The `usage` object reports the two separately:
+
+* `prompt_tokens_details.cached_tokens` (OpenAI-standard) counts every prefix the provider reused, including automatic hits.
+* `cached_prompt_tokens` (Malibu) counts only the tokens billed at the cache-hit rate.
 
 ```json theme={null}
 {
-  "prompt_tokens": 1500,
-  "completion_tokens": 300,
-  "total_tokens": 1800,
-  "cached_prompt_tokens": 1200
+  "prompt_tokens": 53,
+  "completion_tokens": 3,
+  "total_tokens": 56,
+  "cached_prompt_tokens": 41,
+  "prompt_tokens_details": { "cached_tokens": 41 }
 }
 ```
 
-`cached_prompt_tokens` is always present; `0` when there was no cache reuse.
+That example is a sticky second turn. `cached_prompt_tokens` is `0` when there was no sticky hit. On streaming responses it appears in the final usage chunk. Details: [Usage object](/api/usage-object).
 
 ## Verified model settlement
 
-For settlement-capable traffic (v0.3+ receipts), the coordinator receipt verdict drives the gateway's buyer debit/refund decision on the money path.
+For covered paid entrypoints, the coordinator's verdict on the provider's v0.4 settlement receipt decides whether the buyer is debited and the provider credited. Most requests take this path. A share of requests is dispatched without a settlement snapshot, carries only a v0.3 receipt, and settles as `quarantined`.
 
-* **Valid receipt** → buyer debited, provider credited, settlement proceeds.
-* **Missing / malformed / unverifiable receipt** → settled as `FaultBreakerQualifying` with **zero** provider credits. Buyer is not debited.
-* **Late receipt.** For settlement-capable traffic a provider receipt must arrive before the coordinator's `pending_deadline_seconds` window closes. Receipts arriving after the deadline are non-settling and non-recoverable.
+* **`verified`:** the receipt is valid and matches the route-time catalog snapshot. The buyer is debited and the provider credited.
+* **`pending`:** the receipt has not arrived or cannot be checked yet. The buyer's reservation stays held.
+* **`quarantined`:** the receipt is missing past the deadline, invalid, from the wrong key, or replayed. Provider credit is zero and the buyer's reservation is released.
+* **Late receipts.** A receipt that arrives after the pending deadline (300 seconds by default) is a no-op: no debit and no provider credit.
 
 Full detail: [Operations → Verified model settlement](/operations/verified-model-settlement).
 
+## Buyer quota
+
+Buyers do not hold a prepaid balance on the gateway. Each API account has a **daily token quota**. The gateway reserves tokens when a request starts and settles the reservation against actual usage. `GET https://api.malibu.tech/v1/usage` returns today's quota window (`daily_tokens_used`, `daily_tokens_reserved`, `daily_tokens_remaining`, `daily_tokens_limit`), your API keys, and the settlement disclosure. It does not return credit or dollar amounts.
+
 ## Settlement cadence
 
-* **Today (pre-beta):** credits accrue; no USDC payout rail is active.
-* **At public beta:** weekly sweep (Monday 00:00 UTC design), minimum 500,000 credits, USDC on Base.
-* Below the threshold, credits roll to the next window.
-
-`StartWeeklySettlement` is the coordinator job that will fire that sweep when the payout rail is enabled. `settlement.job_enabled` must be `true` for the job to execute.
+* **Today (pre-beta):** the coordinator's weekly settlement job (Monday 00:00 UTC, 7-day window) writes settlement rows on the ledger only. The minimum payout threshold is 500,000 credits, and smaller balances roll into the next window. **No USDC transfer runs**, because the payout rail is disabled.
+* **At public beta (planned):** the same weekly windows pay out in USDC on Base once the payout rail is enabled.
 
 ## Endpoints
 
 | Endpoint | Purpose |
 | --- | --- |
-| `GET https://api.malibu.tech/v1/rate-card` | Live per-model rate card (also on `malibu.tech`) |
-| `GET https://api.malibu.tech/v1/usage` | Buyer's usage aggregated by day / model |
-| `GET /providers/{provider_id}/earnings` | Provider balance, current window, last payout ready |
+| `GET https://api.malibu.tech/v1/rate-card` | Live per-model rate card (public) |
+| `GET https://api.malibu.tech/v1/usage` | Buyer's daily token quota and keys (bearer API key) |
+| `GET https://api.malibu.tech/v1/receipts/{request_id}` | Settlement metadata for one of your requests (bearer API key) |
+| `GET /providers/{provider_id}/earnings` | Provider balance and current window, on the coordinator. The provider CLI calls it with the provider token. |
 
 Regimes: [Economics](/guides/economics). Provider guide: [Payments & payouts](/guides/payments).

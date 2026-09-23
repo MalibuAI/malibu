@@ -1,59 +1,46 @@
 ---
-title: Pinning to a provider
-description: Route every request in a session to a specific provider.
+title: Provider attribution
+description: See which provider served a request. Buyers cannot pin requests to a provider.
 icon: pin
 ---
 
-# Pinning to a provider
+# Provider attribution
 
-> Route every request in a session to a specific provider.
+> See which provider served a request. Buyers cannot pin requests to a provider.
 
-Pin a request session to one provider via `X-Malibu-Pin-Provider`. Useful for reproducibility, debugging, or when you're contracting a specific Mac.
+<Warning>
+  **Buyers cannot pin requests to a provider.** Earlier versions of this page described an `X-Malibu-Pin-Provider` header. That header never existed. No request header selects a provider, so buyers cannot steer requests to a specific Mac. The coordinator picks the provider.
+</Warning>
+
+## Which provider served this request?
+
+Each response that reached a provider carries `X-Provider-Id`, an opaque ID for the Mac that served it. Use it for logging and debugging, or to group latency and quality observations by provider.
 
 ```python theme={null}
 from openai import OpenAI
 
-client_pinned = OpenAI(
-    base_url="https://api.malibu.tech/v1",
-    api_key="<your-malibu-api-key>",
-    default_headers={"X-Malibu-Pin-Provider": "provider-air5"},
-)
+client = OpenAI(base_url="https://api.malibu.tech/v1", api_key="<your-malibu-api-key>")
 
-resp = client_pinned.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
+raw = client.chat.completions.with_raw_response.create(
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
     messages=[{"role": "user", "content": "Hello"}],
 )
+served_by = raw.headers.get("X-Provider-Id")   # e.g. "mp-26592d71…"
+request_id = raw.headers.get("X-Request-ID")
 ```
 
-## Behavior
+`X-Provider-Id` is informational. Sending it back as a request header has no effect.
 
-* **Strict.** If the pinned provider is offline the request returns `503 no_provider_available`. Malibu will not route to a substitute.
-* **Provider IDs** are visible on the pool dashboard at [malibu.tech/console](https://malibu.tech/console).
-* **Composes with sticky.** Pinning trumps `X-Malibu-Conversation`. If you pin, sticky becomes redundant.
+## Getting the same provider across turns
 
-## Discovering the served provider
+The supported way to keep a conversation on one provider is a [sticky conversation tag](/guides/sticky-conversations) (`X-MacProvider-Conversation`). It is a preference, not a pin. If the preferred provider is busy or offline, the request routes elsewhere instead of failing.
 
-Every response carries `X-Malibu-Provider` — the ID of the provider that actually served the request. Use it to feed a subsequent pin:
+## Reproducing or reporting a problem
 
-```python theme={null}
-raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen3-8B-4bit",
-    messages=[{"role": "user", "content": "First request"}],
-)
-served_by = raw.headers.get("X-Malibu-Provider")
+* Record `X-Request-ID` and `X-Provider-Id` for the failing request.
+* For non-streaming responses, keep the `X-MacProvider-Receipt` header. It is signed by the serving provider's key and binds the prompt and output hashes. See [Signed receipts](/guides/receipts).
+* Use `GET /v1/receipts/{request_id}` to see the settlement outcome for that request.
 
-# Now pin the rest of the session
-client_pinned = OpenAI(
-    base_url="https://api.malibu.tech/v1",
-    api_key="<your-malibu-api-key>",
-    default_headers={"X-Malibu-Pin-Provider": served_by},
-)
-```
+## Private pools
 
-## When to pin
-
-* **Reproducing a bug** on a specific Mac's hardware or model quantization.
-* **Enterprise contracts** where a specific Mac Studio is dedicated to a buyer.
-* **Benchmarking** — comparing responses across providers by pinning each in turn.
-
-For latency-sensitive multi-turn conversations, prefer [sticky conversations](/guides/sticky-conversations) — you get prefix-cache reuse without the strictness of a pin.
+Operator-provisioned private pools restrict routing to an approved set of providers. They are not self-serve for buyers today. Requests that name a pool you are not authorized for return a generic `503 pool_unavailable`.

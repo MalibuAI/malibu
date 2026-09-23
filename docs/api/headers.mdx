@@ -1,33 +1,45 @@
 ---
 title: Headers
-description: Malibu-specific request and response headers.
+description: Request and response headers on the Malibu buyer API.
 icon: hash
 ---
 
 # Headers
 
-> Malibu-specific request and response headers.
+> Request and response headers on the Malibu buyer API.
 
-All headers are OpenAI-compatible plus a small set of Malibu-specific `X-Malibu-*` headers for routing and receipt handling.
+Standard OpenAI client headers are accepted. Malibu adds one optional request header for sticky routing, plus a few response headers for attribution, receipts, and quota.
+
+<Note>
+  Some Malibu headers use an `X-MacProvider-` prefix. That prefix is the wire name. Send and read the headers exactly as written here. There are no `X-Malibu-*` headers.
+</Note>
 
 ## Request headers
 
-| Header                                   | Purpose                                                                                                      | Reference                                            |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| `Authorization: Bearer <MALIBU_API_KEY>` | Required. Buyer API key from [api.malibu.tech/auth/github/start](https://api.malibu.tech/auth/github/start). | [Get an API key](/getting-started/api-key)           |
-| `X-Malibu-Conversation`                  | Sticky-affinity tag for prefix-cache reuse. Opaque string, HMACed with `account_id` server-side.             | [Sticky conversations](/guides/sticky-conversations) |
-| `X-Malibu-Pin-Provider`                  | Strict pin to a specific provider ID. Returns 503 if the provider is offline.                                | [Pinning](/guides/pinning)                           |
+| Header                                   | Purpose                                                                                                   | Reference                                            |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `Authorization: Bearer <MALIBU_API_KEY>` | Required. Buyer API key (`mp_…`) from the [console](https://malibu.tech/console).                         | [Get an API key](/getting-started/api-key)           |
+| `X-MacProvider-Conversation`             | Optional sticky-conversation tag. 1–128 characters from `[A-Za-z0-9._:-]`. An empty header is ignored. Invalid tags (whitespace-only, too long, or other characters) return `400 invalid_conversation_tag`. | [Sticky conversations](/guides/sticky-conversations) |
+| `Idempotency-Key`                        | Optional. Resending the same key with the same body returns `409 idempotency_key_replayed`; the original response is not replayed. The same key with a different body returns `409 idempotency_key_body_mismatch`. | [Chat completions](/api/chat-completions)            |
+| `X-Request-ID`                           | Optional UUID v4. If it is missing or malformed, the gateway generates one. Reusing an ID returns `409 duplicate_request_id`. | —                                                    |
+| `X-Api-Key`                              | Alternative to `Authorization` on the [Anthropic Messages facade](/api/messages) only. Do not send both. | [Messages](/api/messages)                            |
 
-Additional headers OpenAI clients set (`OpenAI-Version`, `User-Agent`, etc.) are accepted but not required.
+`X-MacProvider-Internal-*` request headers are stripped before routing. Other `X-MacProvider-*` request headers have no effect on routing or retries. Buyers cannot choose a provider through headers. See [Provider attribution](/guides/pinning).
 
 ## Response headers
 
-| Header                          | Purpose                                                                                       | Reference                                             |
-| ------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `X-Malibu-Provider`             | Provider ID that served this request. Use it for logging or to feed a subsequent pin.         | [Discovery & routing](/network/discovery-and-routing) |
-| `X-Malibu-Receipt`              | Ed25519-signed v0.3 receipt tuple. Verify offline with [`malibu-verify`](/cli/malibu-verify). | [Signed receipts](/guides/receipts)                   |
-| `X-Malibu-Rate-Limit-Remaining` | Requests remaining in the current window for this API key.                                    | —                                                     |
-| `X-Malibu-Request-Id`           | Opaque request identifier. Include when reporting bugs.                                       | —                                                     |
+| Header                                   | When                         | Purpose                                                                                     | Reference                                             |
+| ---------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `X-Request-ID`                           | Every response               | Request identifier. Use it in bug reports and with `GET /v1/receipts/{request_id}`.          | [Signed receipts](/guides/receipts)                   |
+| `X-Provider-Id`                          | When a provider was selected | Opaque ID of the provider Mac that served the request. Informational only.                  | [Provider attribution](/guides/pinning)               |
+| `X-MacProvider-Receipt`                  | Some non-streaming successes | v0.3 Ed25519-signed receipt, `<base64 tuple>.<base64 signature>`. Currently on roughly a quarter to a third of non-streaming responses. Never sent on streams. For the rest, use `GET /v1/receipts`. | [Signed receipts](/guides/receipts) |
+| `X-MacProvider-Streaming-Mode`           | Streaming success            | `incremental`, `buffered_kill_switch`, or `buffered_provider_downgrade`. For observation only. | —                                                  |
+| `X-RateLimit-Limit`                      | Authenticated requests       | Your daily token quota.                                                                     | [Usage object](/api/usage-object)                     |
+| `X-RateLimit-Remaining`                  | Authenticated requests       | Tokens left in today's UTC window after this request's reservation.                         | —                                                     |
+| `X-RateLimit-Reset`                      | Authenticated requests       | Unix timestamp when the daily window resets (UTC midnight).                                 | —                                                     |
+| `X-RateLimit-Limit-Requests` / `-Remaining-Requests` | Chat requests | Per-account concurrency: the maximum number of requests in flight, and how many slots remain after this one. | — |
+| `X-RateLimit-Reset-Requests` | Concurrency 429 | Unix timestamp after which to retry. It matches `Retry-After`. | — |
+| `Retry-After`                            | Retryable 429 / 503 / 504    | Seconds to wait before retrying.                                                            | [Errors](/api/chat-completions#errors)                |
 
 ## Reading response headers from openai-python
 
@@ -35,31 +47,34 @@ The high-level client hides response headers. Use `with_raw_response` to get the
 
 ```python theme={null}
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen3-8B-4bit",
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
     messages=[{"role": "user", "content": "Hello"}],
 )
 resp = raw.parse()
 
-provider  = raw.headers.get("X-Malibu-Provider")
-receipt   = raw.headers.get("X-Malibu-Receipt")
+request_id = raw.headers.get("X-Request-ID")
+provider   = raw.headers.get("X-Provider-Id")
+receipt    = raw.headers.get("X-MacProvider-Receipt")
 ```
 
 TypeScript:
 
 ```typescript theme={null}
-const { data, response } = await client.chat.completions.create({...}).withResponse();
-const provider = response.headers.get("X-Malibu-Provider");
-const receipt  = response.headers.get("X-Malibu-Receipt");
+const { data, response } = await client.chat.completions
+  .create({ model: "mlx-community/Llama-3.2-3B-Instruct-4bit", messages: [{ role: "user", content: "Hello" }] })
+  .withResponse();
+const provider = response.headers.get("X-Provider-Id");
+const receipt  = response.headers.get("X-MacProvider-Receipt");
 ```
 
 ## Streaming
 
-For SSE responses, `X-Malibu-Provider` is on the initial HTTP response. `X-Malibu-Receipt` is emitted on the final trailing chunk or via HTTP trailers, depending on client support. Most SDKs surface it as `raw.headers` after the stream completes.
+On SSE responses, `X-Request-ID`, `X-Provider-Id`, `X-MacProvider-Streaming-Mode`, and the rate-limit headers arrive on the initial HTTP response. **No receipt header is sent on streaming responses.** There is no receipt trailer or trailing chunk.
 
-## HMAC of `X-Malibu-Conversation`
+## How `X-MacProvider-Conversation` is handled
 
-The gateway HMACs the raw `X-Malibu-Conversation` value with the buyer's `account_id` before forwarding to the coordinator. This means:
+The gateway never forwards your raw tag. It derives an HMAC-SHA256 key from the tag and your `account_id`, then forwards only that key. So:
 
 * `thread-42` from account A and `thread-42` from account B route to different sticky partitions.
-* The coordinator never sees the raw buyer value.
-* Sticky affinity is deterministic per account — the same tag from the same account always maps to the same partition.
+* The coordinator and providers never see the raw tag.
+* The same tag from the same account always maps to the same key.

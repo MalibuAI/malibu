@@ -1,72 +1,95 @@
 ---
 title: Usage object
-description: "OpenAI usage shape plus one field: cached_prompt_tokens."
+description: "OpenAI usage shape plus cached_prompt_tokens, and the /v1/usage quota endpoint."
 icon: chart-column
 ---
 
 # Usage object
 
-> OpenAI usage shape plus one field: cached_prompt_tokens.
+> OpenAI usage shape plus cached_prompt_tokens, and the /v1/usage quota endpoint.
 
-Every response includes a `usage` object matching OpenAI's shape, extended with one Malibu-specific field.
+Every chat completion includes a `usage` object in OpenAI's shape. It carries both OpenAI's nested cache field and a Malibu field that tracks billing.
 
 ## Shape
 
+A live second turn from 23 Sep 2026 that sent a sticky conversation tag:
+
 ```json theme={null}
 {
-  "prompt_tokens": 1500,
-  "completion_tokens": 300,
-  "total_tokens": 1800,
-  "cached_prompt_tokens": 1200
+  "prompt_tokens": 53,
+  "completion_tokens": 3,
+  "total_tokens": 56,
+  "cached_prompt_tokens": 41,
+  "prompt_tokens_details": {"cached_tokens": 41}
 }
 ```
 
-| Field                  | Meaning                                                                            |
-| ---------------------- | ---------------------------------------------------------------------------------- |
-| `prompt_tokens`        | Total tokens in the request prompt                                                 |
-| `completion_tokens`    | Tokens generated in the response                                                   |
-| `total_tokens`         | Sum of the two above                                                               |
-| `cached_prompt_tokens` | Prompt tokens served from the provider's warm KV-cache (subset of `prompt_tokens`) |
+| Field                                  | Meaning                                                                                              |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `prompt_tokens`                        | Tokens in the request prompt.                                                                        |
+| `completion_tokens`                    | Tokens generated in the response.                                                                    |
+| `total_tokens`                         | Sum of the two above.                                                                                |
+| `prompt_tokens_details.cached_tokens`  | Prompt tokens the provider **actually reused** from its cache. Includes automatic prefix-cache hits. |
+| `cached_prompt_tokens`                 | Prompt tokens **billed at the cache-hit rate**. Non-zero only on a sticky-conversation hit.          |
 
-## `cached_prompt_tokens`
+The two cache fields can differ. `cached_tokens` counts every prefix reuse. `cached_prompt_tokens` counts only reuse that earned the discount.
 
-Reports how many of the prompt tokens were served from the sticky provider's warm KV-cache. Always present; `0` when there was no cache reuse.
+The object may also include a model-hash diagnostic field. Ignore fields you don't use.
 
-**When you'll see non-zero values:**
+## `prompt_tokens_details.cached_tokens` (observed reuse)
 
-* You sent `X-Malibu-Conversation` and the request routed to the same provider as a recent turn on the same tag.
-* The shared prefix between the two turns exceeds the provider's cache-miss threshold (typically a few hundred tokens).
+This is the field OpenAI-compatible clients read as cache reads. The gateway derives a prefix-cache key automatically for authenticated requests, from the system prompt and tools, or from the messages up to the first user turn. Repeated scaffolds can therefore hit a provider's cache without any header. These automatic hits show up here and are billed at the **full** prompt rate.
 
-**When it'll always be zero:**
+## `cached_prompt_tokens` (discounted reuse)
 
-* No `X-Malibu-Conversation` header on the request.
-* The sticky provider was unavailable and the request fell through to normal routing.
-* The provider serving the request is legacy (pre prefix-cache billing) — safe to consume unconditionally.
+Non-zero when all of these hold:
 
-## Billing implication
+* The request sent `X-MacProvider-Conversation`.
+* It routed to the same provider as an earlier turn with that tag, within the sticky TTL (currently 1,800 seconds).
+* The provider reused a shared prefix.
 
-Cached tokens are billed at the per-model `prompt_cache_hit_rate_per_mtok` rate instead of the full `promptRate`. See [Network overview → Metering & billing](/network/metering-and-billing) for the formula and [Sticky conversations](/guides/sticky-conversations) for how to opt in.
+It is `0` when there is no tag, when the sticky provider was unavailable and the request routed elsewhere, or when the prefix did not match. The field is always present, so you can read it without checking first.
+
+## Billing
+
+Rate-card rows carry `prompt_rate_per_mtok`, `completion_rate_per_mtok`, and `prompt_cache_hit_rate_per_mtok`. Tokens in `cached_prompt_tokens` meter at the cache-hit rate. The rest of the prompt meters at the prompt rate. See [Metering & billing](/network/metering-and-billing) for the formula and [Sticky conversations](/guides/sticky-conversations) for how to opt in.
 
 ## Reading from the SDK
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
     messages=[...],
 )
 
 usage = resp.usage
 print(usage.prompt_tokens, usage.completion_tokens, usage.total_tokens)
-print("cached:", getattr(usage, "cached_prompt_tokens", 0))
+print("reused:", usage.prompt_tokens_details.cached_tokens if usage.prompt_tokens_details else 0)
+print("billed at cache rate:", getattr(usage, "cached_prompt_tokens", 0))
 ```
 
-The `getattr` fallback handles cases where you're using an older `openai-python` version that doesn't expose the field on the typed object — the raw JSON still contains it.
+`cached_prompt_tokens` is not a typed attribute in `openai-python`. The SDK keeps unknown fields, so `getattr` (or `usage.model_extra`) reads it.
 
-## Aggregated usage
+For streaming, the last chunk before `[DONE]` always carries the same `usage` object. You don't need to set `stream_options.include_usage`.
 
-For per-day / per-model buyer aggregates use the `/v1/usage` endpoint:
+## Account quota: `GET /v1/usage`
+
+Today's quota state for your account, for the current UTC day only:
 
 ```bash theme={null}
-curl -s -H "Authorization: Bearer $MALIBU_API_KEY" \
-  "https://api.malibu.tech/v1/usage?from=2026-06-01&to=2026-06-30" | jq .
+curl -s -H "Authorization: Bearer $MALIBU_API_KEY" https://api.malibu.tech/v1/usage | jq .quota
 ```
+
+```json theme={null}
+{
+  "window_date": "2026-09-23",
+  "daily_tokens_limit": 20000000,
+  "daily_tokens_used": 172,
+  "daily_tokens_reserved": 0,
+  "daily_tokens_remaining": 19999828
+}
+```
+
+The response also lists your API keys by prefix and status (never the full key) and includes a `settlement_disclosure` block. The endpoint takes no date-range parameters and returns no per-day history. The same quota numbers come back on every chat response as `X-RateLimit-*` headers.
+
+When the daily quota runs out, chat requests return `429 quota_exhausted` until `X-RateLimit-Reset` (UTC midnight).

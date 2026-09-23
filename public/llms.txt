@@ -1,6 +1,6 @@
 # Malibu
 
-> Malibu is a network that turns idle Apple Silicon Macs into the world's largest AI cloud. It pays providers to keep open-source models warm and ready, serves buyers through an OpenAI-compatible gateway, and settles weekly in USDC on Base. Every response ships a signed, cryptographically verifiable inference receipt.
+> Malibu is a coordinated inference network that turns idle Apple Silicon Macs into AI inference providers. Providers keep open-source models warm and earn credits for verified inference; USDC-on-Base payouts are planned for public beta. Buyers use an OpenAI-compatible gateway at api.malibu.tech, and paid requests settle on signed inference receipts checked by the network.
 
 ## Blog
 
@@ -8,15 +8,16 @@
 
 ## Product
 
-- [Host a model](https://malibu.tech/host/): Turn a stock Apple Silicon Mac into a paid inference provider with one command.
+- [Host a model](https://malibu.tech/host/): Turn a stock Apple Silicon Mac into an inference provider. Invite required in pre-beta.
 - [Agent-readable onboarding](https://get.malibu.tech/skill.md): Point a coding agent here to install the provider CLI, check status, recover a broken setup, update or uninstall, and connect apps to the OpenAI-compatible API at api.malibu.tech.
 - [Console](https://malibu.tech/console/): Point any OpenAI SDK client at Malibu; nothing else changes.
 - [Network](https://malibu.tech/network/): Live network stats and coverage.
 
 ## Docs
 
-- [Documentation](https://malibu.tech/docs): Getting started, API reference, and guides.
 - [Litepaper](https://malibu.tech/docs/litepaper): The full technical and economic design.
+- [Documentation](https://malibu.tech/docs): Getting started, API reference, and guides.
+- [Network status](https://malibu.tech/docs/status): What is live today vs planned.
 
 ## Feeds
 

@@ -1,22 +1,24 @@
 ---
 title: Tool calling & structured output
-description: Multi-turn tool loops and JSON-schema constrained decoding, OpenAI wire shape.
+description: Multi-turn tool loops and schema-validated JSON output, OpenAI wire shape.
 icon: blocks
 ---
 
 # Tool calling & structured output
 
-> Multi-turn tool loops and JSON-schema constrained decoding, OpenAI wire shape.
+> Multi-turn tool loops and schema-validated JSON output, OpenAI wire shape.
 
-Malibu ships both features as OpenAI-compatible wire surfaces. Any framework built on the OpenAI SDK sees them transparently.
+Malibu ships both features as OpenAI-compatible wire surfaces on `/v1/chat/completions`, so any framework built on the OpenAI SDK can use them without changes. The examples use `client` from [Using Malibu with the OpenAI SDK](/guides/openai-sdk).
 
 ## Tool calling
 
-Multi-turn tool loops, streamed tool-call deltas, `tool_call_id` back-references, and `role: "tool"` acceptance all work. Anchor framework: [Cline](https://github.com/cline/cline) — Malibu is a drop-in target.
+Supported: multi-turn tool loops, streamed tool-call deltas, `tool_call_id` back-references, and `role: "tool"` messages. Anchor framework: [Cline](https://github.com/cline/cline), pointed at the Malibu base URL with a Qwen-family model.
 
 ```python theme={null}
+import json
+
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
+    model="mlx-community/Qwen3.6-27B-4bit",
     messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
     tools=[
         {
@@ -35,32 +37,28 @@ resp = client.chat.completions.create(
 )
 
 for call in resp.choices[0].message.tool_calls or []:
-    print(call.function.name, call.function.arguments)  # JSON-encoded string
+    print(call.function.name, json.loads(call.function.arguments))  # arguments is a JSON string
 ```
 
-Supported chat templates: **Qwen 2.5** and **Llama 3.3**. Other models fall back to normal assistant text.
+Which models emit `tool_calls[]`:
 
-Caps:
+* **Qwen family** (Qwen 2.5, Qwen 3, Qwen3-Coder, and later Qwen releases in the catalog). Full multi-turn support.
+* **gpt-oss** (`gpt-oss-20b`, `gpt-oss-120b`). First-turn tool calls only. Sending tool results back returns `400 unsupported_modelID_for_multi_turn`.
+* **Other models** (Llama 3.1 / 3.2, Gemma 4, Nemotron, GLM). They accept `tools` but reply with plain assistant text.
 
-| Field                      | Cap     |
-| -------------------------- | ------- |
-| Per `function.arguments`   | 1 MiB   |
-| Per response               | 2 MiB   |
-| Per `role: "tool"` message | 256 KiB |
-
-Full multi-turn example lives in [Agentic tooling → Tool calling](/agentic/tool-calling).
+`tool_choice` supports `"auto"`. `"required"` and named-function choices are accepted but handled as `"auto"`, and `"none"` returns `400`. Full model list, multi-turn example, streaming reassembly, and caps: [Agentic tooling → Tool calling](/agentic/tool-calling).
 
 ### Buyer-side validation obligation
 
-Emitted `tool_calls[]` reflect model output, not provider-verified intent. Buyer-side agent frameworks **MUST** validate before execution. Malibu transports the parsed OpenAI-compatible shape; it does not decide whether a requested tool name or argument payload is safe for your agent policy. Treat emitted tool calls with the same trust posture you would apply to a model running on local hardware. See [Agentic tooling → Buyer-side validation](/agentic/buyer-side-validation).
+Emitted `tool_calls[]` reflect model output, not provider-verified intent. Buyer-side agent frameworks **MUST** validate before execution. Malibu delivers the parsed OpenAI-compatible shape. It does not decide whether a requested tool name or argument payload is safe for your agent policy. Treat emitted tool calls with the same trust posture you would apply to a model running on local hardware. See [Agentic tooling → Buyer-side validation](/agentic/buyer-side-validation).
 
 ## Structured output
 
-Grammar-constrained sampling via `response_format`. Works in streaming and non-streaming. `strict: true` guarantees schema conformance via constrained decoding.
+Send `response_format` with `json_schema` or `json_object`. The provider steers the model with your schema, then validates the output before it returns success. If the output doesn't validate, you get a `502` (or a terminal SSE error when streaming) instead of invalid JSON. This is post-inference validation, **not** constrained decoding. It works streaming and non-streaming, on every catalog model.
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
+    model="mlx-community/Qwen3.6-27B-4bit",
     messages=[
         {"role": "system", "content": "Extract contact info as JSON."},
         {"role": "user", "content": "Call John at 555-0100, john@example.com"},
@@ -69,6 +67,7 @@ resp = client.chat.completions.create(
         "type": "json_schema",
         "json_schema": {
             "name": "contact",
+            "strict": True,
             "schema": {
                 "type": "object",
                 "properties": {
@@ -77,18 +76,17 @@ resp = client.chat.completions.create(
                     "email": {"type": "string"},
                 },
                 "required": ["name", "phone", "email"],
+                "additionalProperties": False,
             },
-            "strict": True,
         },
     },
 )
 
-import json
 contact = json.loads(resp.choices[0].message.content)
 ```
 
-**Supported subset:** OpenAI's strict-mode JSON Schema subset. If your schema uses features outside that subset the request returns a 400.
+**Supported subset:** a strict subset of JSON Schema. `type` is required on every node, every object needs `additionalProperties: false`, and every property must be listed in `required`. `$ref`, `anyOf` / `oneOf`, `pattern`, `format`, and length constraints are rejected with `400` before inference runs.
 
-`response_format: {"type": "json_object"}` also works — Malibu ships the bundled fix that actually enforces top-level JSON on this form.
+`response_format: {"type": "json_object"}` is enforced too. Output that isn't JSON with an object or array at the top level returns `502 malformed_json_response`.
 
 Full reference: [Agentic tooling → Structured output](/agentic/structured-output).

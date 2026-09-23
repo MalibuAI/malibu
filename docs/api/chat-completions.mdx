@@ -10,20 +10,22 @@ icon: message-square
 
 <Columns cols={2}>
   <Card title="Models" icon="boxes" href="/api/models">
-    List available MLX models and memory tiers.
+    List the models that are routable right now.
   </Card>
   <Card title="Headers" icon="hash" href="/api/headers">
-    Malibu-specific request and response headers.
+    Request and response headers, including the Malibu-specific ones.
   </Card>
   <Card title="Usage object" icon="chart-column" href="/api/usage-object">
-    Token counts, cached prompt tokens, billing fields.
+    Token counts, cached prompt tokens, daily quota.
   </Card>
   <Card title="Network stats" icon="activity" href="/api/network-stats">
-    Pool size, routing weights, live network metrics.
+    Public pool, routability, and status snapshots.
   </Card>
 </Columns>
 
-The primary buyer-facing endpoint. Wire-shape identical to OpenAI's chat completions API, with a handful of Malibu-specific headers for routing and receipt handling.
+The primary buyer endpoint. The request and response shapes follow OpenAI's chat completions API. Malibu adds a sticky-conversation request header, a provider-attribution response header, and a signed receipt header.
+
+Two translation facades share the same routing, quota, and settlement path: [Responses](/api/responses) (`POST /v1/responses`) and [Anthropic Messages](/api/messages) (`POST /v1/messages`).
 
 ## Endpoint
 
@@ -39,118 +41,141 @@ Standard OpenAI shape:
 
 ```json theme={null}
 {
-  "model": "mlx-community/Qwen3-8B-4bit",
+  "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
   "messages": [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Hello"}
   ],
   "temperature": 0.7,
   "max_tokens": 512,
-  "stream": false,
-  "tools": [...],
-  "tool_choice": "auto",
-  "response_format": { "type": "json_schema", "json_schema": {...} }
+  "stream": false
 }
 ```
 
-Supported fields:
+Accepted fields:
 
-| Field                       | Notes                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------ |
-| `model`                     | Required. Any model listed by `/v1/models`.                                          |
-| `messages`                  | Required. OpenAI shape including `role: "tool"` for tool responses.                  |
-| `temperature`               | 0.0–2.0.                                                                             |
-| `top_p`                     | 0.0–1.0.                                                                             |
-| `max_tokens`                | Per-request cap. Provider-side cap also applies.                                     |
-| `stream`                    | `true` for SSE.                                                                      |
-| `tools` / `tool_choice`     | See [Tool calling](/agentic/tool-calling).                                           |
-| `response_format`           | `json_schema` or `json_object`. See [Structured output](/agentic/structured-output). |
-| `stop`                      | Up to 4 stop sequences.                                                              |
-| `seed`                      | Best-effort determinism; not guaranteed across providers.                            |
-| `logprobs` / `top_logprobs` | Emitted when the underlying provider supports them.                                  |
+| Field                                     | Notes                                                                                                         |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `model`                                   | Required. An `id` from [`/v1/models`](/api/models). Matching is case-insensitive.                             |
+| `messages`                                | Required. OpenAI shape, including assistant `tool_calls` and `role: "tool"` results.                          |
+| `max_tokens`                              | Per-request cap. Values above the gateway limit (currently 4,096) are rejected with `400 max_tokens_exceeded`, not clamped. |
+| `temperature`, `top_p`                    | Forwarded to the provider.                                                                                    |
+| `n`                                       | Accepted for SDK compatibility. Must be `1`; anything else returns `400 n_must_be_1`.                         |
+| `stream`, `stream_options`                | `stream: true` for SSE. The final `usage` chunk is always sent; `stream_options` is accepted for SDK compatibility. |
+| `stop`                                    | Forwarded to the provider.                                                                                    |
+| `presence_penalty`, `frequency_penalty`   | Forwarded to the provider.                                                                                    |
+| `seed`                                    | Best effort. Not guaranteed to be deterministic across providers.                                            |
+| `user`                                    | Forwarded. Opaque to Malibu.                                                                                  |
+| `tools` / `tool_choice`                   | See [Tool calling](/agentic/tool-calling).                                                                    |
+| `response_format`                         | `json_schema` or `json_object`. See [Structured output](/agentic/structured-output).                          |
+| `logprobs`                                | Forwarded. Providers may ignore it, and behavior depends on the model.                                         |
+
+**Content shape.** `system` and `user` messages accept a string or a text-only content array (`[{"type": "text", "text": "..."}]`). The gateway flattens text-only arrays into one string. Image, audio, and other non-text parts are rejected with `400 unsupported_content_shape`.
+
+**Tool-call IDs.** Clients that send non-OpenAI tool-call IDs (`toolu_*`, UUIDs, namespaced IDs) are supported. The gateway rewrites them to a deterministic `call_…` form before routing and keeps each assistant `tool_calls[].id` paired with its `tool_call_id` result.
+
+**Body size.** Request bodies are capped at 1 MiB.
 
 ## Request headers
 
-| Header                                   | Purpose                                                                        |
-| ---------------------------------------- | ------------------------------------------------------------------------------ |
-| `Authorization: Bearer <MALIBU_API_KEY>` | Required                                                                       |
-| `X-Malibu-Conversation`                  | Sticky-affinity tag. See [Sticky conversations](/guides/sticky-conversations). |
-| `X-Malibu-Pin-Provider`                  | Strict pin. See [Pinning](/guides/pinning).                                    |
+| Header                                   | Purpose                                                                                              |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `Authorization: Bearer <MALIBU_API_KEY>` | Required. Keys start with `mp_`.                                                                     |
+| `X-MacProvider-Conversation`             | Optional sticky-conversation tag. See [Sticky conversations](/guides/sticky-conversations).          |
+| `Idempotency-Key`                        | Optional. Resending the same key and body returns `409 idempotency_key_replayed` (the original response is not replayed). The same key with a different body returns `409 idempotency_key_body_mismatch`. |
+| `X-Request-ID`                           | Optional UUID v4. If you omit it, the gateway assigns one. Reusing an ID that was already used returns `409 duplicate_request_id`. |
+
+Full reference: [Headers](/api/headers).
 
 ## Response body
 
-Standard OpenAI shape:
+Standard OpenAI shape. This is a live response from 23 Sep 2026, trimmed:
 
 ```json theme={null}
 {
-  "id": "chatcmpl-...",
+  "id": "chatcmpl-2dce28edf2e049beb55f9315bdf0dd6d",
   "object": "chat.completion",
-  "created": 1720123456,
-  "model": "mlx-community/Qwen3-8B-4bit",
+  "created": 1790138407,
+  "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
   "choices": [
     {
       "index": 0,
-      "message": {
-        "role": "assistant",
-        "content": "Hello! How can I help?",
-        "tool_calls": null
-      },
+      "message": {"role": "assistant", "content": "Hi!"},
       "finish_reason": "stop"
     }
   ],
   "usage": {
-    "prompt_tokens": 12,
-    "completion_tokens": 7,
-    "total_tokens": 19,
-    "cached_prompt_tokens": 0
+    "prompt_tokens": 39,
+    "completion_tokens": 2,
+    "total_tokens": 41,
+    "cached_prompt_tokens": 0,
+    "prompt_tokens_details": {"cached_tokens": 0}
   }
 }
 ```
 
-See [Usage object](/api/usage-object) for `cached_prompt_tokens`.
+See [Usage object](/api/usage-object) for the cache fields.
 
 ## Response headers
 
-| Header              | Purpose                              |
-| ------------------- | ------------------------------------ |
-| `X-Malibu-Provider` | Provider ID that served this request |
-| `X-Malibu-Receipt`  | Ed25519-signed v0.3 receipt          |
+| Header                                   | Purpose                                                                          |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `X-Request-ID`                           | Request identifier. Include it in bug reports and use it to look up receipt metadata. |
+| `X-Provider-Id`                          | Opaque ID of the provider Mac that served the request.                           |
+| `X-MacProvider-Receipt`                  | v0.3 Ed25519-signed receipt on some non-streaming responses (currently roughly a quarter to a third). Never on streams. For the rest, use `GET /v1/receipts`. |
+| `X-MacProvider-Streaming-Mode`           | Streaming responses only: `incremental`, `buffered_kill_switch`, or `buffered_provider_downgrade`. |
+| `X-RateLimit-Limit` / `-Remaining` / `-Reset` | Daily token quota for your account. `-Reset` is a Unix timestamp.           |
+| `X-RateLimit-Limit-Requests` / `-Remaining-Requests` | Per-account concurrency (requests in flight).                          |
 
 Full reference: [Headers](/api/headers).
 
 ## Streaming
 
-Set `stream: true` and consume Server-Sent Events. Each `data:` line is a JSON chunk with a partial `delta`:
+Set `stream: true` and read Server-Sent Events. Each `data:` line carries an OpenAI `chat.completion.chunk`:
 
 ```
-data: {"id":"chatcmpl-...","choices":[{"index":0,"delta":{"content":"Hello"}}]}
-data: {"id":"chatcmpl-...","choices":[{"index":0,"delta":{"content":"!"}}]}
-data: {"id":"chatcmpl-...","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+data: {"object":"chat.completion.chunk","choices":[{"index":0,"delta":{"role":"assistant","content":""}}],...}
+data: {"object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"By"}}],...}
+data: {"object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],...}
+data: {"object":"chat.completion.chunk","choices":[],"usage":{...}}
 data: [DONE]
 ```
 
-The receipt is delivered on the final trailing chunk (or the response trailers) — same signed tuple as non-streaming.
+The final `usage` chunk is always sent, whether or not you set `stream_options.include_usage`.
+
+**Streaming responses never carry a receipt header.** Some non-streaming responses do; for the rest, use `GET /v1/receipts`. See [Signed receipts](/guides/receipts).
+
+If the provider disconnects after the first event has reached you, the stream ends with a `provider_disconnected` error event. A retry is a new, separately metered request. Failover to another provider happens only before any bytes have been sent.
 
 ## Errors
 
-| Status | Meaning                                                                         |
-| ------ | ------------------------------------------------------------------------------- |
-| 400    | Malformed request, unsupported schema feature, cap exceeded                     |
-| 401    | Missing / invalid API key                                                       |
-| 402    | Insufficient quota reserved                                                     |
-| 403    | API key valid but not allowed for this model                                    |
-| 404    | Model not available in the pool right now                                       |
-| 429    | Rate limited                                                                    |
-| 503    | `no_provider_available` — pool empty for this model, or pinned provider offline |
-
-Errors follow OpenAI's error shape:
+Errors use OpenAI's envelope plus a `retryable` boolean:
 
 ```json theme={null}
 {
   "error": {
-    "message": "no provider available for model 'mlx-community/…'",
-    "type": "no_provider_available",
-    "code": "no_provider_available"
+    "message": "No provider has advertised the requested model",
+    "type": "invalid_request_error",
+    "code": "model_not_found",
+    "param": null,
+    "retryable": false
   }
 }
 ```
+
+Honor `retryable`. When it is `true`, the same request can succeed later without changes, and `Retry-After` or `X-RateLimit-Reset*` headers tell you how long to wait.
+
+| Status | Common `code` values                                                                                      |
+| ------ | --------------------------------------------------------------------------------------------------------- |
+| 400    | `invalid_request`, `max_tokens_exceeded`, `n_must_be_1`, `unsupported_content_shape`, `invalid_conversation_tag`, `ambiguous_credentials` |
+| 401    | `missing_bearer_token`, `invalid_api_key`                                                                 |
+| 403    | `api_key_revoked`, `account_blocked`                                                                      |
+| 404    | `model_not_found`: no connected provider advertises that model                                            |
+| 409    | `duplicate_request_id`, `idempotency_key_replayed`, `idempotency_key_body_mismatch`                       |
+| 413    | `request_too_large`                                                                                       |
+| 429    | `quota_exhausted` (daily token quota), `account_request_rate_exceeded`, `account_concurrency_exceeded`, `provisional_quota_exceeded` (every eligible provider is a provisional provider that has used its quota) |
+| 502    | `upstream_provider_error`, `invalid_provider_response` (retryable)                                        |
+| 503    | `no_provider_available` (the model is known but no slot freed within the short queue window), `public_api_paused` |
+| 504    | `provider_timeout`                                                                                        |
+
+Streaming errors after headers are sent arrive as an SSE `data:` frame that holds the same error object, followed by `data: [DONE]`.

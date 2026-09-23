@@ -1,58 +1,80 @@
 ---
 title: Network stats
-description: Operator observability on the network — pool health, throughput, public snapshot.
+description: The public network snapshot — pool size, volume, capacity estimates, and routability.
 icon: gauge
 ---
 
 # Network stats
 
-> Operator observability on the network — pool health, throughput, public snapshot.
+> The public network snapshot: pool size, volume, capacity estimates, and routability.
 
-The public snapshot that powers [malibu.tech/network](https://malibu.tech/network) is:
+The public snapshot behind [malibu.tech/network](https://malibu.tech/network) is:
 
 ```
 GET https://api.malibu.tech/v1/stats/overview
 ```
 
-Same payload on `https://malibu.tech/v1/stats/overview`. Buyer API reference: [API → Network stats](/api/network-stats). `GET /v1/network-stats` is a compatibility alias for the same overview body.
+No authentication is needed. `GET https://api.malibu.tech/v1/network-stats` is a compatibility alias that returns the same body. Buyer API reference: [API → Network stats](/api/network-stats).
 
-## What's tracked (public)
+The gateway caches the snapshot for 30 seconds and limits each client IP to 60 requests per minute per path. `stale_after` is `generated_at` plus 30 seconds.
 
-| Signal | How it's counted |
+## Top-level shape
+
+| Key | Contents |
 | --- | --- |
-| `nodes_online` | Providers with an active connection at snapshot time |
-| `models_serving` | Distinct models advertised warm |
-| `requests_total` / `tokens_*_total` | Lifetime billed volume on this surface |
-| `nodes_hardware_attested` | Hardware-attested providers — **0** until that gate ships |
-| `timeseries.rpm_30m` | Requests per minute, 60 s buckets |
+| `generated_at`, `stale_after` | Snapshot time and freshness bound (RFC 3339) |
+| `network` | Pool, volume and capacity metrics (below) |
+| `timeseries` | `rpm_30m` and `tpm_30m` |
+| `idle_prewarm` | Idle model-prewarm telemetry (`pool_pct_with_b1_active`, `skips_by_reason_last_1h`) |
 
-Snapshot cadence is about 30 seconds (`stale_after` in the body).
+## `network` fields
+
+| Field | How it's counted |
+| --- | --- |
+| `nodes_online` | Connected providers that are ready or busy and pass the serving checks. A free seat is not required. |
+| `nodes_hardware_attested` | Online providers with hardware-rooted Apple managed device attestation. A Secure Enclave key on its own does not count. It has no effect on routing or settlement. |
+| `models_serving` | Distinct model ids across online providers |
+| `requests_total` | Distinct requests with a non-faulted ledger row, all time |
+| `tokens_in_total` / `tokens_out_total` | Prompt and completion tokens on those rows, all time |
+| `tokens_served_total` | `tokens_in_total + tokens_out_total` |
+| `avg_tokens_per_request` | `tokens_served_total ÷ requests_total`, rounded down |
+| `network_utilization_pct` | Busy seats as a percentage of all advertised seats, capped at 100 |
+| `unified_ram_gb_total` | Sum of reported unified memory |
+| `bandwidth_gb_per_s`, `network_power_kw`, `gpu_cores_total`, `cpu_cores_total` | **Estimates** from hardware profiles or provider-reported summaries |
+| `capacity_estimate_sources` | Names the source of each capacity figure, so estimates are labelled in the payload |
+
+## `timeseries`
+
+| Series | Buckets | Point shape |
+| --- | --- | --- |
+| `rpm_30m` | 60 s, last 30 minutes | `{ "t", "value" }`; `value` is `null` for a bucket with no data |
+| `tpm_30m` | 60 s, last 30 minutes | `{ "t", "input_tokens", "output_tokens" }` |
+
+## Routability views
+
+For per-model and per-provider detail, with providers under anonymous per-snapshot aliases:
+
+* `GET https://api.malibu.tech/v1/stats/routability`
+* `GET https://api.malibu.tech/v1/stats/models`
+* `GET https://api.malibu.tech/v1/stats/providers`
+
+Field definitions: [Reputation → Public routability snapshot](/network/reputation#public-routability-snapshot).
 
 ## Warm models vs rate card vs catalog
 
-These three lists are not the same:
+These three lists are different:
 
 | Surface | What it shows |
 | --- | --- |
-| `GET https://api.malibu.tech/v1/models` (Bearer) | Models with **at least one warm provider right now** |
-| `GET https://api.malibu.tech/v1/rate-card` | Models the network **will bill** (eligible pricing rows) |
-| Signed catalog feed | Models providers **may load** (hash, RAM tier, templates) |
+| `GET https://api.malibu.tech/v1/models` (bearer) | Models with **at least one routable provider right now** |
+| `GET https://api.malibu.tech/v1/rate-card` | Models the network **will bill** (signed pricing rows) |
+| Signed catalog feed | Models providers **may load** (hash, RAM tier, benchmark gates) |
 
-A rate-card row can exist with zero warm providers. Buyer requests then fail until a Mac loads that model.
+A model can have a rate-card row and no provider online. Requests for it return `404 model_not_found` until a Mac loads that model.
 
 ## Receipts and settlement
 
-Receipt validity still drives [verified model settlement](/operations/verified-model-settlement). The public stats overview does **not** currently publish `valid_rate_last_24h`. Operators still have per-provider receipt views internally.
-
-## Provider-level breakdown
-
-Not exposed on the public snapshot. Operator dashboards can drill to:
-
-* Uptime last 24 h / 7 d
-* Requests served, faults, receipt validity
-* Current model, RAM tier, autoupdate status
-* Last-heartbeat delta
-* Provisional vs pinned routing weight
+Receipt verdicts drive [verified model settlement](/operations/verified-model-settlement). The overview does **not** publish a receipt validity rate. The per-provider routability view reports only whether each provider's receipt key is on record.
 
 ## Changelog
 
@@ -60,6 +82,6 @@ Semantic changes to the public stats payload are noted in the [docs changelog](/
 
 ## Related
 
-* [Reputation](/network/reputation) — how per-provider signals surface publicly
-* [Metering & billing](/network/metering-and-billing) — how "billed request" is defined
-* [Verified model settlement](/operations/verified-model-settlement) — how receipt validity affects settlement
+* [Reputation](/network/reputation): tiers and the public routability snapshot
+* [Metering & billing](/network/metering-and-billing): how a billed request is defined
+* [Verified model settlement](/operations/verified-model-settlement): how receipt verdicts affect settlement

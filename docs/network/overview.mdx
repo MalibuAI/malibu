@@ -20,47 +20,54 @@ icon: network
   </Card>
 </Columns>
 
-Malibu is three moving parts: **providers** (Apple Silicon Macs running MLX), a **coordinator** (routing and billing), and a **gateway** (OpenAI-compatible API surface for buyers).
+Malibu has three moving parts:
+
+* **Providers** are Apple Silicon Macs running MLX.
+* The **coordinator** handles provider admission, routing, the credit ledger and settlement.
+* The **gateway** at `api.malibu.tech` is the OpenAI-compatible API buyers call.
+
+It is a coordinated inference network. Buyers never connect to provider Macs directly.
 
 ```
 Provider Mac (MLX)
-  └── outbound WS ──▶ Malibu
-                      (pool · routing · billing)
-                             │
-               ┌─────────────┴─────────────┐
-               │                           │
-    api.malibu.tech/v1            malibu.tech/console
-    (OpenAI-compatible)               (web front end)
+  └── outbound WSS ──▶ Malibu coordinator
+                        (pool · routing · ledger · settlement)
+                               │
+                 ┌─────────────┴─────────────┐
+                 │                           │
+      api.malibu.tech/v1            malibu.tech/console
+      (OpenAI-compatible)               (web front end)
 ```
 
 ## Data path
 
-1. Buyer sends `POST /v1/chat/completions` to `api.malibu.tech` with an OpenAI-shape request.
-2. Gateway authenticates the buyer, reserves quota, and forwards to the coordinator.
-3. Coordinator picks a provider from the pool based on routing weights (see [Discovery & routing](/network/discovery-and-routing)).
-4. Coordinator forwards the request over the provider's outbound WebSocket.
-5. Provider Mac runs MLX inference and streams tokens back.
-6. Coordinator records the billed request and returns the OpenAI-shape response to the gateway.
-7. Gateway attaches `X-Malibu-Provider`, `X-Malibu-Receipt`, and returns to the buyer.
+1. The buyer sends `POST /v1/chat/completions` to `https://api.malibu.tech/v1` with an OpenAI-shaped request.
+2. The gateway authenticates the API key, reserves tokens against the account's daily quota, and forwards the request to the coordinator.
+3. The coordinator picks a provider that has a free serving seat for that model. If the request carries a sticky conversation tag (`X-MacProvider-Conversation`), the provider that served the earlier turn is preferred, but the preference only wins when that provider is also the top-ranked choice (see [Discovery & routing](/network/discovery-and-routing)).
+4. The coordinator sends the request down that provider's outbound WebSocket.
+5. The provider Mac runs MLX inference, streams tokens back, and finishes with a signed receipt.
+6. The coordinator writes the ledger row, settles against the receipt, and returns the OpenAI-shaped response to the gateway.
+7. The gateway returns the response to the buyer. It adds `X-Provider-Id` (the serving provider) and, when one is available, a buyer-visible receipt header (see [Receipts](/network/receipts)).
 
 ## Components
 
-| Component     | Host                      | Purpose                                                               |
-| ------------- | ------------------------- | --------------------------------------------------------------------- |
-| Coordinator   | `coordinator.malibu.tech` | Provider admission, request routing, billing ledger, epoch settlement |
-| Gateway       | `api.malibu.tech`         | Buyer auth, OpenAI-compatible surface, receipt forwarding             |
-| Console       | `malibu.tech/console`     | Buyer-facing chat + pool dashboard                                    |
-| Provider Macs | anywhere                  | MLX inference, outbound WebSocket to coordinator                      |
+| Component     | Where                 | Purpose                                                                              |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------ |
+| Gateway       | `api.malibu.tech`     | Buyer auth, daily token quota, OpenAI-compatible surface, public stats and rate card |
+| Coordinator   | Operated by Malibu    | Provider admission, routing, credit ledger, receipt verification, settlement         |
+| Console       | `malibu.tech/console` | Buyer chat and API keys                                                              |
+| Provider Macs | Anywhere              | MLX inference over an outbound WebSocket to the coordinator                          |
 
 ## Trust posture
 
-* **Provider Macs** hold their own model weights and signing keys. They never expose an inbound port.
-* **Coordinator** sees prompts and responses (needed for routing and billing) but does not hold model weights.
-* **Gateway** sees the same, plus buyer identity.
-* **Buyers** verify receipts offline against the provider's public key resolved through `/v1/receipt-keys/{provider_id}`.
+* **Provider Macs** hold their own model weights and receipt signing keys. They never open an inbound port.
+* **The coordinator** sees prompts and responses in plaintext, because it routes and meters them. It does not hold model weights.
+* **The gateway** sees the same, plus buyer identity.
+* **Provider Macs** process prompts in plaintext too. Encryption that hides requests from the relay exists only as a default-off pilot.
+* **Buyers** can read the live trust posture from the `tier1_disclosure` object in `GET /v1/models`. See [Trust disclosure](/network/trust-disclosure).
 
 Full trust boundary: [Security & trust model](/network/security).
 
 ## Provider onboarding
 
-New public installs join as **provisional providers** — lower routing weight, capped pool size. The operator promotes them to **pinned** after observed pool stability and uptime. No inbound port-forwarding is required on the provider Mac. See [Payments & payouts](/guides/payments) for the tier semantics.
+A new public install joins as a **provisional** provider. Provisional providers get a lower routing weight and an hourly request quota. A provider moves to **trusted** when the network's trust evaluation finds a qualifying pair of criteria (for example verified work plus 72 hours of continuous uptime, or an operator promotion approved by two separate operator keys) and the provider holds a valid token and custody proof. No inbound port-forwarding is needed on the provider Mac. See [Reputation](/network/reputation) for how tiers affect routing.

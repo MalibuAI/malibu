@@ -1,0 +1,88 @@
+---
+title: Responses
+description: POST /v1/responses — a stateless OpenAI Responses facade over chat completions.
+icon: arrow-right-left
+---
+
+# Responses
+
+> POST /v1/responses — a stateless OpenAI Responses facade over chat completions.
+
+`POST /v1/responses` accepts the OpenAI Responses request shape and translates it into a [chat completion](/api/chat-completions). It then translates the result back into a Responses `response` object or Responses SSE events. Routing, quota, sticky conversations, and settlement are the same as for `/v1/chat/completions`.
+
+The facade is **stateless**. Send the full conversation in `input` on every call.
+
+## Endpoint
+
+```
+POST https://api.malibu.tech/v1/responses
+Authorization: Bearer <MALIBU_API_KEY>
+Content-Type: application/json
+```
+
+## Example
+
+```python theme={null}
+from openai import OpenAI
+
+client = OpenAI(base_url="https://api.malibu.tech/v1", api_key="<your-malibu-api-key>")
+
+resp = client.responses.create(
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
+    instructions="Answer in one sentence.",
+    input="What is unified memory on Apple Silicon?",
+    max_output_tokens=128,
+    store=False,
+)
+print(resp.output_text)
+```
+
+Response shape. This one is a live 23 Sep 2026 response to the prompt `Say hi`, trimmed:
+
+```json theme={null}
+{
+  "id": "resp_chatcmpl-f3f3409e8f42464ba2bdec2986d0a774",
+  "object": "response",
+  "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+  "output": [
+    {
+      "type": "message",
+      "role": "assistant",
+      "status": "completed",
+      "content": [{"type": "output_text", "text": "Hello!", "annotations": []}]
+    }
+  ],
+  "previous_response_id": null
+}
+```
+
+## Supported request fields
+
+| Field | Translation |
+| --- | --- |
+| `model` | Required. Same IDs as [`/v1/models`](/api/models). |
+| `input` | Required. A string, or a list of message items plus `function_call` / `function_call_output` items. |
+| `instructions` | Becomes a leading `system` message. |
+| `max_output_tokens` | Becomes `max_tokens`. The same 4,096 cap applies. |
+| `stream` | Emits Responses SSE events: `response.created`, `response.output_text.delta`, `response.function_call_arguments.delta`, `response.completed`, and so on. |
+| `tools` | Function tools are passed through. `namespace` tools are flattened into functions. Hosted tools that cannot run on a provider are dropped. |
+| `tool_choice` | `auto`, `none`, `required`, or a named function tool. |
+| `text.format` | `text`, `json_object`, or `json_schema` (requires `name` and `schema`). |
+| `parallel_tool_calls`, `temperature`, `top_p`, `user` | Passed through. |
+
+## Rejected
+
+These return `400` with `code: "unsupported_parameter"` and a `param` naming the field:
+
+* `previous_response_id`, `conversation`, and `store: true`. There is no server-side state, so send the full `input`.
+* `background: true`.
+* `truncation` other than `"disabled"`.
+* `response_format`. Use `text.format` instead.
+
+Image, file, or audio input items, and built-in tool call items (web search, file search, computer use, code interpreter, MCP), are also rejected, but with `400 invalid_request` and `param: null`.
+
+## Notes
+
+* Receipts: the translated body is not an OpenAI chat-completions body, so the receipt verifier's bundle mode does not apply to it. Use `/v1/chat/completions` for receipts you plan to verify. Offline verification of current receipts is pending a verifier update. See [Signed receipts](/guides/receipts).
+* Sticky conversations work the same way. Send `X-MacProvider-Conversation`. See [Sticky conversations](/guides/sticky-conversations).
+* Errors use the OpenAI error envelope with `retryable`. See [Chat completions → Errors](/api/chat-completions#errors).

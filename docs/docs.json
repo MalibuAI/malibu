@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Malibu",
-  "description": "Distributed Apple Silicon inference network — verifiable, OpenAI-compatible, USDC-settled.",
+  "description": "Distributed Apple Silicon inference network — OpenAI-compatible, with receipt-verified settlement.",
   "colors": {
     "primary": "#143A45",
     "light": "#F76B57",
@@ -65,6 +65,8 @@
         "group": "Buyers",
         "pages": [
           "api/chat-completions",
+          "api/responses",
+          "api/messages",
           "api/models",
           "api/headers",
           "api/usage-object",
@@ -100,6 +102,7 @@
         "pages": [
           "network/overview",
           "network/security",
+          "network/trust-disclosure",
           "network/threat-model",
           "network/receipts",
           "network/toploc",

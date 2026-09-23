@@ -3,7 +3,7 @@
 **Published site:** [malibu.tech/docs](https://www.malibu.tech/docs)  
 **Mintlify source:** [`docs/`](../docs/) (`docs.json` + MDX pages)  
 **Production:** Vercel static export → `dist/docs/` (see `scripts/build-docs.mjs`)  
-**Last updated:** August 2026
+**Last updated:** 23 September 2026
 
 This document defines how Malibu docs are organized, what each lane is for, and how to keep the Litepaper ambitious without letting it impersonate the shipped-features ledger.
 
@@ -37,12 +37,12 @@ Visitors open `/docs` to understand **what Malibu is about** — not to read a j
 /docs/api/...                  → API reference
 /docs/network/...              → architecture, trust, billing, transport
 /docs/guides/...               → task-oriented how-tos
-/docs/cli/...                  → provider binary + malibu-verify
+/docs/cli/...                  → provider CLI (malibu-cli) + receipt verifier (macprovider-verify)
 /docs/agentic/...              → tool calling, structured output, buyer validation
 /docs/operations/...           → catalog, settlement, network stats (operator)
-/docs/status                   → shipped vs planned ledger (to be added)
-/docs/roadmap                  → milestone timeline (to be added)
-/docs/changelog                → API + docs changelog (to be added)
+/docs/status                   → shipped vs planned ledger
+/docs/roadmap                  → milestone timeline
+/docs/changelog                → API + docs changelog
 ```
 
 `llms.txt` should continue to list Litepaper first. Do not relocate Litepaper to `/vision` or demote it below Getting Started.
@@ -70,32 +70,44 @@ Visitors open `/docs` to understand **what Malibu is about** — not to read a j
 ## Sidebar navigation (Litepaper-first)
 
 ```
-DOCS
-├── Litepaper                         ← default; no parent group
-├── ─────────────────
+DOCS  (mirrors docs/docs.json navigation groups)
+├── Litepaper                         ← default opening page
 ├── Getting started
-│   ├── Introduction
-│   ├── Download Malibu
-│   ├── Agent-readable onboarding
-│   └── Get an API key
-├── API reference
+│   ├── getting-started/introduction
+│   ├── getting-started/download-malibu
+│   ├── getting-started/agent-onboarding
+│   └── getting-started/api-key
+├── Buyers
+│   ├── api/chat-completions, api/responses, api/messages, api/models,
+│   │   api/headers, api/usage-object, api/network-stats
+│   ├── guides/openai-sdk, guides/receipts, guides/sticky-conversations,
+│   │   guides/pinning, guides/pricing-comparison,
+│   │   guides/tool-calling-and-structured-output
+│   └── agentic/tool-calling, agentic/structured-output,
+│       agentic/buyer-side-validation
+├── Providers
+│   ├── guides/payments, guides/economics, guides/provider-economics
+│   ├── cli/malibu-cli, cli/malibu-verify, cli/headless-install,
+│   │   cli/flags-and-config
+│   └── operations/model-catalog, operations/verified-model-settlement,
+│       operations/provider-autoupdate
 ├── Network & trust
-│   ├── Overview
-│   ├── Security & trust model        ← canonical for proof boundaries
-│   ├── Receipts
-│   ├── Metering & billing
-│   └── Discovery & routing
-├── Guides
-├── CLI reference
-├── Agentic tooling
-├── Operations
-├── ─────────────────
-├── Network status                    ← ledger (not homepage)
-├── Roadmap
-└── Changelog
+│   ├── network/overview, network/security ← canonical for proof boundaries
+│   ├── network/trust-disclosure ← live tier1_disclosure fields
+│   ├── network/threat-model, network/receipts, network/toploc,
+│   │   network/benchmarks-and-methodology, network/glossary
+│   ├── network/metering-and-billing, network/discovery-and-routing,
+│   │   network/transport, network/reputation
+│   └── operations/network-stats
+├── Guides index
+│   └── guides/index
+└── Ledger
+    ├── status                        ← ledger (not homepage)
+    ├── roadmap
+    └── changelog
 ```
 
-Litepaper is the only top-level item without a section header. Everything else is reference or ledger.
+Litepaper opens the docs. Everything else is reference or ledger. If this tree and `docs/docs.json` disagree, `docs.json` wins.
 
 ---
 
@@ -109,17 +121,27 @@ Inline labels wherever a bullet spans live marketplace and planned protocol:
 
 | Label | Meaning |
 |-------|---------|
-| `Live` | Running in production today |
-| `Beta` | Shipped but limited / operator-gated |
+| `Live` | Running in production today; a parenthetical such as (partial) narrows the scope |
+| `Beta` | Shipped but limited / experimental / operator-gated |
+| `Preview` | Visible but not yet functional for its end use |
+| `Pending` | Shipped but not working today until an update lands |
+| `Default-off` | Built and shipped in code, disabled in production |
+| `Off` | Built and switched off until a stated milestone |
+| `Prototype` | Research code; not production-integrated |
+| `Planned` | Not built or not released |
 | `Planned v0` | Token / mining launch milestone |
 | `Planned v1` | Buyer marketplace / TOPLOC milestone |
+| `Planned v2` | Decentralization milestone |
+| `Not available` | Not offered |
+
+Keep this table identical to the legend on `docs/status.mdx` and the glossary's status-labels table.
 
 Examples:
 
-- Signed receipts v0.3 → `Live`
+- Signed receipts: v0.4 settlement receipts → `Live`; buyer-visible v0.3 header → `Live` (partial)
 - Coordinator + gateway inference path → `Live`
 - 90% provider credit share → `Live`
-- USDC-on-Base payout → `Planned (beta)`
+- USDC-on-Base payout → `Planned (beta)` (pipeline built, off)
 - $MALIBU emission, burn-and-mint (70/12/18) → `Planned v0`
 - TOPLOC per-request verification → `Planned v1`
 - On-chain reserves floor → `Planned v0`
@@ -237,12 +259,12 @@ API field additions, receipt version bumps, docs semantic changes. Mirror `Depre
 ### Phase B — Evidence supports the story (2–4 weeks)
 
 - [x] Benchmarks & methodology page (PoMW vs inference, footnoted)
-- [x] Pricing comparison page (rate card vs anchors, dated) — OpenRouter snapshot 16 Aug 2026
-- [x] Provider economics appendix (assumptions, duty cycle, token scenarios)
+- [x] Pricing comparison page (rate card vs anchors, dated) — OpenRouter snapshot 23 Sep 2026
+- [x] Provider economics appendix (assumptions, duty cycle)
 - [x] Canonical [Economics](../docs/guides/economics.mdx) page (90/10 live vs 70/12/18 planned)
 - [x] Threat model page under Network & trust
 - [x] TOPLOC integration page (`Planned v1` until live)
-- [x] Live public snapshot: `GET https://malibu.tech/v1/stats/overview` on status + API pages
+- [x] Live public snapshot: `GET https://api.malibu.tech/v1/stats/overview` on status + API pages
 
 ### Phase C — IA polish (4–6 weeks)
 
@@ -282,7 +304,7 @@ API field additions, receipt version bumps, docs semantic changes. Mirror `Depre
 |-----|-------|
 | [`docs/litepaper.mdx`](../docs/litepaper.mdx) | Published narrative (Mintlify source) |
 | [`roadmap.md`](../roadmap.md) | Console product roadmap (buyer UI) |
-| [`mining-prototype-phase1-results.md`](../mining-prototype-phase1-results.md) | PoMW benchmark evidence |
-| [`whitepaper/research/`](../whitepaper/research/) | Research, critiques, threat-model briefs |
+| [`docs/network/benchmarks-and-methodology.mdx`](../docs/network/benchmarks-and-methodology.mdx) | PoMW benchmark evidence (published summary) |
+| [`docs/network/threat-model.mdx`](../docs/network/threat-model.mdx) | Threat model |
 
 Console product roadmap and docs architecture are complementary: roadmap tracks `malibu.tech/console`; this doc tracks `malibu.tech/docs`.

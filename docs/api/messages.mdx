@@ -1,0 +1,94 @@
+---
+title: Messages (Anthropic-compatible)
+description: POST /v1/messages — an experimental Anthropic Messages facade over chat completions.
+icon: messages-square
+---
+
+# Messages (Anthropic-compatible)
+
+> POST /v1/messages — an experimental Anthropic Messages facade over chat completions.
+
+`POST /v1/messages` accepts a subset of the Anthropic Messages API and translates it into a [chat completion](/api/chat-completions). It returns an Anthropic `message` object, or Anthropic SSE events when streaming. Routing, quota, sticky conversations, and settlement are the same as for `/v1/chat/completions`.
+
+<Warning>
+  **Experimental.** The facade covers the wire subset listed below. It is not certified as fully compatible with Claude Code, the Claude Agent SDK, or the Anthropic SDKs. Test your client before relying on it. Models on Malibu are open-weight MLX models, not Claude.
+</Warning>
+
+## Endpoint
+
+```
+POST https://api.malibu.tech/v1/messages
+Authorization: Bearer <MALIBU_API_KEY>      # or: X-Api-Key: <MALIBU_API_KEY>
+Content-Type: application/json
+```
+
+`X-Api-Key` is accepted as an alternative to `Authorization`. Send one or the other. Two different credentials in one request return `400 ambiguous_credentials`.
+
+## Example
+
+```python theme={null}
+import anthropic
+
+client = anthropic.Anthropic(base_url="https://api.malibu.tech", api_key="<your-malibu-api-key>")
+
+msg = client.messages.create(
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
+    max_tokens=256,
+    system="Answer briefly.",
+    messages=[{"role": "user", "content": "Say hi"}],
+)
+print(msg.content[0].text)
+```
+
+The Anthropic SDK appends `/v1/messages` itself, so set `base_url` to `https://api.malibu.tech` without `/v1`.
+
+Response (live, 23 Sep 2026):
+
+```json theme={null}
+{
+  "id": "msg_chatcmpl-9f5ff543f8fa4125a3fe382c26b23ae9",
+  "type": "message",
+  "role": "assistant",
+  "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+  "content": [{"type": "text", "text": "Hello!"}],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {"input_tokens": 39, "output_tokens": 2}
+}
+```
+
+## Supported request fields
+
+* `model` (same IDs as [`/v1/models`](/api/models)) and `max_tokens` (same 4,096 cap)
+* `system`, as a string or text-only content blocks
+* `messages[]` with user and assistant text blocks, assistant `tool_use`, and user `tool_result`
+* `tools[]` with `input_schema`, and `tool_choice`
+* `stream`, which emits `message_start`, `content_block_start` / `_delta` / `_stop`, `message_delta`, and `message_stop`. Tool arguments stream as `input_json_delta`.
+* `stop_sequences`, `temperature`, `top_p`
+
+## Rejected
+
+These are rejected before any quota is reserved, with an Anthropic-shaped error that carries `code` and `retryable`:
+
+* image, document, or file content blocks, and unknown block types
+* server tools
+* `Anthropic-Beta` headers or beta body fields
+* `thinking` and `top_k`
+
+## Errors
+
+Errors use Anthropic's envelope, extended with Malibu's `code` and `retryable` fields:
+
+```json theme={null}
+{
+  "type": "error",
+  "error": {
+    "type": "authentication_error",
+    "message": "Missing bearer token",
+    "code": "missing_bearer_token",
+    "retryable": false
+  }
+}
+```
+
+Streaming errors arrive as an SSE `event: error` frame with the same object. The status codes and `code` values match [Chat completions → Errors](/api/chat-completions#errors).

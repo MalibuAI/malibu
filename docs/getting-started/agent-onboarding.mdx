@@ -30,7 +30,11 @@ The skill covers:
 * **Uninstall** via the published uninstaller (inspect, dry-run, then remove)
 * **Buyer SDK** — point any OpenAI-compatible client at `https://api.malibu.tech/v1`
 
-Discovery index: `https://get.malibu.tech/.well-known/skills/index.json`
+Discovery index: `https://get.malibu.tech/.well-known/skills/index.json`. Each entry lists the skill URL and the SHA-256 of its content, so an agent can check that the file it fetched is the published one.
+
+Short aliases: `https://malibu.tech/skill.md` and `https://malibu.tech/.well-known/skills/index.json` redirect to the URLs above. For site-level discovery, `https://malibu.tech/llms.txt` links the skill, these docs, and the litepaper.
+
+The skill only runs read-only diagnostics on its own. It asks before any mutating step (update, uninstall, credential changes), and it never prints tokens, API keys, or raw logs into the chat.
 
 ## Invite still required
 
@@ -39,6 +43,8 @@ Fresh provider registration is invite-gated. The skill can install the CLI; it c
 ## Buyer path
 
 If you only need the API, the skill's buyer section is enough: GitHub OAuth for a key, then the OpenAI SDK against `api.malibu.tech/v1`. Full patterns: [Using Malibu with the OpenAI SDK](/guides/openai-sdk).
+
+Building a coding agent on top of Malibu? Use a Qwen-family model for multi-turn tool loops. See [Tool calling](/agentic/tool-calling) for supported models, and validate every tool call before it runs ([Buyer-side validation](/agentic/buyer-side-validation)).
 
 ## Related
 

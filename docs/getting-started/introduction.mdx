@@ -20,7 +20,7 @@ icon: compass
   </Card>
 </Columns>
 
-Malibu is a coordinated inference network built on Apple Silicon — distributed providers, centralized routing and billing. Providers run open-source models on their Macs; buyers hit an OpenAI-compatible API and get responses back with a signed receipt binding `(prompt, output, model, provider)`. Verifiable inference, without a datacenter. What's live vs planned: [Network status](/status).
+Malibu is a coordinated inference network built on Apple Silicon — distributed providers, centralized routing and billing. Providers run open-source models on their Macs. Buyers call an OpenAI-compatible API. A buyer is charged only when a signed receipt binds `(prompt, output, model, provider)`. Verifiable inference, without a datacenter. What's live vs planned: [Network status](/status).
 
 ## Architecture
 
@@ -35,13 +35,13 @@ Provider Mac (MLX)
     (OpenAI-compatible)                (web front end)
 ```
 
-Provider Macs connect **outbound** to `wss://coordinator.malibu.tech/ws/provider` — no port-forwarding, no static IP, no reverse proxy. Buyers hit `https://api.malibu.tech/v1/*` and get OpenAI wire-shape responses. Every response also carries an `X-Malibu-Receipt` header signed with the provider's Ed25519 receipt key.
+Provider Macs open an **outbound** WebSocket to Malibu, so you need no port forwarding, static IP, or reverse proxy. Buyers call `https://api.malibu.tech/v1/*` and get OpenAI wire-shape responses. Some non-streaming responses carry a v0.3 receipt in the `X-MacProvider-Receipt` header, signed with the provider's Ed25519 receipt key (currently roughly a quarter to a third); streams never do. For the rest, use `GET /v1/receipts`. Separately, paid requests settle against signed receipts checked by the network. See [Verified model settlement](/operations/verified-model-settlement).
 
 Public pool snapshot: `GET https://api.malibu.tech/v1/stats/overview`. Rate card: `GET https://api.malibu.tech/v1/rate-card`.
 
 ## For providers
 
-Apple Silicon (M1 or newer, macOS 14+) can serve. The **Malibu app** handles onboarding: invite, model match, GitHub sign-in. New Macs start **provisional** and may be promoted to **pinned**. Every billed request produces credits at **90%** provider share. USDC-on-Base payout ships at public beta.
+Any Apple Silicon Mac (M1 or newer, macOS 14+) can serve. The **Malibu app** handles onboarding: you paste your invite, and it installs the provider, benchmarks the Mac, and picks the best paid model that fits. New Macs start **provisional** and can move to **trusted** once they meet the network's trust criteria. Each verified, billed request credits the provider **90%** of the billed amount. USDC-on-Base payout is planned for public beta; it is not live in pre-beta.
 
 * [Download Malibu](/getting-started/download-malibu)
 * [Agent-readable onboarding](/getting-started/agent-onboarding)
@@ -50,7 +50,7 @@ Apple Silicon (M1 or newer, macOS 14+) can serve. The **Malibu app** handles onb
 
 ## For buyers
 
-Point any OpenAI SDK client at `https://api.malibu.tech/v1` with your Malibu API key. Full OpenAI wire-shape surface: streaming, multi-turn tool calling, JSON-schema structured output, sticky conversations with prefix-cache reuse. Every response carries a signed receipt. List **warm** models with a Bearer token (`GET /v1/models`) — the list is small and changes. Console chat at [malibu.tech/console](https://malibu.tech/console) includes agent tools, stop, and per-stream decode tok/s.
+Point any OpenAI SDK client at `https://api.malibu.tech/v1` with your Malibu API key. Full OpenAI wire-shape surface: streaming, multi-turn tool calling, JSON-schema structured output, sticky conversations with prefix-cache reuse. Settlement is receipt-verified, and some non-streaming responses also carry a signed receipt header; offline verification of current receipts is pending a verifier update. List **warm** models with a Bearer token (`GET /v1/models`) — the list is small and changes. Console chat at [malibu.tech/console](https://malibu.tech/console) includes agent tools, stop, and per-stream decode tok/s.
 
 Emitted `tool_calls[]` are model output. Validate before execution: [Buyer-side validation](/agentic/buyer-side-validation).
 

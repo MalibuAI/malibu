@@ -1,112 +1,173 @@
 ---
 title: Tool calling
-description: Multi-turn OpenAI-shape tool loops. Cline drop-in.
+description: Multi-turn OpenAI-shape tool loops on Qwen-family models. Cline drop-in.
 icon: wrench
 ---
 
 # Tool calling
 
-> Multi-turn OpenAI-shape tool loops. Cline drop-in.
+> Multi-turn OpenAI-shape tool loops on Qwen-family models. Cline drop-in.
 
-Malibu ships a multi-turn OpenAI-compatible tool-calling surface for Qwen 2.5 and Llama 3.3 chat templates. First-turn emission, second-turn `role: "tool"` acceptance, and assistant-history rendering all work. Anchor framework: [Cline](https://github.com/cline/cline) — Malibu is a drop-in target with no configuration beyond the OpenAI base URL.
+Malibu speaks OpenAI-compatible tool calling on `/v1/chat/completions`. It supports first-turn `tool_calls[]`, `role: "tool"` results sent back on later turns, assistant tool-call history, and streamed tool-call deltas. The agent loop runs on your machine. The provider Mac only turns the model's native tool-call markup into OpenAI's `tool_calls[]` shape. It never runs your tools. Anchor framework: [Cline](https://github.com/cline/cline). Point its OpenAI-compatible provider at the Malibu base URL and pick a Qwen-family model.
 
-## Single-turn: emitting a tool call
-
-```python theme={null}
-resp = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
-    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
-    tools=[
-        {
-            "type": "function",
-            "function": {
-                "name": "get_weather",
-                "description": "Get the current weather for a city",
-                "parameters": {
-                    "type": "object",
-                    "properties": {"city": {"type": "string"}},
-                    "required": ["city"],
-                },
-            },
-        }
-    ],
-)
-
-for call in resp.choices[0].message.tool_calls or []:
-    print(call.function.name, call.function.arguments)  # JSON-encoded string
-```
-
-`function.arguments` is a JSON-encoded string per OpenAI's wire shape — `json.loads(call.function.arguments)` to get a dict.
-
-## Multi-turn: feeding the result back
-
-After you execute the tool locally, feed the result back with `role: "tool"` and the matching `tool_call_id`:
-
-```python theme={null}
-first = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
-    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
-    tools=[...],
-)
-call = first.choices[0].message.tool_calls[0]
-
-# Execute the tool locally — with your own validation!
-result = my_get_weather(city=json.loads(call.function.arguments)["city"])
-
-# Continue the conversation
-second = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
-    messages=[
-        {"role": "user", "content": "What's the weather in Vilnius?"},
-        first.choices[0].message.model_dump(),
-        {
-            "role": "tool",
-            "tool_call_id": call.id,
-            "content": json.dumps(result),
-        },
-    ],
-    tools=[...],
-)
-
-print(second.choices[0].message.content)
-```
-
-## Streaming tool-call deltas
-
-Set `stream=True` and reassemble `tool_calls` from the deltas the same way you would with OpenAI:
-
-```python theme={null}
-stream = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
-    messages=[{"role": "user", "content": "..."}],
-    tools=[...],
-    stream=True,
-)
-for chunk in stream:
-    delta = chunk.choices[0].delta
-    if delta.tool_calls:
-        for tc in delta.tool_calls:
-            # Reassemble into the final tool_calls[] shape
-            ...
-```
-
-## Limits
-
-| Field                      | Cap     |
-| -------------------------- | ------- |
-| Per `function.arguments`   | 1 MiB   |
-| Per response               | 2 MiB   |
-| Per `role: "tool"` message | 256 KiB |
-
-Requests that exceed a cap return a 400 with the field named.
+The examples below use `client` from [Using Malibu with the OpenAI SDK](/guides/openai-sdk).
 
 ## Supported models
 
-* **Qwen 2.5** family
-* **Llama 3.3** family
+The provider picks a tool-call parser from the model ID. There is no per-request setting for this.
 
-Other models still accept `tools` in the request but fall back to normal assistant text — no `tool_calls[]` will be emitted.
+| Model family                                                                                          | First-turn `tool_calls[]`                  | Multi-turn (tool results sent back)                  |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
+| **Qwen 2.5 / Qwen 3 and later.** Any model ID containing `qwen2.5` or `qwen3`, see the list below     | Yes                                        | Yes                                                  |
+| **gpt-oss** (OpenAI Harmony format): `mlx-community/gpt-oss-20b-MXFP4-Q8`, `mlx-community/gpt-oss-120b-4bit` | Yes                                        | No. Returns `400 unsupported_modelID_for_multi_turn` |
+| **Llama 3.3**                                                                                         | Yes                                        | Yes. No Llama 3.3 model is in the catalog today.     |
+| Every other catalog model (Llama 3.1 / 3.2, Gemma 4, Nemotron 3 Nano, GLM-4.5-Air)                   | No. Output comes back as plain assistant text | No. Returns `400 unsupported_modelID_for_multi_turn` |
+
+Qwen-family catalog models: `mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit`, `mlx-community/Qwen2.5-Coder-32B-Instruct-4bit`, `mlx-community/Qwen3-8B-4bit`, `mlx-community/Qwen3-32B-4bit`, `mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit`, `mlx-community/Qwen3.5-27B-4bit`, `mlx-community/Qwen3.5-35B-A3B-4bit`, `mlx-community/Qwen3.6-27B-4bit`, `mlx-community/Qwen3.6-35B-A3B-4bit`, `mlx-community/Qwen3.8-27B-4bit`.
+
+<Note>
+  Being in the catalog does not mean a model is serving right now. `GET https://api.malibu.tech/v1/status` lists the models that currently have ready providers.
+</Note>
+
+Qwen3-Coder writes tool calls in a native XML form (`<function=name><parameter=key>…`). Malibu parses that form as well as the JSON form. Tool and parameter names can use the OpenAI/MCP character set `[A-Za-z0-9_-]`, so MCP-namespaced names such as `my-server__shell` work.
+
+## Single turn: emitting a tool call
+
+```python theme={null}
+import json
+
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get the current weather for a city",
+            "parameters": {
+                "type": "object",
+                "properties": {"city": {"type": "string"}},
+                "required": ["city"],
+            },
+        },
+    }
+]
+
+resp = client.chat.completions.create(
+    model="mlx-community/Qwen3.6-27B-4bit",
+    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
+    tools=tools,
+)
+
+msg = resp.choices[0].message
+for call in msg.tool_calls or []:
+    print(call.id, call.function.name, json.loads(call.function.arguments))
+```
+
+What you get back when the model calls a tool:
+
+* `finish_reason` is `"tool_calls"` and `message.content` is `null`. Any prose the model wrote around the call is dropped.
+* Each `tool_calls[]` entry has `id` (`call_` plus 32 lowercase hex characters), `type: "function"`, `function.name`, and `function.arguments`.
+* `function.arguments` is a **JSON-encoded string** that holds a JSON object, as in OpenAI's wire shape. Call `json.loads` on it to get a dict.
+* You only get calls to functions you declared in `tools`. If the model names any other function, the output comes back as plain text. On gpt-oss models, an undeclared function name returns `502 malformed_tool_call_final_json` instead.
+* You never get a partial tool call. Malformed markup comes back as plain assistant text. If generation hits `max_tokens` partway through a call, the response ends with `finish_reason: "length"`.
+
+## `tool_choice` and `parallel_tool_calls`
+
+| Request value                                                | Behavior                                                                         |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `tool_choice` omitted, `null`, or `"auto"`                   | The model decides whether to call a tool.                                        |
+| `tool_choice: "required"`                                    | Accepted but treated as `"auto"`. The model is **not** forced to call a tool.    |
+| `tool_choice: {"type": "function", "function": {"name": …}}` | Accepted but treated as `"auto"`. The named function is **not** forced.          |
+| `tool_choice: "none"`                                        | `400 unsupported_tool_choice`. To turn tools off, leave `tools` out of the request. |
+| `parallel_tool_calls`                                        | Accepted. See the note below.                                                    |
+
+If your agent requires a tool call, check `finish_reason` and re-prompt whenever it isn't `"tool_calls"`.
+
+On providers running the current stable CLI, one turn can return several tool calls, in the order the model wrote them. Newer provider builds, not yet in a stable release, treat an omitted or `false` `parallel_tool_calls` as one call per turn: generation stops after the first complete call. Send `parallel_tool_calls: true` if you want more than one call per turn. Agents that run one tool per turn don't need to change anything.
+
+## Multi-turn: feeding the result back
+
+Run the tool locally. Then send the whole conversation back: the assistant message with its `tool_calls`, plus one `role: "tool"` message per call with the matching `tool_call_id`. The provider keeps no state between turns. It validates the tool-call chain inside each request.
+
+```python theme={null}
+messages = [{"role": "user", "content": "What's the weather in Vilnius?"}]
+
+first = client.chat.completions.create(
+    model="mlx-community/Qwen3.6-27B-4bit",
+    messages=messages,
+    tools=tools,
+)
+assistant = first.choices[0].message
+messages.append(assistant.model_dump(exclude_none=True))
+
+for call in assistant.tool_calls or []:
+    args = json.loads(call.function.arguments)
+    # Validate before executing. See Buyer-side validation.
+    result = my_get_weather(city=args["city"])
+    messages.append(
+        {"role": "tool", "tool_call_id": call.id, "content": json.dumps(result)}
+    )
+
+second = client.chat.completions.create(
+    model="mlx-community/Qwen3.6-27B-4bit",
+    messages=messages,
+    tools=tools,
+)
+print(second.choices[0].message.content)
+```
+
+Rules for the history you send back:
+
+* Every `tool_call_id` must match an assistant `tool_calls[].id` earlier in the same request. A missing ID returns `400 invalid_tool_call_id`. An ID with no matching call returns `400 tool_call_id_not_found`. A second result for the same ID returns `400 duplicate_tool_call_id`.
+* Tool-call IDs minted by other OpenAI-compatible providers also work. The gateway rewrites any ID that doesn't match Malibu's `call_` format to a deterministic `call_…` ID before validation, and assistant/tool pairs stay matched.
+* `role: "tool"` content must be a string. An empty string is fine. `null` returns `400 invalid_request`.
+* Providers on the stable release accept at most 256 messages per request. Longer histories return `400 messages_too_long`, so trim or summarize long coding-agent sessions.
+
+## Streaming tool-call deltas
+
+Set `stream=True` and rebuild the tool calls from the deltas the same way you would with OpenAI, grouping by `tool_calls[].index`. The first delta for an index carries `id`, `type`, and `function.name`. Later deltas append pieces of `function.arguments`. Joined in order, the pieces form one JSON object, identical to the non-streaming `arguments` string.
+
+```python theme={null}
+stream = client.chat.completions.create(
+    model="mlx-community/Qwen3.6-27B-4bit",
+    messages=[{"role": "user", "content": "What's the weather in Vilnius?"}],
+    tools=tools,
+    stream=True,
+)
+
+calls = {}
+for chunk in stream:
+    if not chunk.choices:
+        continue
+    for tc in chunk.choices[0].delta.tool_calls or []:
+        slot = calls.setdefault(tc.index, {"id": None, "name": None, "arguments": ""})
+        if tc.id:
+            slot["id"] = tc.id
+        if tc.function and tc.function.name:
+            slot["name"] = tc.function.name
+        if tc.function and tc.function.arguments:
+            slot["arguments"] += tc.function.arguments
+
+for slot in calls.values():
+    print(slot["id"], slot["name"], json.loads(slot["arguments"]))
+```
+
+If a tool call fails validation after streaming has started, the stream ends with an OpenAI-style `data: {"error": …}` event (code `malformed_tool_call` or `malformed_tool_call_final_json`), then `data: [DONE]`. That error event never carries `finish_reason: "tool_calls"`. Don't execute tool calls from a stream that ended this way. Check the error's `retryable` field: `malformed_tool_call_final_json` is retryable, `malformed_tool_call` is not.
+
+## Limits
+
+| Limit                                                     | Cap     | When exceeded                                  |
+| --------------------------------------------------------- | ------- | ---------------------------------------------- |
+| One emitted `function.arguments` string                   | 1 MiB   | No tool call is sent. Non-streaming responses return the raw model text instead. |
+| All emitted `function.arguments` in one response          | 2 MiB   | Rejected (`response_byte_cap_exceeded`)        |
+| Nesting depth of emitted `function.arguments` JSON        | 32      | No tool call is sent. Non-streaming responses return the raw model text instead. |
+| One `role: "tool"` message content                        | 256 KiB | `413 tool_result_too_large`                    |
+| All `role: "tool"` content in one request                 | 1 MiB   | `413 tool_results_aggregate_too_large`         |
+| One assistant-history `function.arguments`                | 1 MiB   | `413 tool_call_arguments_too_large`            |
+| All assistant-history `function.arguments` in one request | 2 MiB   | `413 tool_call_arguments_aggregate_too_large`  |
+| Assistant-history `tool_calls[]` entries in one request   | 128     | `400 too_many_tool_calls`                      |
+
+Sizes are UTF-8 bytes of the unescaped string value. A value exactly at the cap is accepted. Request-side errors return `param: null`; the error `code` identifies which cap was hit. Malibu never silently truncates a tool result.
 
 ## Buyer-side validation
 
-Emitted `tool_calls[]` reflect model output, not provider-verified intent. See [Buyer-side validation](/agentic/buyer-side-validation).
+Emitted `tool_calls[]` reflect model output, not provider-verified intent. Validate every call before you run it. See [Buyer-side validation](/agentic/buyer-side-validation).

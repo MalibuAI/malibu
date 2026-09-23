@@ -8,39 +8,72 @@ icon: route
 
 > How the coordinator picks which provider serves a request.
 
-The coordinator maintains a pool of connected provider Macs. Every buyer request is routed to one provider based on model availability, tier weight, warmup status, and any buyer-supplied routing hints.
+The coordinator keeps a pool of connected provider Macs. It routes each buyer request to one provider that serves the requested model, is healthy, and has a **free seat** at that moment.
 
-## Route selection
+## Seats
 
-For each incoming request the smart router evaluates:
+Each provider advertises how many requests it can serve at once (its **seats**). It reports `slots_total` and `slots_free` in every heartbeat. The coordinator also counts its own in-flight dispatches, so a Mac's late "busy" report cannot hide seats the coordinator knows are free, and a Mac is never sent more concurrent requests than it advertises.
 
-1. **Model availability.** The request specifies a `model` — only providers with that model loaded (warm) are eligible. Providers can hold multiple models but usually serve one at a time.
-2. **Tier weight.** Pinned providers get higher priority than provisional. Provisional providers cap the pool at a configurable size to protect quality.
-3. **Buyer routing hints.**
-   * `X-Malibu-Pin-Provider` → strict pin, 503 if offline.
-   * `X-Malibu-Conversation` → sticky affinity for prefix-cache reuse.
-4. **Health signals.** In-warmup, breaker-open, or thermally throttled providers are excluded.
-5. **Load.** Among eligible providers, requests are spread by inflight count and observed TPS.
+Seats on a Mac today serve independent single-stream requests. Continuous batching exists in the provider runtime but is **default-off** and not part of production serving.
 
-## Sticky affinity
+## Eligibility
 
-A buyer-supplied `X-Malibu-Conversation` tag routes multi-turn requests back to the same provider. The gateway HMACs the tag with the buyer's `account_id` before forwarding, so tags never collide across buyers. If the sticky provider is unavailable, the request falls through to normal routing.
+A provider is a candidate only if all of these hold:
 
-Sticky affinity enables **prefix-cache reuse**: the sticky provider's warm KV-cache is reused for the shared prefix, and `cached_prompt_tokens` in the OpenAI `usage` object reports the cache hit.
+1. **Model.** It advertises the requested model, and the model is admitted for paid routing. Models offered by a provider but not admitted for settlement stay out of paid routing.
+2. **Signed catalog match.** Its reported model hash matches the signed catalog entry for that model.
+3. **Ready with a free seat.** Its state is ready or busy, it has at least one free seat, and no safety hold is active. A thermal-throttling report sets a safety hold.
+4. **Settlement readiness.** Its receipt signing key is registered and not mid-rotation, so the request can settle.
+5. **Throughput floor.** Its estimated throughput is at or above the production floor (currently 1.0 tokens/sec).
+6. **Context.** The request fits the provider's context capacity.
+7. **Version floor.** It runs at least the minimum provider version for that model.
+8. **Circuit breaker.** It is not degraded. Two faults inside 120 seconds mark a provider degraded and take it out of routing.
 
-Full buyer-side guide: [Sticky conversations](/guides/sticky-conversations).
+Provisional providers that have used up their hourly request quota are dropped from the candidate list. If that leaves no candidate, the request returns `429 provisional_quota_exceeded`.
 
-## Pinning
+## Ordering
 
-`X-Malibu-Pin-Provider` is strict. If the pinned provider is offline the request returns `503 no_provider_available` — the coordinator will not substitute. Useful for reproducibility, benchmarking, or contract routing. Pinning trumps sticky.
+Production routing uses the `fast` objective. Among eligible providers:
+
+1. **Highest throughput × tier weight first.** Trusted and pinned providers have weight 1.0; provisional providers have 0.3.
+2. **Fewest free seats** breaks ties.
+
+The ordering is deterministic. There is no random tiebreak.
+
+The coordinator then reserves a seat and dispatches. If a dispatch attempt fails before any output reaches the buyer, the coordinator can retry on another provider.
+
+## Sticky conversations
+
+Send `X-MacProvider-Conversation: <tag>` to express a preference for the provider that served earlier turns. Within the sticky TTL (1,800 seconds, reported live in `/v1/models` under `tier1_disclosure.sticky_affinity`), the sticky provider wins only when it is eligible and also ranks first under the ordering above (an exact tie counts). In practice, the preference often does not win, and the request routes to the top-ranked provider instead. Tags are scoped to your account, so the same tag from two accounts routes independently. `DELETE /v1/sticky` clears your sticky routing state. See [Sticky conversations](/guides/sticky-conversations).
+
+Only a sticky hit bills cached prompt tokens at the lower cache-hit rate (see [Metering & billing](/network/metering-and-billing#prefix-cache-billing)).
+
+Stickiness is a preference, not a pin. Buyers cannot pin a request to a specific provider; see [Provider attribution](/guides/pinning).
+
+## Automatic prefix-cache key
+
+Authenticated chat completions also carry an automatic prefix-cache key, derived by HMAC from the prompt prefix. It lets the serving Mac reuse its KV cache across tool turns and shows up in `usage.prompt_tokens_details.cached_tokens`. It **does not affect routing**, and those tokens are billed at the full prompt rate. Without a sticky tag, requests that repeat a prefix may land on different Macs.
 
 ## Response headers
 
-* `X-Malibu-Provider` — the provider ID that actually served this request. Use it to feed a subsequent pin or for logging.
+* `X-Provider-Id`: the provider that served this request. Log it with the request id when reporting problems.
+
+## Errors when no provider is available
+
+| Status | `code` | Meaning |
+| --- | --- | --- |
+| 503 | `no_provider_available` | No eligible provider has a free seat for this model right now, or the serving Mac's queue was full |
+| 413 | `context_exceeds_capacity` | No provider can fit the request's context |
+| 429 | `account_concurrency_exceeded` | Your account has too many requests in flight |
+| 429 | `provisional_quota_exceeded` | Every eligible provider is provisional and has used its hourly quota |
+| 404 | `model_not_found` | No routable provider advertises the requested model |
+
+A model can appear on the rate card with no provider serving it. Requests for it return `404 model_not_found` until a Mac loads that model. `GET /v1/models` lists only models with at least one routable provider right now.
 
 ## What gets excluded
 
-* Providers in warmup after reconnect (up to 90 s).
-* Providers that missed their heartbeat window (90 s default `pool.heartbeat_miss_threshold_s`).
-* Providers with an open circuit breaker (repeated fault-qualifying responses).
-* Provisional providers when the provisional pool cap is reached and pinned providers can absorb load.
+* Providers whose last frame is older than the heartbeat window (90 s).
+* Providers with an open circuit breaker.
+* Providers with no free seat, or with a safety hold (for example thermal throttling).
+* Providers whose reported model hash does not match the signed catalog.
+* Providers below the throughput floor.

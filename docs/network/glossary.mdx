@@ -12,52 +12,69 @@ icon: book-a
 
 | Term | Definition |
 | --- | --- |
-| **PoMW** (Proof-of-Model-Walk) | Memory-hard 256-step walk over canonical model weights. Mining readiness substrate (planned v0). Not inference TPS. |
-| **TOPLOC** | Per-request forward-pass attestation (Prime Intellect, 2025). **Planned v1** on Malibu buyer traffic. |
-| **Receipt (v0.3)** | Nine-field Ed25519-signed tuple binding `(prompt, output, model, provider, timestamp)`. **Live.** |
-| **`malibu-verify`** | Open-source CLI that verdicts receipts `valid` / `invalid` / `inconclusive`. |
+| **PoMW** (Proof-of-Model-Walk) | A memory-hard 256-step walk over canonical model weights. It is the planned mining-readiness substrate (planned v0), not a measure of inference TPS, and not part of the production provider runtime. |
+| **TOPLOC** | Per-request forward-pass attestation (Prime Intellect, 2025). **Planned v1** for Malibu buyer traffic. |
+| **Settlement receipt (v0.4)** | A 23-field Ed25519-signed tuple binding request, attempt, prompt and output hashes, the reported model hash, the route-time catalog snapshot, and usage. **Live.** Verified by the coordinator. |
+| **Legacy receipt (v0.3)** | A nine-field Ed25519-signed tuple binding prompt, output, model and provider. Signed only for requests dispatched without a settlement snapshot. Some non-streaming responses carry it in `X-MacProvider-Receipt` (currently roughly a quarter to a third); streams never do. Offline verification of current receipts is pending a verifier update. |
+| **`macprovider-verify`** | The open-source receipt verifier CLI. It returns `valid`, `invalid` or `inconclusive`. The released 1.1.0 cannot parse current v0.3 buyer receipts, so offline verification of current receipts is pending a verifier update. |
+| **Verified model settlement** | Settlement where the coordinator's verdict on the receipt decides buyer debit and provider credit. Outcomes: `pending`, `verified`, `quarantined`, `zero_settled`. |
+| **Reported model hash** | The SHA-256 of the loaded model, as reported by the provider. It is checked against the signed catalog, but it is **self-reported**, not attested. |
+| **Hardware attested** | A provider with hardware-rooted Apple managed device attestation. It is counted in `nodes_hardware_attested`, and has no effect on routing or settlement today. |
+| **Trust disclosure** | The `tier1_disclosure` object in `GET /v1/models`, which describes the live trust posture. |
 
 ## Network roles
 
 | Term | Definition |
 | --- | --- |
-| **Coordinator** | Routes requests, maintains billing ledger, resolves receipt pubkeys. Centralized today. |
-| **Gateway** | Buyer-facing OpenAI-compatible API (`api.malibu.tech/v1`). |
-| **Provider** | Apple Silicon Mac serving MLX models over outbound WebSocket. |
-| **Coordinated inference network** | Distributed providers + centralized routing/billing. Not buyer↔provider direct P2P. |
+| **Coordinator** | Admits providers, routes requests, keeps the credit ledger, holds provider receipt keys and settles. Centralized today. |
+| **Gateway** | The buyer-facing OpenAI-compatible API (`api.malibu.tech/v1`). |
+| **Provider** | An Apple Silicon Mac serving MLX models over an outbound WebSocket. |
+| **Coordinated inference network** | Distributed providers with centralized routing and billing. Buyers do not connect directly to providers. |
 
 ## Economics
 
 | Term | Definition |
 | --- | --- |
-| **Credits** | Internal billing unit; convert to USDC via `usd_per_million_credits` on rate card. |
-| **Gross credits** | Buyer-charged credits before provider/operator split. |
-| **Provider share (live)** | Default **90%** of gross credits to provider; 10% operator. |
+| **Credits** | The internal billing unit. The rate card's `usd_per_million_credits` sets their USD value (currently 1.0, so 1,000,000 credits = $1.00). |
+| **Gross credits** | Credits charged for a request before the provider/operator split. |
+| **Provider share (live)** | Set per rate-card row by `provider_share_bps`: **90%** of gross credits to the provider and 10% to the operator on every row today. |
 | **Flywheel split (planned)** | **70% / 12% / 18%** provider / reserves / buy-and-burn at token launch. |
-| **BME** | Burn-and-mint economics — planned token launch fee routing. |
+| **BME** | Burn-and-mint economics: the planned fee routing at token launch. |
 
 ## Pool & ops
 
 | Term | Definition |
 | --- | --- |
-| **Provisional tier** | New provider; lower routing weight until promoted. |
-| **Pinned tier** | Reviewed provider; higher routing priority. |
-| **Warm model** | Provider has model loaded and advertises ready in pool. |
-| **Sticky conversation** | `conversation_id` routes repeat turns to same provider for prefix-cache reuse. |
-| **Fault breaker** | Settlement path that zeros credits on missing/invalid receipts. |
+| **Provisional tier** | A new provider. Routing weight 0.3 relative to trusted providers, with an hourly request quota. |
+| **Trusted tier** | A provider that meets the network's trust criteria (for example verified work plus sustained uptime, or an operator promotion approved by two separate operator keys). Full routing weight and no hourly quota. |
+| **Pinned tier** | A provider listed in the coordinator's own configuration. Routed like a trusted provider. |
+| **Seat** | One concurrent request slot a provider advertises. The coordinator dispatches only to providers with a free seat. |
+| **Throughput floor** | The minimum estimated tokens/sec a provider needs before the coordinator dispatches to it. |
+| **Prefix cache** | Reuse of a provider's KV cache for a repeated prompt prefix. Automatic reuse shows in `usage.prompt_tokens_details.cached_tokens` and bills at the full prompt rate. Only a sticky-conversation hit bills at the cache-hit rate (`usage.cached_prompt_tokens`). |
+| **Sticky conversation** | A buyer-supplied `X-MacProvider-Conversation` tag that gives follow-up turns a preference for the provider that served the earlier turn, for up to 1,800 seconds. Live on the public API. A preference, not a guarantee: it wins only when that provider is also the top-ranked choice, so turns often route elsewhere. The cache-hit rate applies only on a sticky hit. |
+| **Provider pinning (buyer)** | Steering a request to a specific provider. Not available to buyers. |
+| **Circuit breaker** | Marks a provider degraded, and therefore unroutable, after repeated faults in a short window. |
+| **`breaker_qualifying`** | The ledger fault flag for a request that faulted. It produces zero credits. |
 
 ## Status labels (docs)
 
 | Label | Meaning |
 | --- | --- |
-| **Live** | Running in production today |
-| **Beta** | Shipped but limited / operator-gated |
+| **Live** | Running in production today. A note in parentheses, such as *(partial)*, narrows the scope |
+| **Beta** | Shipped but limited, experimental, or operator-gated |
+| **Preview** | Visible but not yet functional for its end use |
+| **Pending** | Shipped but not working today until an update lands |
+| **Default-off** | Merged and shipped in code, but disabled in production |
+| **Off** | Built and switched off until a stated milestone |
+| **Prototype** | Research code; not production-integrated |
+| **Planned** | Not built or not released |
 | **Planned v0** | Token / mining launch milestone |
 | **Planned v1** | Buyer marketplace / TOPLOC milestone |
-| **Prototype** | Research code public; not production-integrated |
+| **Planned v2** | Decentralization milestone |
+| **Not available** | Not offered |
 
 ## Related
 
-- [Network status](/status) — live vs planned ledger
-- [Security & trust model](/network/security) — trust boundaries
-- [Documentation architecture](https://github.com/MalibuAI/malibu/blob/main/docs-internal/ARCHITECTURE.md) — docs lane rules (repo)
+- [Network status](/status): live vs planned ledger
+- [Security & trust model](/network/security): trust boundaries
+- [Documentation architecture](https://github.com/MalibuAI/malibu/blob/main/docs-internal/ARCHITECTURE.md): docs lane rules (repo)
