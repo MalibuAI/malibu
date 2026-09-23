@@ -1,40 +1,58 @@
 ---
 title: Reputation
-description: Public provider stats derived from receipts and serving history.
+description: Provider tiers, health signals, and the public routability snapshot.
 icon: award
 ---
 
 # Reputation
 
-> Public provider stats derived from receipts and serving history.
+> Provider tiers, health signals, and the public routability snapshot.
 
-Malibu maintains a public view of provider activity — uptime, receipt validity rate, models served, tier — surfaced through the pool dashboard and the network stats API.
+Malibu has no public reputation score today. It has provider **tiers** that affect routing weight, live **health signals** the router acts on, and a public **routability snapshot** that shows the pool's state without naming providers.
 
-## What's tracked
+## Tiers
 
-| Signal                    | Source                                             |
-| ------------------------- | -------------------------------------------------- |
-| **Uptime**                | Coordinator liveness monitor, aggregated per epoch |
-| **Requests served**       | Billing ledger                                     |
-| **Receipt validity rate** | Coordinator receipt verifier verdicts              |
-| **Fault rate**            | `breaker_qualifying` count over recent window      |
-| **Models served**         | Live model advertisement from provider             |
-| **Tier**                  | `provisional` or `pinned`                          |
-| **First seen**            | Initial admission timestamp                        |
+| Tier | How a provider gets it | Routing effect |
+| --- | --- | --- |
+| **Provisional** | Default for every new public install | Routing weight 0.3; hourly request quota; the provisional pool is capped |
+| **Trusted** | Set when the network's trust evaluation finds two distinct qualifying criteria. The criteria include 72 hours of continuous uptime, app attestation, at least 100 verified receipts, and an operator promotion approved by two separate operator keys. An operator promotion counts as one criterion, so it still needs a second one and the provider holds a valid token and custody proof. Drops back if the criteria stop holding | Routing weight 1.0; no hourly quota |
+| **Pinned** | Listed in the coordinator's own configuration | Routing weight 1.0 |
 
-## Where to see it
+There is no self-serve promotion request. Pinned is set only in the coordinator's own configuration.
 
-* **Pool dashboard.** [malibu.tech/console](https://malibu.tech/console) shows the live pool: which Macs are online, what models they hold warm, per-provider request rate.
-* **Network stats API.** Machine-readable snapshot at `GET /v1/stats/overview` (`/v1/network-stats` is an alias). See [API → Network stats](/api/network-stats).
+## Health signals the router uses
 
-## How reputation affects routing
+* **Circuit breaker.** Two faults inside 120 seconds mark a provider degraded and take it out of routing until it recovers.
+* **Throughput floor.** Providers whose estimated throughput is below the production floor (1.0 tokens/sec) are not dispatched to.
+* **Heartbeat freshness.** Providers silent for 90 seconds are disconnected.
+* **Safety holds.** A thermal-throttling report removes the provider's free seats until it clears.
+* **Settlement outcomes.** A missing or invalid receipt earns the provider nothing for that request (see [Verified model settlement](/operations/verified-model-settlement)).
 
-* **Tier weight.** Pinned providers get higher routing priority than provisional. Promotion from provisional to pinned is operator-discretionary today, based on observed pool stability, uptime, and receipt validity.
-* **Circuit breaker.** Providers accumulating fault-qualifying responses trip a per-provider breaker and are excluded from routing until recovery.
-* **Warmup gate.** Providers reconnecting after a drop are held in warmup for up to 90 s before receiving new requests.
+See [Discovery & routing](/network/discovery-and-routing) for the full selection order.
 
-Self-serve promotion, buyer-side reputation queries, and on-chain reputation attestations are on the roadmap.
+## Public routability snapshot
+
+`https://api.malibu.tech` serves three public, unauthenticated views of the current pool:
+
+| Endpoint | Contents |
+| --- | --- |
+| `GET /v1/stats/routability` | Summary counts, plus the per-model and per-provider lists below |
+| `GET /v1/stats/models` | Per model: state, provider count, routable provider count, free and total seats, max context, providers with a success in the last hour |
+| `GET /v1/stats/providers` | Per provider: state, `routable`, `serving_capable`, `routability_score`, free and total seats, heartbeat age, `uptime_bucket`, `recent_success_1h`, `receipt_validity`, `attestation`, `compute_integrity`, `stale_data` |
+
+Providers are listed by `provider_ref`, an alias assigned per snapshot. It is not derived from the provider id and does not persist between snapshots. The projection leaves out provider ids, network endpoints, keys, hashes, prompts, buyer ids and hardware identity material.
+
+Field notes:
+
+* `receipt_validity` says whether the provider's receipt key is on record: `present`, `pending_rotation` or `missing`. It is **not** a validity rate over past receipts.
+* `attestation` summarizes attestation status: `hardware` (Apple managed device attestation), `self_signed` (Secure Enclave key only), `attested`, `attestation_failed`, `attestation_stale`, `unsupported`, `not_required` or `unknown`. It does not affect routing today.
+
+Network-wide totals are on `GET /v1/stats/overview`. See [Operations → Network stats](/operations/network-stats).
+
+## Not available yet
+
+A persistent public per-provider history, a receipt validity rate, buyer-side reputation queries, and on-chain reputation attestations are not available.
 
 ## Privacy
 
-Reputation is provider-side only. Buyer request payloads are never surfaced through the reputation view. Buyer identity is only visible to the buyer (via `/v1/usage`) and to the operator (for billing).
+Reputation data is about providers only. Buyer request payloads and buyer identities never appear in it. A buyer's own usage is visible only to that buyer (via `/v1/usage`) and to the operator (for billing).

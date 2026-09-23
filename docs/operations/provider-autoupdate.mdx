@@ -1,83 +1,79 @@
 ---
 title: Provider autoupdate
-description: How malibu-cli swaps itself in place when a newer signed release ships.
+description: How a provider Mac moves to a newer signed release without manual steps.
 icon: refresh-cw
 ---
 
 # Provider autoupdate
 
-> How malibu-cli swaps itself in place when a newer signed release ships.
+> How a provider Mac moves to a newer signed release without manual steps.
 
-Providers automatically upgrade to newer signed releases. The coordinator advertises a `recommended_binary_version`; the running `malibu-cli` validates the signed release, drains in-flight traffic, and swaps itself in place.
+Providers installed through the Malibu app or the standard installer upgrade themselves to newer signed releases. The network tells each provider which version it recommends. The provider verifies that release, drains its in-flight requests, and swaps the whole signed release set in place: CLI, companion files, and the Malibu app if it is installed.
 
 ## The flow
 
-1. **Advertisement.** The coordinator's periodic broadcast frame includes a `recommended_binary_version` field.
-2. **Compare.** The provider compares against its running version. If the advertised version is newer and autoupdate is enabled, it enters the update path.
-3. **Fetch.** The provider downloads the release artifact from the signed release mirror.
-4. **Verify.** SHA-256 checksum against the signed release manifest. Ed25519 signature on the manifest verified against the pinned release key.
-5. **Drain.** Stop accepting new requests. Wait for in-flight requests to complete (with a bounded timeout).
-6. **Swap.** Replace the binary in place under `~/.malibu/bin/`.
-7. **Restart.** `launchd` respawns the process; it reconnects and re-enters warmup.
+1. **Advertisement.** When a provider connects, the network's handshake reply includes a `recommended_binary_version`, plus a minimum required version.
+2. **Eligibility.** The provider updates only if all of these hold:
+   * the advertised version is newer than the running one;
+   * autoupdate is enabled;
+   * the target is not revoked or below the signed minimum;
+   * the install is a standard user install (`live.malibu.provider` launchd agent).
 
-Total interruption is typically under 60 seconds for a healthy Mac.
+   Provisional (not yet pinned) providers are eligible by default.
+3. **Fetch.** The provider downloads that release from GitHub Releases (`Augustas11/macprovider`). It needs the CLI tarball, the `Malibu-vX.Y.Z.dmg`, the compatibility index, `checksums.txt`, and `checksums.txt.sig`. If any asset is missing, the update fails.
+4. **Verify.**
+   * `checksums.txt.sig` must verify against the release-signing public key built into the running binary. Every asset must match `checksums.txt`.
+   * The release's compatibility set must match the one the network expects.
+   * The staged CLI and Malibu app must pass a strict code-signature check against Malibu's Developer ID team.
+5. **Drain.** The provider tells the network it is draining, which stops new requests from being routed to it, and waits for in-flight requests to finish. If requests are still running after the bounded wait (about two and a half minutes), the update is abandoned (`drain_timeout`) rather than cutting a buyer off. It is retried later.
+6. **Swap.** Files are replaced in the install directory (`~/macprovider/`), and a backup of the previous binary is kept alongside. If the Malibu app is installed, it is replaced from the signed DMG in the same transaction.
+7. **Restart and health check.** launchd restarts `live.malibu.provider`. The new version has to pass a run of consecutive local health checks. If it doesn't, the swap is rolled back to the previous binary automatically.
 
-## Configuration
+If a provider is connected but keeps failing to make progress, it can recover through a signed release-discovery file published with each release, without waiting on the network's recommendation.
 
-In `~/.malibu/config.yaml`:
+## Check or update manually
 
-```yaml theme={null}
-autoupdate:
-  enabled: true            # default true — opt out only for pinned/audited fleets
-  channel: stable          # stable | beta
-  drain_timeout_s: 60      # how long to wait for in-flight requests
+```bash theme={null}
+malibu-cli --version
+malibu-cli update --check   # show the available release, change nothing
+malibu-cli update           # install it now
 ```
 
-Or via environment variables:
-
-```
-MALIBU_AUTOUPDATE_ENABLED=true
-MALIBU_AUTOUPDATE_CHANNEL=stable
-```
+In the Malibu app, **Check for Updates…** in the menu bar runs the same update and relaunches the app.
 
 ## Opting out
 
-Set `autoupdate.enabled: false`. You are then responsible for pulling and installing new releases manually — including any breaking receipt version bumps.
+Autoupdate is on by default. To turn it off, set this in `~/.config/macprovider/config.yaml`:
 
-**Don't opt out casually.** Receipt version rollouts have a version-compatibility matrix (see [Receipts](/network/receipts)); running an old provider against a coordinator that expects newer receipts silently degrades settlement.
+```yaml theme={null}
+auto_update_enabled: false
+```
 
-## Rollback
+The environment equivalent is `MACPROVIDER_AUTO_UPDATE_ENABLED=false`. When it is off, the provider logs that a newer version is available and does nothing else. You then have to run `malibu-cli update` yourself.
 
-If a swap fails verification or the restart doesn't reconnect within the drain window, the previous binary is retained at `~/.malibu/bin/.prev` and reinstated automatically. `launchd` then respawns the previous version and the provider tries again on the next advertisement cycle.
+**Don't opt out casually.** The network sets a minimum supported version. A provider that falls below it can be refused admission until it updates.
 
-Manual rollback:
+Headless (SSH-only) installs are never autoupdated. The installer writes `auto_update_enabled: false` for them, and they are upgraded by the operator. See [Headless install](/cli/headless-install#upgrade).
+
+## Recovering a stuck update
+
+If an update was interrupted, for example by power loss mid-swap, and the provider refuses to serve, run:
 
 ```bash theme={null}
-malibu-cli --version                          # what's running now
-ls -la ~/.malibu/bin/.prev                    # confirm previous version present
-malibu-cli autoupdate rollback --to-prev      # swap back
-launchctl kickstart -k gui/$(id -u)/tech.malibu.malibu-cli
+malibu-cli recover-update
+launchctl kickstart -k gui/$(id -u)/live.malibu.provider
+malibu-cli status
 ```
+
+`recover-update` clears only an abandoned update or rollback transaction. It leaves a genuinely in-progress update alone and is safe to run while the provider is stopped. If that doesn't help, re-running the installer repairs the install in place.
 
 ## Signed release verification
 
-The release manifest is Ed25519-signed with a pinned release key. Providers refuse to install any binary whose manifest signature fails.
-
-The release key is embedded in the binary at build time — a compromised mirror cannot serve a valid update. Rotating the release key requires a manual out-of-band update.
-
-## Coordinator side
-
-The coordinator publishes `recommended_binary_version` from operator config. Rolling a new version to providers means:
-
-1. Cut the release, sign the manifest, publish to the release mirror.
-2. Bump `recommended_binary_version` in coordinator config.
-3. Restart the coordinator so the next advertisement carries the new version.
-4. Providers pick it up on their next advertisement cycle.
-
-For staged rollouts, the coordinator can advertise different versions to different tiers (pinned first, provisional after).
+Each release carries a `checksums.txt` manifest signed with Malibu's release key (ECDSA P-256). The matching public key is compiled into the provider binary, so a compromised download mirror cannot produce an update that verifies. On top of that, the release set must match a signed compatibility set, and the binaries must pass the Developer ID code-signature check.
 
 ## Related
 
-* [malibu-cli](/cli/malibu-cli) — the binary being updated
-* [Receipts](/network/receipts) — receipt version compatibility matrix
-* [Model catalog](/operations/model-catalog) — the catalog feed is versioned separately
+* [malibu-cli](/cli/malibu-cli): the CLI being updated
+* [Flags & config](/cli/flags-and-config): config file and paths
+* [Receipts](/network/receipts): receipt version compatibility
+* [Model catalog](/operations/model-catalog): catalog and model artifacts

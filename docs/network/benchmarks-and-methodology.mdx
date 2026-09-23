@@ -6,20 +6,20 @@ icon: flask-conical
 
 # Benchmarks & methodology
 
-> Evidence behind hardware and mining claims in the [Litepaper](/litepaper). **Last reviewed:** 16 August 2026.
+> Evidence behind hardware and mining claims in the [Litepaper](/litepaper). **Last reviewed:** 23 September 2026.
 
 Malibu publishes two different performance stories. They must not be conflated:
 
 | Workload | What it measures | Where it is used |
 | --- | --- | --- |
-| **PoMW memory-hard walk** | 256-step walk over canonical GGUF weights on Metal | Mining readiness, token emission (planned v0) |
+| **PoMW memory-hard walk** | 256-step walk over canonical GGUF weights on Metal | Mining readiness, token emission (planned v0; not in the production provider runtime) |
 | **Inference serving** | Tokens/sec on buyer chat completions | Marketplace economics (live today) |
 
 A strong PoMW walk result does **not** automatically imply the same per-watt advantage on inference TPS. This page scopes the published PoMW numbers.
 
 ## PoMW Phase 1 benchmark (M5 Air)
 
-Source: internal Phase 1 Metal port report (`mining-prototype-phase1.md` spec; results captured July 2026 on an **M5 Air**).
+Source: internal Phase 1 Metal port run (results captured July 2026 on an **M5 Air**). The plan it followed is [`mining-prototype-phase1.md`](https://github.com/MalibuAI/malibu/blob/main/mining-prototype-phase1.md). The results report itself and the raw benchmark JSON are **not yet published**, so treat these numbers as unaudited internal measurements until they are.
 
 | Metric | Result | Notes |
 | --- | --- | --- |
@@ -50,17 +50,17 @@ The Litepaper cites roughly **10× better per-watt efficiency vs an RTX 5090** o
 | Metric | walks/s ÷ watts | Directional context only |
 | Inference | **Not measured here** | **Not measured here** |
 
-**Methodology note:** GPU numbers use the same walk algorithm ported to the comparison substrate where available. This is a **mining-substrate** comparison, not a buyer inference benchmark. Do not extrapolate to chat-completion pricing or latency.
+**Methodology note:** GPU numbers use the same walk algorithm ported to the comparison substrate where available. The RTX 5090 measurement and its methodology are not yet published, so this ratio is directional, not audited. This is a **mining-substrate** comparison, not a buyer inference benchmark. Do not extrapolate to chat-completion pricing or latency.
 
 ## Inference benchmarks (not yet published)
 
 Malibu does **not** publish a cross-tier inference TPS table on `/docs`. What exists today:
 
 - **Console bill line** — client-measured decode tok/s for a single stream (not network-wide).
-- **Public stats** — `GET https://api.malibu.tech/v1/stats/overview` has volume and pool size, not tok/s.
+- **Public stats** — `GET https://api.malibu.tech/v1/stats/overview` has volume, pool size, estimated capacity and utilization, plus network-wide tokens per minute over the last 30 minutes (`timeseries.tpm_30m`). There is no per-provider tokens/sec figure.
 - **Pricing** — [`GET https://api.malibu.tech/v1/rate-card`](https://api.malibu.tech/v1/rate-card)
 
-Pin a provider when you need reproducible latency. When a hardware-tier TPS table ships, it will appear here with model, context length, and date.
+Routing picks any eligible provider, so single-request latency varies with which Mac serves you. When a hardware-tier TPS table ships, it will appear here with model, context length, and date.
 
 ## Market sizing claims
 
@@ -74,7 +74,7 @@ Treat fleet-utilization numbers as **planning inputs**, not audited network tele
 
 ## Reproduce PoMW results
 
-The Phase 1 spec lives in [`mining-prototype-phase1.md`](https://github.com/MalibuAI/malibu/blob/main/mining-prototype-phase1.md). When the public miner probe repository ships, rerun the benchmark harness on your Mac class and compare against the M5 Air baseline above.
+The Phase 1 plan lives in [`mining-prototype-phase1.md`](https://github.com/MalibuAI/malibu/blob/main/mining-prototype-phase1.md). The harness and results are not public yet. When the miner probe repository ships, rerun the benchmark harness on your Mac class and compare against the M5 Air baseline above.
 
 ## Related
 

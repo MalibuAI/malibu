@@ -1,117 +1,104 @@
 ---
 title: Model catalog
-description: Eligible models, live warm set, and how the catalog is maintained.
+description: Which models providers can serve, which are warm now, what they cost, and how the catalog is maintained.
 icon: library
 ---
 
 # Model catalog
 
-> The set of models the network knows how to serve, and how the catalog is maintained.
+> Which models providers can serve, which are warm now, what they cost, and how the catalog is maintained.
 
-Three lists, three jobs:
+Malibu keeps three lists, each with its own job:
 
-| List | Endpoint | Meaning |
+| List | Where | Meaning |
 | --- | --- | --- |
-| **Warm now** | `GET https://api.malibu.tech/v1/models` (Bearer required) | At least one connected provider has the model loaded |
-| **Priced** | `GET https://api.malibu.tech/v1/rate-card` | Billing rows — eligible even if no Mac is warm |
-| **Catalog** | Signed provider feed | Weight hash, RAM tier, templates — what a Mac may load |
+| **Warm now** | `GET https://api.malibu.tech/v1/models` (Bearer) or public `GET https://api.malibu.tech/v1/stats/models` | At least one routable provider is serving the model right now |
+| **Priced** | `GET https://api.malibu.tech/v1/rate-card` (public) | Billing rows. A row can be priced even when no Mac is serving it |
+| **Catalog** | Signed catalog feed (fetched by providers, with a copy compiled into each release) | Exact model artifacts (by SHA-256) that a provider may serve for paid traffic, with RAM floors and benchmark gates |
 
-## Catalog (eligible — runs when matching RAM is online)
+A catalog model only routes when an eligible Mac with enough unified memory is online and serving it, and the rate card prices it. Check the live list with the public `GET https://api.malibu.tech/v1/status` or `GET https://api.malibu.tech/v1/stats/models`, or the authenticated `GET /v1/models`, before you depend on a specific ID in production.
 
-The network is built to serve these families. A model **routes** when at least one admitted Mac has it warm. Higher-RAM Macs (Studio / 32 GB+) bring 35B–120B class online; they are not "future models."
+## Signed network catalog (23 September 2026)
 
-| Family | Sizes | Typical Mac tier |
+The signed network catalog lists **17 models**. Each row carries the exact artifact identity (SHA-256) a provider must serve, a minimum unified-memory floor, and benchmark gates. The catalog was re-signed on 23 September 2026 to cover all 17 recommendable models, and that signed catalog is live.
+
+Prices are from the live rate card (`generated_at` **2026-09-22**), in USD per million tokens.
+
+| Serve ID (MLX) | Rate-card row | Min unified memory | USD / 1M prompt | USD / 1M completion |
+| --- | --- | --- | --- | --- |
+| `mlx-community/Llama-3.2-3B-Instruct-4bit` | `meta-llama/llama-3.2-3b-instruct` | 4 GB | $0.0135 | $0.027 |
+| `mlx-community/Meta-Llama-3.1-8B-Instruct-4bit` | `meta-llama/llama-3.1-8b-instruct` | 12 GB | $0.0135 | $0.027 |
+| `mlx-community/Qwen3-8B-4bit` | `qwen3-8b` | 12 GB | $0.0135 | $0.027 |
+| `mlx-community/gpt-oss-20b-MXFP4-Q8` | `openai/gpt-oss-20b` | 24 GB | $0.05 | $0.10 |
+| `mlx-community/Qwen3.5-27B-4bit` | `qwen3.5-27b` | 24 GB | $0.208 | $1.728 |
+| `mlx-community/Qwen3.6-27B-4bit` | `qwen3.6-27b` | 24 GB | $0.24 | $2.16 |
+| `mlx-community/Qwen3.8-27B-4bit` | `qwen3.8-27b` | 24 GB | $0.192 | $2.00 |
+| `mlx-community/gemma-4-26b-a4b-it-4bit` | `google-gemma-4-26b-a4b-it` | 28 GB | $0.06 | $0.24 |
+| `mlx-community/Qwen3-30B-A3B-Instruct-2507-4bit` | `qwen3-30b-a3b-instruct-2507` | 28 GB | $0.072 | $0.24 |
+| `mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit` | `qwen3-coder-30b-a3b-instruct` | 28 GB | $0.1175 | $0.235 |
+| `mlx-community/Qwen3.5-35B-A3B-4bit` | `qwen3.5-35b-a3b` | 28 GB | $0.13 | $1.00 |
+| `mlx-community/Qwen3.6-35B-A3B-4bit` | `qwen3.6-35b-a3b` | 28 GB | $0.1488 | $0.80 |
+| `mlx-community/NVIDIA-Nemotron-3-Nano-30B-A3B-4bit` | `nemotron-3-nano-30b-a3b` | 32 GB | $0.08 | $0.16 |
+| `mlx-community/Qwen3-32B-4bit` | `qwen3-32b` | 48 GB | $0.11 | $0.22 |
+| `mlx-community/Qwen2.5-Coder-32B-Instruct-4bit` | `qwen2.5-coder-32b-instruct` | 48 GB | $0.425 | $0.85 |
+| `mlx-community/GLM-4.5-Air-4bit` | `z-ai/glm-4.5-air` | 80 GB | $0.112 | $0.688 |
+| `mlx-community/gpt-oss-120b-4bit` | `openai/gpt-oss-120b` | 90 GB | $0.068 | $0.136 |
+
+The minimum-memory column is the catalog floor. A Mac must also meet the row's memory-bandwidth tier (the two 32B rows need a higher tier than the rest) and its throughput and time-to-first-token gates before autotune recommends it. In practice, an 8 GB Mac serves the 3B row, a 16 GB Mac serves 8B-class rows, 24–32 GB Macs open the 20B–35B rows, and the largest rows need Max or Ultra chips with 80 GB or more.
+
+Rate-card IDs are **slugs**, while chat requests use **MLX serve IDs**. Map one to the other with the table above. Gemma also has an alias row, `gemma-4-26b-a4b-it`, at the same price. Rates on the card are credits per million tokens (1,000,000 credits = $1.00, `usd_per_million_credits = 1`). Sticky-conversation cache hits bill at 25% of the prompt rate on every row. Every row pays the provider **90%** (`provider_share_bps: 9000`). A `default` row ($0.50 / $1.00) applies only if no row matches.
+
+## Which models a provider is recommended
+
+Autotune on the provider picks the best paid row that fits the Mac's unified memory and clears the benchmark gates. At recommend time the provider downloads the current signed catalog feed from Malibu and checks its signature against keys compiled into the release. It falls back to the copy compiled into its release if the download fails, the signature does not verify, the feed is older than the compiled-in copy, or the feed is more than 30 days old.
+
+So recommendations follow the signed feed, not the release number. Stable provider **v1.8.123** fetches the live 17-row signed feed. The copy compiled into v1.8.123 has 10 of the 17 rows (it predates the Qwen3-30B-2507, Qwen3.5, Qwen3.6, Qwen3.8 and GLM-4.5-Air rows). A v1.8.123 Mac that cannot fetch a current feed recommends only from those 10.
+
+## Warm now (23 September 2026, 04:59 UTC)
+
+`GET https://api.malibu.tech/v1/stats/models` listed two warm models:
+
+| Serve ID | Providers serving | Routable providers |
 | --- | --- | --- |
-| Qwen 2.5 | 7B (4-bit), coder variants | 16 GB+ |
-| Qwen 3.x | 8B, 32B, 35B-class, Coder 30B | 16 GB → Studio |
-| Llama 3.2 | 3B (4-bit) | 8 GB+ |
-| Llama 3.3 | 70B | Studio Ultra / 64 GB+ |
-| Gemma 4 | 26B A4B | M4 Max, Studio |
-| gpt-oss | 20B, 120B | Studio Ultra (120B) |
+| `mlx-community/Llama-3.2-3B-Instruct-4bit` | 6 | 5 |
+| `mlx-community/Qwen3.6-27B-4bit` | 1 | 1 |
 
-Warm vs priced vs catalog are still three lists. Call `GET /v1/models` (Bearer) before you depend on a specific ID in production.
+The other 15 catalog models are priced and signed but had no Mac serving them at that moment. A model that no routable Mac is serving is not advertised, and requests for it return `404 model_not_found` until one does. The warm set changes as Macs join, leave, and switch models. Treat this table as a snapshot, not a guarantee.
 
-## Warm now (16 August 2026)
-
-The live pool was small. Auth’d `GET /v1/models` returned:
-
-| Serve ID (gateway) | Typical RAM |
-| --- | --- |
-| `mlx-community/Llama-3.2-3B-Instruct-4bit` | 8 GB+ |
-| `mlx-community/Qwen3-8B-4bit` | 16 GB+ |
-
-That set grows as higher-RAM Macs join and load catalog weights.
-
-## Priced rows (rate card)
-
-Live card: `GET https://api.malibu.tech/v1/rate-card` (`generated_at` **2026-07-29**, `usd_per_million_credits = 1`). Same payload on `https://malibu.tech/v1/rate-card`.
-
-Rate-card IDs are **slugs**. Gateway chat uses **MLX serve IDs**. Map them yourself; they are not always identical strings.
-
-| Rate-card row | USD / 1M prompt | USD / 1M completion | Warm on 16 Aug 2026? |
-| --- | --- | --- | --- |
-| `meta-llama/llama-3.2-3b-instruct` | $0.0135 | $0.027 | Yes (`Llama-3.2-3B-Instruct-4bit`) |
-| `qwen3-8b` | $0.0135 | $0.027 | Yes (`Qwen3-8B-4bit`) |
-| `meta-llama/llama-3.1-8b-instruct` | $0.0135 | $0.027 | No |
-| `openai/gpt-oss-20b` | $0.05 | $0.10 | No |
-| `google-gemma-4-26b-a4b-it` / `gemma-4-26b-a4b-it` | $0.06 | $0.24 | No |
-| `nemotron-3-nano-30b-a3b` | $0.08 | $0.16 | No |
-| `qwen3-32b` | $0.11 | $0.22 | No |
-| `qwen3-coder-30b-a3b-instruct` | $0.1175 | $0.235 | No |
-| `qwen2.5-coder-32b-instruct` | $0.425 | $0.85 | No |
-| `default` | $0.50 | $1.00 | Fallback if no row matches |
-
-Default completion rate is **$1.00 / 1M** (1,000,000 credits). Provider share on every row is **90%** (`provider_share_bps: 9000`). Catalog families without a named row (Qwen2.5 7B, Llama 3.3 70B, gpt-oss 120B, Qwen3.5 35B) still bill at **`default`** until a dedicated row is published — they remain catalog-eligible.
-
-## What the catalog contains
-
-For each catalog entry:
+## What a catalog entry contains
 
 | Field | Purpose |
 | --- | --- |
-| `model_id` | Canonical identifier (e.g. `mlx-community/Qwen3-8B-4bit`) |
-| `model_hash` | SHA-256 of the canonical weight file — anchors receipt-verified model identity |
-| `family` | `qwen` \| `llama` \| `gemma` \| … |
-| `ram_tier_min_gb` | Minimum unified memory required |
-| `context_max` | Maximum context window |
-| `template_support` | Which templates render `tools`, `response_format`, etc. |
-| `rate_card` | Prompt / completion / cached-prompt rates |
+| `model_id` | MLX serve ID (for example `mlx-community/Qwen3-8B-4bit`) |
+| `model_revision` | Pinned Hugging Face revision |
+| `model_sha256` | SHA-256 over the artifact manifest. This anchors model identity in receipts and settlement |
+| `min_ram_gb` | Minimum unified memory |
+| `min_bandwidth_tier` | Minimum memory-bandwidth tier |
+| `bench_gate` | Minimum sustained tokens/s and maximum 4K-prompt time to first token for a recommendation |
 
 ## Catalog distribution
 
-The catalog is served as a **signed static feed** off the release infrastructure. Providers pull it on install and on autoupdate. Signature verification anchors:
+The catalog, rate card, and demand rank are signed feeds. Malibu serves the current versions, and each provider release also carries a compiled-in copy as a fallback. The provider verifies the signatures before it uses them. The signed catalog anchors:
 
-* Which models are eligible to serve.
-* Which weight hashes count as canonical (receipts referencing an off-catalog `model_hash` verify `invalid`).
-* Which templates are marked tool-calling / structured-output capable.
+* which models a provider may be recommended and admitted for;
+* which weight artifacts count as canonical. The provider verifies downloaded weights against `model_sha256` before serving paid traffic, and settlement checks the served artifact against the catalog;
+* the RAM and benchmark gates autotune applies.
+
+Providers reject a signed feed that is more than 30 days old and fall back to the compiled-in copy. Malibu re-signs the feeds before they reach that age.
 
 ## Adding a model
 
-Adding a new model to the catalog is an operator action. Steps:
+Adding a model to the catalog is an operator action and ships as a signed release:
 
-1. Publish MLX weight files with a canonical SHA-256.
-2. Add a catalog entry with `model_id`, `model_hash`, RAM tier, and rate card.
-3. Sign and publish the updated catalog feed.
-4. Existing providers pick up the update on next autoupdate cycle; new installs get it directly.
+1. Pin the MLX weights to a Hugging Face revision and record the artifact SHA-256.
+2. Add the catalog row (RAM floor, bandwidth tier, benchmark gate) and a rate-card row.
+3. Sign and publish the release.
+4. Providers pick up the new catalog from the signed feed at their next recommendation, or from the compiled-in copy after they [update](/operations/provider-autoupdate). A provider then serves the model once autotune recommends it or the provider switches to it.
 
-Community-proposed models: file an issue on `MalibuAI/malibu` with the model ID, weight file, and target RAM tier.
-
-## Model retirement
-
-Retiring a model means:
-
-* Removing it from the signed catalog feed.
-* Providers stop advertising it warm on next feed refresh.
-* Buyer requests for a retired model return `404 model_not_available`.
-
-Receipts issued while the model was in the catalog remain verifiable indefinitely.
+To propose a model, contact the Malibu team with the model ID, the MLX weights, and the target RAM tier.
 
 ## Receipt binding
 
-Receipts carry `model_hash`, and `malibu-verify` 1.1.x cross-checks it against the catalog. A `valid` receipt therefore certifies:
-
-* The signed tuple was produced by the provider's key.
-* The provider claimed to run this specific model file (by hash).
-* That file is in the catalog.
+Receipts carry `model_hash`, the artifact identity from the catalog row the provider served. The [receipt verifier](/cli/malibu-verify) has catalog-check flags (`--catalog` / `--catalog-url`), but offline verification of current receipts is pending a verifier update: the released verifier cannot parse receipts that carry `model_hash`.
 
 Full trust boundary: [Security & trust model](/network/security).

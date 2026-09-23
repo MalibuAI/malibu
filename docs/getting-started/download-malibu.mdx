@@ -1,54 +1,67 @@
 ---
 title: Download Malibu
-description: Invite-gated pre-beta — turn an Apple Silicon Mac into a paid AI provider.
+description: Invite-gated pre-beta. Turn an Apple Silicon Mac into a paid AI provider.
 icon: apple
 ---
 
 # Download Malibu
 
-> Signed Mac app for providers. Fresh registration needs an invite.
+> A signed, notarized Mac app for providers. Registering a new Mac needs an invite.
 
-The Malibu app is the primary way to join the network as a provider. Signed `.dmg`, menu-bar wrapper around the underlying `malibu-cli` binary. No terminal required.
+The Malibu app is the main way to join the network as a provider. It ships as a signed and notarized `.dmg`. The app bundles the provider CLI and manages it for you, so you don't need a terminal.
 
 <Note>
-  **Private pre-beta.** Download is public; **admission is not**. A valid invite (`malibu.tech/j#/…`) is required to register a new Mac. Already-running providers keep updating without a new invite. Troubleshooting: [malibu.tech/host/troubleshoot](https://malibu.tech/host/troubleshoot).
+  **Private pre-beta.** The download is public, but **admission is not**. You need a valid invite code (links look like `malibu.tech/j#/…`) to register a new Mac. Providers that are already running keep updating without a new invite. Troubleshooting: [malibu.tech/host/troubleshoot](https://malibu.tech/host/troubleshoot).
 </Note>
 
 <Card title="Download for Apple Silicon" icon="apple" href="https://malibu.tech/host" color="#FF6E5B">
   macOS 14+ · Apple Silicon (M1 or newer) · invite required to register
 </Card>
 
-Public `/host` follows GitHub Latest and links the versioned, immutable GitHub release DMG (`github.com/Augustas11/macprovider/releases/download/<tag>/Malibu-<tag>.dmg`), never a floating `latest.dmg`. Confirm the tag on the host page before you install.
+The `/host` page follows the GitHub Latest release (**v1.8.123** as of 23 September 2026). It links the versioned, immutable release DMG (`github.com/Augustas11/macprovider/releases/download/<tag>/Malibu-<tag>.dmg`), never a floating `latest.dmg`, and prints its SHA-256. Check the tag and checksum on the host page before you install.
 
 ## What onboarding looks like
 
-1. **Open your invite.** Use the link you were sent, then download. Paste the code when Malibu asks.
-2. **Pick a model.** Malibu detects RAM tier and recommends an MLX model that fits. You can override. Small models (Llama 3.2 3B) can run on 8 GB; 16 GB+ is more comfortable; 32 GB+ for 30B-class catalog rows.
-3. **Sign in.** GitHub OAuth. This links your Mac to a provider identity you can move between machines.
-4. **Start serving.** The app registers with the coordinator over an outbound WebSocket. New Macs join the **provisional** routing tier until promoted to **pinned** — [Payments](/guides/payments#provisional-vs-pinned).
-5. **Check earnings.** Balance, per-model breakdown, payout status — in the app.
+1. **Open your invite.** Use the link you were sent, then download the DMG, drag Malibu to Applications, and launch it.
+2. **Paste the invite code and click Launch Provider.** This is the only step you take yourself. From here Malibu:
+   * installs the provider software;
+   * benchmarks your Mac and picks the best paid model that fits its memory, from the signed [model catalog](/operations/model-catalog);
+   * downloads the model and verifies it against the catalog hash;
+   * registers the Mac with the network.
+
+   The first run can take a while, mostly model download and local checks.
+3. **Provider live.** The app shows the model in use. New Macs join the **provisional** routing tier until they meet the criteria for **trusted**. See [Payments → Routing tiers](/guides/payments#routing-tiers).
+4. **Open the dashboard.** The dashboard shows today's credits, the current model, and the model-recommendation status. From there you can change models, add a payout wallet address, and repair or update the provider software.
+
+You don't need a wallet to start. Payouts are off until public beta, and adding a wallet only registers an address.
 
 ## What you get
 
-* **Auto-detected model choice** matched to your Mac's RAM, sustained TPS, and 4K-prompt TTFT.
-* **Auto-updates.** When a newer binary ships, the app validates the signed release, drains in-flight requests, and swaps in place.
-* **Menu-bar controls.** Pause serving, switch models, view live request rate without leaving the menu bar.
-* **90% provider share** on billed credits today. **USDC-on-Base payout ships at public beta.** See [Payments & payouts](/guides/payments) and [Economics](/guides/economics).
+* **Automatic model choice.** It is matched to your Mac's unified memory and measured throughput and latency. When a better paid model becomes available, the dashboard offers it and you choose **Adopt** or **Not now**.
+* **Automatic updates.** New signed releases are verified, in-flight requests drain, and the provider and app are swapped in place. See [Provider autoupdate](/operations/provider-autoupdate). **Check for Updates…** in the menu bar runs an update on demand.
+* **Menu-bar controls.** Status, today's credits, **Pause** / **Resume**, **Open Dashboard**, **Export Diagnostics…** (a redacted support bundle), **Reset Provider Service…**, and **Quit and Uninstall…**.
+* **90% provider share** of billed credits on verified requests. **USDC-on-Base payout is planned for public beta and is off in pre-beta.** You can register a payout wallet address now; it does not send funds. See [Payments & payouts](/guides/payments) and [Economics](/guides/economics).
 
 ## Requirements
 
-* Apple Silicon Mac (M1 or newer)
-* macOS 14 or later
-* 8 GB unified memory can serve 3B-class models; 16 GB+ recommended; 32 GB+ for larger catalog rows
-* Stable network connection (outbound WebSocket to `coordinator.malibu.tech`)
-* **Invite code** for a first-time register
+* Apple Silicon Mac (M1, M2, M3, M4, or M5)
+* macOS 14 Sonoma or later
+* Unified memory: 8 GB can serve the 3B catalog row, 16 GB+ is recommended, and 32 GB+ opens more of the current catalog. Per-model floors are on the [Model catalog](/operations/model-catalog) page.
+* Wired or fast Wi-Fi.
+* **Invite code** for a first-time registration
 
-No port-forwarding, no static IP, no incoming firewall rules.
+The provider connects **outbound** only, so you need no port forwarding, static IP, or inbound firewall rules.
+
+If no paid model clears on your Mac, setup does not start a paid provider and the app tells you so. The app has no donor-mode action; the donor-mode prompt appears only in an interactive terminal install.
+
+## Uninstall
+
+Use **Quit and Uninstall…** from the menu bar. It removes the background provider, Malibu settings, and the local provider setup. It keeps your saved provider access, so reinstalling doesn't need a new invite. It deletes downloaded models in `~/Library/Application Support/macprovider/models`; only the Hugging Face cache is kept.
 
 ## Headless install
 
-Running on a CI runner, a headless Mac Studio, or a remote Mac without a display? Use the [headless install](/cli/headless-install) — same underlying binary, no app UI. Fresh headless registers still need an invite.
+For a remote Mac, an SSH-only Mac mini, or a terminal-only setup, use the [headless install](/cli/headless-install). It uses the same provider CLI without the app UI. Fresh headless installs still need an invite.
 
 ## Agent-readable onboarding
 
-Point a coding agent at [https://get.malibu.tech/skill.md](https://get.malibu.tech/skill.md). It can install the provider CLI, check status, recover a broken setup, update or uninstall, and connect apps to `api.malibu.tech`. Same invite gate as the app. Details: [Agent-readable onboarding](/getting-started/agent-onboarding).
+Point a coding agent at [https://get.malibu.tech/skill.md](https://get.malibu.tech/skill.md). The agent can install the provider CLI, check status, recover a broken setup, update or uninstall, and connect apps to `api.malibu.tech`. The same invite gate applies. Details: [Agent-readable onboarding](/getting-started/agent-onboarding).

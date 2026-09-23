@@ -8,17 +8,24 @@ icon: key
 
 > OpenAI-compatible endpoint. Bring your own SDK.
 
-Buyers hit Malibu at `https://api.malibu.tech/v1` with the OpenAI SDK. To get an API key, sign in with GitHub:
+Buyers call Malibu at `https://api.malibu.tech/v1` with the OpenAI SDK. To get an API key, sign in to the console with GitHub:
 
-<Card title="Get an API key" icon="key" href="https://api.malibu.tech/auth/github/start" color="#143A45">
-  GitHub OAuth · No credit card required to browse
+<Card title="Open the console" icon="key" href="https://malibu.tech/console" color="#143A45">
+  GitHub sign-in · No credit card
 </Card>
 
-Or use the console at [malibu.tech/console](https://malibu.tech/console). A coding agent can also read [https://get.malibu.tech/skill.md](https://get.malibu.tech/skill.md) and wire the OpenAI SDK for you — [Agent-readable onboarding](/getting-started/agent-onboarding).
+## How keys are issued
+
+1. Open [malibu.tech/console](https://malibu.tech/console) and choose **Sign in with GitHub**. Sign-in runs through `api.malibu.tech` and requests only the `read:user` GitHub scope, with no repository or organization access.
+2. After sign-in, the console issues an API key. Keys start with `mp_`.
+3. **The full key is shown once.** Copy it immediately. Malibu stores only a hash and cannot show it again.
+4. Use the console's **API keys** view to create a new key or revoke an old one. A revoked key returns `403 api_key_revoked`.
+
+One GitHub account maps to one Malibu account. A coding agent can also read [https://get.malibu.tech/skill.md](https://get.malibu.tech/skill.md) and wire the OpenAI SDK for you. See [Agent-readable onboarding](/getting-started/agent-onboarding).
 
 ## First request
 
-Warm models change. This example uses a 16 Aug 2026 warm ID — confirm with `client.models.list()` first.
+The set of models being served changes. This example uses a model that several providers served on 23 Sep 2026. Confirm with `client.models.list()` first.
 
 ```python theme={null}
 from openai import OpenAI
@@ -48,31 +55,34 @@ const client = new OpenAI({
 
 ## What the API surface covers
 
-* **Streaming** (`stream: true`) with token-incremental deltas.
-* **Multi-turn tool calling** — first-turn emission, second-turn `role: "tool"` acceptance, assistant-history rendering. Cline drop-in. **Validate tool calls before execution** — [Buyer-side validation](/agentic/buyer-side-validation).
-* **Structured output** — `response_format: {"type": "json_schema", ...}` with the OpenAI strict-mode subset.
-* **Sticky conversations** — pass a stable `conversation_id`; the coordinator routes back to the same provider and reports `cached_prompt_tokens`.
-* **Signed receipts** — every response carries an Ed25519-signed receipt in the `X-Malibu-Receipt` header.
+* **Chat completions** with **streaming** (`stream: true`) and token-incremental deltas.
+* **Multi-turn tool calling**: first-turn emission, second-turn `role: "tool"` acceptance, and assistant-history rendering. **Validate tool calls before you execute them.** See [Buyer-side validation](/agentic/buyer-side-validation).
+* **Structured output**: `response_format: {"type": "json_schema", ...}` with the OpenAI strict-mode subset.
+* **Prompt-cache reuse**: automatic for repeated scaffolds. Send `X-MacProvider-Conversation` to prefer the same provider across turns; the cache-hit rate applies when that preference wins. See [Sticky conversations](/guides/sticky-conversations).
+* **Signed receipts**: some non-streaming responses carry a v0.3 Ed25519-signed receipt in the `X-MacProvider-Receipt` header (currently roughly a quarter to a third); streams never do. For the rest, use `GET /v1/receipts`. Offline verification of current receipts is pending a verifier update.
+* **Compatibility facades**: [`/v1/responses`](/api/responses) and [`/v1/messages`](/api/messages) (Anthropic Messages) for clients that speak those APIs.
 
 Every pattern with runnable code lives in [Using Malibu with the OpenAI SDK](/guides/openai-sdk).
 
 ## Model catalog
 
-Warm models (Bearer required):
+Models you can call right now (key required):
 
 ```bash theme={null}
 curl -s https://api.malibu.tech/v1/models \
   -H "Authorization: Bearer $MALIBU_API_KEY"
 ```
 
-Or from Python: `client.models.list()`. Full catalog vs priced vs warm: [Operations → Model catalog](/operations/model-catalog).
+Or from Python: `client.models.list()`. To check availability without a key, use `GET https://api.malibu.tech/v1/stats/models`. For listed vs priced vs catalog models, see [Operations → Model catalog](/operations/model-catalog).
 
-## Billing
+## Quota and billing
 
-Pay-as-you-go, USDC on Base. Rate card:
+Each account gets a **daily token quota** that resets at UTC midnight. The `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` headers on every chat response report it, and so does `GET /v1/usage`. When it runs out, requests return `429 quota_exhausted` until the reset.
+
+Usage is metered against the public rate card:
 
 ```bash theme={null}
 curl -s https://api.malibu.tech/v1/rate-card
 ```
 
-Same payload on `https://malibu.tech/v1/rate-card`. Dated comparison: [Pricing comparison](/guides/pricing-comparison). No subscription, no monthly commit.
+There is no buyer payment method yet: no card and no USDC top-up. Prepaid credits and top-ups are planned. See [Network status](/status). For a dated price comparison, see [Pricing comparison](/guides/pricing-comparison).

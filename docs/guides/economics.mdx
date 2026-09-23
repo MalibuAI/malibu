@@ -1,21 +1,21 @@
 ---
 title: Economics
-description: Two billing regimes — live 90/10 credit marketplace vs planned 70/12/18 token flywheel. USDC payout at public beta.
+description: What is live today (a 90/10 credit ledger on the public rate card), what buyers pay in pre-beta, and what the planned token launch changes.
 icon: banknote
 ---
 
 # Economics
 
-> Canonical split between **what providers earn today** and **what the token launch changes**. **Last reviewed:** 29 August 2026.
+> This page separates **what runs today** from **what the token launch is planned to change**. **Last reviewed:** 23 September 2026.
 
-Never mix the two regimes in one sentence.
+Keep the two regimes in separate sentences. Do not mix them.
 
-| Regime | Status | Provider share | Buyer pays in | Settlement |
+| Regime | Status | Provider share | Buyers pay | Settlement |
 | --- | --- | --- | --- | --- |
-| **Marketplace credits** | **Live** | **90%** of gross credits (10% operator) | Credits | Accrue now. USDC-on-Base payout at public beta |
-| **Token flywheel (BME)** | **Planned v0/v1** | **70%** of buyer USDC | $MALIBU + USDC (design) | 12% reserves / 18% buy-and-burn |
+| **Marketplace credits** | **Live (pre-beta)** | **90%** of gross credits (10% operator) | Public buyers: nothing yet (daily token quota) | Credits accrue on the ledger. USDC-on-Base payout planned for public beta |
+| **Token flywheel (BME)** | **Planned** | **70%** of buyer USDC | $MALIBU + USDC (design) | 12% reserves / 18% buy-and-burn |
 
-Source for live numbers: `GET https://api.malibu.tech/v1/rate-card` (`provider_share_bps: 9000` on every row as of 29 July 2026). Formula: [Metering & billing](/network/metering-and-billing). Payouts: [Payments & payouts](/guides/payments).
+Live numbers come from `GET https://api.malibu.tech/v1/rate-card`, which shows `provider_share_bps: 9000` on every row. For the formula, see [Payments & payouts](/guides/payments#what-you-earn-per-request) and [Metering & billing](/network/metering-and-billing).
 
 ## Live marketplace
 
@@ -23,26 +23,64 @@ Source for live numbers: `GET https://api.malibu.tech/v1/rate-card` (`provider_s
 providerCredits = grossCredits × 9000 ÷ 10,000
 ```
 
-Buyers pay **gross** credits. The 90/10 split is a provider/operator split, not a buyer discount.
+Gross credits are computed from the model's rate-card row. The 90/10 figure splits those credits between provider and operator. It is not a buyer discount.
 
-Credits convert at `usd_per_million_credits` on the rate card (**1.0** on the 29 July 2026 card). Model-specific prompt/completion rates override the default 500k / 1M credits per million tokens.
+Credits convert at the card's `usd_per_million_credits`, which is **1.0**: 1,000,000 credits = $1.00. Models without their own row use the `default` row (500,000 prompt / 1,000,000 completion credits per Mtok, which is $0.50 / $1.00).
 
-Admission is **invite-gated pre-beta**. Earnings are not a public "$X/year per Mac" figure — use `/providers/{id}/earnings` after you serve traffic.
+Admission is **referral-gated in pre-beta**, so new providers join with an invite. There is no public "$X/year per Mac" figure. After you serve traffic, read your own numbers in the Malibu app.
+
+### What buyers pay today
+
+* **Public API buyers are not charged in pre-beta.** The gateway meters every request against a **daily per-account token quota**, which is shown in the [console](https://malibu.tech/console). Checkout, cards, and prepaid USDC top-up are not live.
+* **Wholesale partners** can be invoiced after the fact in USD for metered, settled usage, priced from the same rate card.
+* In both cases, provider credits accrue at the 90% share for work that settles.
+
+### Live rate card
+
+Snapshot of `GET https://api.malibu.tech/v1/rate-card` (card generated **22 September 2026**). Prices below are **USD per 1 million tokens**, which is the card's credits-per-Mtok value ÷ 1,000,000 at `usd_per_million_credits = 1.0`. Every row has `provider_share_bps: 9000` and `global_multiplier_ppm: 1000000`. Rates change, so read the endpoint for current values; the card's `version` field identifies the exact card.
+
+| Rate-card key | Prompt | Cached prompt | Completion |
+| --- | --- | --- | --- |
+| `default` | $0.50 | $0.125 | $1.00 |
+| `gemma-4-26b-a4b-it` (also `google-gemma-4-26b-a4b-it`) | $0.06 | $0.015 | $0.24 |
+| `meta-llama/llama-3.1-8b-instruct` | $0.0135 | $0.003375 | $0.027 |
+| `meta-llama/llama-3.2-3b-instruct` | $0.0135 | $0.003375 | $0.027 |
+| `nemotron-3-nano-30b-a3b` | $0.08 | $0.02 | $0.16 |
+| `openai/gpt-oss-120b` | $0.068 | $0.017 | $0.136 |
+| `openai/gpt-oss-20b` | $0.05 | $0.0125 | $0.10 |
+| `qwen2.5-coder-32b-instruct` | $0.425 | $0.10625 | $0.85 |
+| `qwen3-30b-a3b-instruct-2507` | $0.072 | $0.018 | $0.24 |
+| `qwen3-32b` | $0.11 | $0.0275 | $0.22 |
+| `qwen3-8b` | $0.0135 | $0.003375 | $0.027 |
+| `qwen3-coder-30b-a3b-instruct` | $0.1175 | $0.029375 | $0.235 |
+| `qwen3.5-27b` | $0.208 | $0.052 | $1.728 |
+| `qwen3.5-35b-a3b` | $0.13 | $0.0325 | $1.00 |
+| `qwen3.6-27b` | $0.24 | $0.06 | $2.16 |
+| `qwen3.6-35b-a3b` | $0.1488 | $0.0372 | $0.80 |
+| `qwen3.8-27b` | $0.192 | $0.048 | $2.00 |
+| `z-ai/glm-4.5-air` | $0.112 | $0.028 | $0.688 |
+
+A row on the rate card sets a price. It does not mean a provider is serving that model right now. Which models are routable depends on which Macs are online. See `/v1/models` (authenticated), the [Model catalog](/operations/model-catalog), and [Network status](/status). The **cached prompt** rate applies only to prefix-cache hits on a sticky follow-up turn; every other prompt token bills at the full prompt rate. See [Sticky conversations](/guides/sticky-conversations).
+
+### Reward ledger (preview)
+
+In pre-beta the network also keeps an **off-chain $MALIBU reward ledger** for verified useful work. It is capped per provider and per wallet, and it is separate from marketplace credits. No token is live, and ledger entries cannot be withdrawn or transferred. Do not count them as marketplace earnings. On-chain emission is still **Planned**; see [Network status](/status).
 
 ## Planned token launch
 
-When (and only when) token economics activate:
+If and when token economics activate, each buyer dollar is planned to split as follows:
 
-- **70¢** of each buyer dollar to the serving provider
+- **70¢** to the serving provider
 - **12¢** to protocol-owned USDC reserves
-- **18¢** market-buy-and-burn of $MALIBU
+- **18¢** to a market buy-and-burn of $MALIBU
 
-That split **replaces** 90/10. It is not additive. Effective date: TBD on [Network status](/status).
+That split **replaces** 90/10. It does not add to it. The effective date is TBD; watch [Network status](/status).
 
-Illustrative early-network earnings figures in the Litepaper assume this regime plus a token price. They are **not** live marketplace payouts. See [Provider economics](/guides/provider-economics).
+Illustrative early-network token scenarios assume this regime and a token price. They are **not** live marketplace payouts or projected earnings. See [Provider economics](/guides/provider-economics).
 
 ## Related
 
-- [Pricing comparison](/guides/pricing-comparison) — buyer-side rates vs aggregators
-- [Provider economics](/guides/provider-economics) — assumptions behind annual figures
-- [Network status](/status) — live vs planned ledger
+- [Payments & payouts](/guides/payments): formula, earnings endpoint, payout status
+- [Pricing comparison](/guides/pricing-comparison): buyer-side rates vs aggregators
+- [Provider economics](/guides/provider-economics): assumptions behind scenario figures
+- [Network status](/status): live vs planned ledger

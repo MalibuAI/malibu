@@ -1,116 +1,147 @@
 ---
 title: malibu-cli
-description: The provider binary. Runs MLX inference, connects outbound to the coordinator.
+description: The provider CLI. Runs MLX inference and connects outbound to the Malibu network.
 icon: terminal
 ---
 
 # malibu-cli
 
-> The provider binary. Runs MLX inference, connects outbound to the coordinator.
+> The provider CLI. Runs MLX inference and connects outbound to the Malibu network.
 
-`malibu-cli` is the underlying provider binary. The [Malibu app](/getting-started/download-malibu) wraps it for interactive use; use `malibu-cli` directly for headless installs, CI, or custom orchestration.
+`malibu-cli` is the command-line provider behind the [Malibu app](/getting-started/download-malibu). The app bundles the same binary and drives it for you. Use the CLI directly for [headless installs](/cli/headless-install), diagnostics, or scripted setups.
+
+The installer puts two names in `~/.local/bin`:
+
+* `malibu-cli`: the Malibu-branded command. This page uses it throughout.
+* `macprovider-cli`: the shipped binary name. It behaves identically and stays supported. The installed binary, the process you see in Activity Monitor, the launchd service arguments, and the log and state paths all use the `macprovider-cli` / `macprovider` name.
+
+If `~/.local/bin` is not on your `PATH`, call `~/.local/bin/malibu-cli` directly or add the directory to your shell profile.
 
 ## What it does
 
-* Loads an MLX model into unified memory.
-* Opens an outbound WebSocket to `coordinator.malibu.tech`.
-* Advertises the loaded model, RAM tier, and identity.
-* Streams inference results back to the coordinator on request.
-* Emits signed v0.3 receipts for every response.
-* Holds a `caffeinate` sleep assertion for the duration of the run.
+* Loads one MLX model into unified memory. The model comes from the signed catalog, and the CLI checks the weights against the catalog's SHA-256 artifact hash before serving paid traffic.
+* Opens an **outbound** WebSocket to the Malibu network. You need no port forwarding, static IP, or inbound firewall rule.
+* Reports the loaded model, hardware summary, and free slots, then streams inference results back on request.
+* Signs responses with the provider's Ed25519 receipt key when receipts are enabled. Fresh invite installs turn receipts on.
+* Holds a `caffeinate` sleep assertion while serving.
+* Serves a local HTTP endpoint on `127.0.0.1` (port `8080` by default) for status and diagnostics.
 
 ## Commands
 
-### `malibu-cli serve`
+Run `malibu-cli help <command>` for every flag of a command.
 
-Start serving. Loads the configured model, connects to the coordinator, holds the WebSocket open.
+### `serve`
 
-```bash theme={null}
-malibu-cli serve --config ~/.malibu/config.yaml
-```
-
-Or with flags:
+Starts the provider. `serve` is also the default when you give no subcommand. The installer's launchd service runs it for you, so you rarely run it by hand.
 
 ```bash theme={null}
-malibu-cli serve \
-  --model mlx-community/Qwen3-8B-4bit \
-  --provider-id my-mac-01 \
-  --coordinator wss://coordinator.malibu.tech/ws/provider
+malibu-cli serve --config ~/.config/macprovider/config.yaml
 ```
 
-### `malibu-cli models`
+Flags and config keys are listed in [Flags & config](/cli/flags-and-config).
 
-Manage local model weights.
+### `status`
+
+Shows local provider status: running state, model, and network connection.
 
 ```bash theme={null}
-malibu-cli models list         # what's downloaded locally
-malibu-cli models pull <id>    # download a model by id
-malibu-cli models remove <id>  # free disk space
-malibu-cli models browse       # discover models available to serve
+malibu-cli status              # plain-language summary
+malibu-cli status --advanced   # exact technical fields for support
+malibu-cli status --json       # raw local status JSON
 ```
 
-### `malibu-cli autotune`
+### `doctor`
 
-Recommend a model based on this Mac's RAM, sustained TPS, and 4K-prompt TTFT, filtered by the signed catalog feed.
+Read-only diagnostics.
 
 ```bash theme={null}
-malibu-cli autotune recommend
+malibu-cli doctor                 # binary version, network endpoint, version-floor standing
+malibu-cli doctor --offline       # skip the network reachability check
+malibu-cli doctor report --json   # structured diagnostics report for support
 ```
 
-Output: a ranked list of eligible models with expected TPS. The Malibu app runs this on first launch.
+In the Malibu app, the menu-bar **Export Diagnostics…** item writes a redacted bundle you can share with support.
 
-### `malibu-cli identity`
+### `models`
 
-View provider identity and receipt keys.
+Inspect or change the model this Mac serves.
 
 ```bash theme={null}
-malibu-cli identity show     # provider_id, provider_pubkey, active receipt key
-malibu-cli identity rotate   # rotate receipt key (grace window applies)
+malibu-cli models list                  # models known to this provider (warm / idle)
+malibu-cli models status                # warm-swap status of the running provider
+malibu-cli models switch <model-id>     # switch to another supported model
+malibu-cli models browse --fits-only    # browse mlx-community models that fit this Mac
+malibu-cli models adopt-recommendation --recommendation-json <file|->
 ```
 
-### `malibu-cli earnings`
+`models browse` lists Hugging Face models that fit your RAM. A browsed model does not earn unless it is also in the signed catalog. See [Model catalog](/operations/model-catalog).
 
-Query the earnings endpoint from the CLI.
+### `autotune`
+
+Benchmarks this Mac and recommends a model plus serve settings.
 
 ```bash theme={null}
-malibu-cli earnings                          # current window
-malibu-cli earnings --from 2026-06-01 --to 2026-06-30
+malibu-cli autotune --recommend --check-only   # show the recommendation, change nothing
+malibu-cli autotune --recommend --apply        # write the recommended model + settings to config
+malibu-cli autotune --recommend --freshness-check
 ```
 
-Same data as the Malibu app's earnings view.
+`--recommend` picks the best paid model for this Mac from the signed catalog and rate card. It checks each candidate's RAM floor and its measured throughput and time-to-first-token gates. If no paid model clears, it offers donor mode (unpaid serving) instead. The installer and the Malibu app run `autotune --recommend --apply` during setup. Add `--calibrate-context` to measure the largest interactive context the selected model handles before config is written.
 
-### `malibu-cli version`
+`malibu-cli autotune` without `--recommend` runs classic autotune: it looks for the biggest feasible model from a candidate list (`--candidate-models`, `--min-model-size`, `--max-model-size`).
+
+### `claim`
+
+Links this Mac to a GitHub account. This is optional and separate from invite-based admission.
+
+```bash theme={null}
+malibu-cli claim               # opens the claim page in your browser
+malibu-cli claim --no-browser  # prints the claim URL instead
+```
+
+### `update`
 
 ```bash theme={null}
 malibu-cli --version
-malibu-cli version --check   # check for a newer release
+malibu-cli update --check   # check for a newer signed release, change nothing
+malibu-cli update           # install it
 ```
 
-## Config file
+Most providers never need to run this, because [autoupdate](/operations/provider-autoupdate) applies new releases automatically. If an update was interrupted and the provider will not serve, run `malibu-cli recover-update`. It clears an abandoned update transaction and leaves a genuinely in-progress one alone.
 
-Default location: `~/.malibu/config.yaml`. Example:
+Headless installs do not self-update. See [Headless install](/cli/headless-install#upgrade).
 
-```yaml theme={null}
-provider_id: my-mac-01
-coordinator: wss://coordinator.malibu.tech/ws/provider
-model:
-  id: mlx-community/Qwen3-8B-4bit
-runtime:
-  max_context: 8192
-  max_batch: 1
-autoupdate:
-  enabled: true
+### `self-test`
+
+Loads the configured model and runs a local inference smoke test.
+
+```bash theme={null}
+malibu-cli self-test
 ```
 
-Full flag reference: [Flags & config](/cli/flags-and-config).
+### `uninstall`
+
+Stops the provider and removes installed files. Your provider identity (`provider_id` and its credential) is preserved, so a later reinstall does not need a new invite. Details: [Headless install → Uninstall](/cli/headless-install#uninstall).
+
+```bash theme={null}
+malibu-cli uninstall
+```
 
 ## Logs
 
-Default log location: `~/Library/Logs/malibu/malibu-cli.log` (macOS). Rotates daily, keeps 7 days.
+The launchd service writes stdout and stderr to:
+
+```
+~/Library/Logs/macprovider/macprovider.out.log
+~/Library/Logs/macprovider/macprovider.err.log
+```
+
+Logs can contain request metadata. Share `malibu-cli status --advanced` or `malibu-cli doctor report --json` with support rather than raw logs.
 
 ## Related
 
-* [malibu-verify](/cli/malibu-verify) — buyer-side receipt verifier
-* [Headless install](/cli/headless-install) — non-app install path
-* [Agent-readable onboarding](/getting-started/agent-onboarding) — skill for coding agents
-* [Provider autoupdate](/operations/provider-autoupdate) — how the binary swaps itself in place
+* [Flags & config](/cli/flags-and-config): flags, env vars, config keys, paths
+* [Headless install](/cli/headless-install): installer and SSH-only fleet installs
+* [Provider autoupdate](/operations/provider-autoupdate): how new releases are applied
+* [macprovider-verify](/cli/malibu-verify): buyer-side receipt verifier
+* [Agent-readable onboarding](/getting-started/agent-onboarding): skill for coding agents

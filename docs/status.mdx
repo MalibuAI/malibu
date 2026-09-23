@@ -10,77 +10,127 @@ icon: circle-check
 
 This page is the factual ledger behind the [Litepaper](/litepaper). Narrative copy may mix live and planned features in one arc; this page does not.
 
-**Last reviewed:** 29 August 2026
+**Last reviewed:** 23 September 2026
 
-## Inference marketplace
+Status labels: **Live** runs in production for users; a note in parentheses, such as *(partial)* or *(free quota)*, narrows the scope. **Beta** is shipped but limited or experimental. **Preview** is visible but not yet functional for its end use. **Pending** is shipped but not working today until an update lands. **Default-off** is built and shipped in code but disabled in production. **Off** is built and switched off until a stated milestone. **Prototype** is research code that is not integrated into production. **Planned** (optionally with a milestone such as v0) is not built or not released. **Not available** is not offered. See the [Glossary](/network/glossary#status-labels-docs).
+
+## Buyer API
 
 | Component | Status | Notes |
 | --- | --- | --- |
-| Coordinator (routing, billing ledger) | **Live** | `coordinator.malibu.tech` |
-| Gateway (OpenAI-compatible API) | **Live** | `api.malibu.tech/v1` — chat, models, usage, rate card, stats overview |
-| Console (buyer web UI) | **Live** | [malibu.tech/console](https://malibu.tech/console) — chat, agent tools, stop control, per-request decode tok/s in the bill line |
-| Provider onboarding | **Beta** | Signed installer at [malibu.tech/host](https://malibu.tech/host). **Invite required** for a fresh register (`malibu.tech/j#/…`). Download alone is not open admission. |
-| Agent-readable onboarding | **Live** | [get.malibu.tech/skill.md](https://get.malibu.tech/skill.md) — coding agents can install the provider CLI, check status, recover, update, uninstall, and connect the OpenAI-compatible buyer SDK. Same invite gate as the app. |
-| Signed inference receipts v0.3 | **Live** | `X-Malibu-Receipt`; verify with `malibu-verify` |
-| Verified model settlement | **Live** | Receipt verdict drives debit/refund |
-| Multi-turn tool calling | **Live** | Qwen + Llama templates where the catalog marks the model tool-capable |
-| Structured output (`json_schema`) | **Live** | OpenAI strict-mode subset |
-| Sticky conversations + prefix-cache metering | **Live** | `cached_prompt_tokens` in usage |
-| Weekly USDC payout rail | **Planned (beta)** | Credits accrue now. USDC-on-Base payout ships when Malibu enters public beta |
-| Provider credit share (today) | **Live** | **90%** provider / 10% operator — see [Economics](/guides/economics) |
-| Public stats snapshot | **Live** | `GET https://api.malibu.tech/v1/stats/overview` (also `malibu.tech`) |
-| Public rate card | **Live** | `GET https://api.malibu.tech/v1/rate-card` (also `malibu.tech`) |
+| Chat completions | **Live** | `POST https://api.malibu.tech/v1/chat/completions`, OpenAI-compatible, streaming and non-streaming. See [Chat completions](/api/chat-completions) |
+| Models | **Live** | `GET /v1/models` (Bearer) lists models with a routable provider right now, plus the `tier1_disclosure` [trust disclosure](/network/trust-disclosure) |
+| OpenAI Responses facade | **Beta** | `POST /v1/responses`, stateless, translated to chat completions. See [Responses](/api/responses) |
+| Anthropic Messages facade | **Beta (experimental)** | `POST /v1/messages`, a wire subset translated to chat completions. Not certified with Anthropic SDKs. See [Messages](/api/messages) |
+| Usage and quota | **Live** | `GET /v1/usage` (Bearer) returns the daily token quota and keys. See [Usage object](/api/usage-object) |
+| Receipt status lookup | **Live** | `GET /v1/receipts/{request_id}` (Bearer, requesting account only): metadata and settlement outcome, no prompt or output. See [Signed receipts](/guides/receipts) |
+| Console (buyer web UI) | **Live** | [malibu.tech/console](https://malibu.tech/console): GitHub sign-in, API keys, chat, agent tools, stop control |
+| Sticky conversations | **Live** | `X-MacProvider-Conversation` sets a preference (not a guarantee) for the provider that served earlier turns, for up to 1,800 s. It often routes elsewhere; only sticky hits bill at the cache-hit rate. `DELETE /v1/sticky` clears your sticky state. See [Sticky conversations](/guides/sticky-conversations) |
+| Automatic prefix-cache reuse | **Live** | Repeated prompt prefixes can reuse a Mac's KV cache without a header. Reported in `prompt_tokens_details.cached_tokens` and billed at the full prompt rate. Does not affect routing |
+| Provider pinning by buyers | **Not available** | Buyers cannot steer a request to a specific provider. See [Provider attribution](/guides/pinning) |
+| Multi-turn tool calling | **Live** | Qwen-family models multi-turn; gpt-oss first turn only. See [Tool calling](/agentic/tool-calling) |
+| Structured output (`json_schema`) | **Live** | Strict schema subset, validated after generation (not constrained decoding). See [Structured output](/agentic/structured-output) |
+| Buyer billing | **Live (free quota)** | Public buyers are not charged money in pre-beta. Each account gets a daily token quota. Card checkout and prepaid top-up are not live. See [Economics](/guides/economics#what-buyers-pay-today) |
+
+## Providers
+
+| Component | Status | Notes |
+| --- | --- | --- |
+| Malibu app (macOS 14+, Apple Silicon) | **Beta** | Notarized app at [malibu.tech/host](https://malibu.tech/host). **Invite required** for a fresh register. Download alone is not open admission |
+| Provider CLI | **Live** | Stable **v1.8.123** (GitHub Latest, 8 Sep 2026). Users type `malibu-cli`; the canonical `macprovider-cli` name keeps working. See [malibu-cli](/cli/malibu-cli) |
+| Headless installs over SSH | **Live** | Terminal-only installs for Macs without a logged-in GUI session. See [Headless install](/cli/headless-install) |
+| Autotune model recommendation | **Live** | Picks the best paid catalog row that fits the Mac's memory and benchmark gates, from the signed catalog feed. See [Model catalog](/operations/model-catalog#which-models-a-provider-is-recommended) |
+| Autoupdate | **Live** | Signed compatibility-set updates for LaunchAgent installs, with drain, health check, and rollback. Headless installs update through the operator installer instead. See [Provider autoupdate](/operations/provider-autoupdate) |
+| Diagnostics | **Live** | `malibu-cli doctor`, `malibu-cli doctor report --json`, `malibu-cli status`, and **Export Diagnostics…** in the app (redacted bundle) |
+| Agent-readable onboarding | **Live** | [get.malibu.tech/skill.md](https://get.malibu.tech/skill.md): coding agents can install, check status, recover, update, uninstall, and connect the buyer SDK. Same invite gate |
+| Routing tiers | **Live** | Provisional (weight 0.3, hourly quota); trusted and pinned (weight 1.0). See [Reputation](/network/reputation) |
+| Bring your own model (BYOM) | **Planned** | Inventory commands such as `malibu-cli models discover` exist today. Offering non-catalog models to buyers and earning on them is not live |
+
+## Models
+
+| Component | Status | Notes |
+| --- | --- | --- |
+| Signed model catalog | **Live** | 17 models, re-signed 23 September 2026. Stable provider v1.8.123 fetches the live 17-row signed feed and falls back to its compiled-in 10 rows if the fetch, signature, or age check fails. See [Model catalog](/operations/model-catalog) |
+| Warm models | **Live** | A catalog model routes only when an eligible Mac serving it is online. Requests for a model no routable Mac serves return `404 model_not_found`. Two were warm at the snapshot below |
+| Pooled serving (multi-Mac models) | **Planned** | Roadmap, not live |
+
+## Settlement, credits, and payouts
+
+| Component | Status | Notes |
+| --- | --- | --- |
+| Verified model settlement | **Live (enforced)** | Only a valid, on-time v0.4 settlement receipt makes a request payable. Missing, invalid, or late receipts settle with zero provider credit and no buyer debit. See [Verified model settlement](/operations/verified-model-settlement) |
+| Buyer-visible receipt header | **Live (partial)** | Some non-streaming responses carry a v0.3 receipt in `X-MacProvider-Receipt` (currently roughly a quarter to a third); streams never do. For the rest, use `/v1/receipts`. It never carries the v0.4 settlement receipt. See [Signed receipts](/guides/receipts) |
+| Offline receipt verification | **Pending** | Offline verification of current receipts is pending a verifier update. The released verifier cannot parse current receipts. See [Receipt verifier](/cli/malibu-verify) |
+| Provider credit share | **Live** | **90%** provider / 10% operator on every rate-card row. See [Economics](/guides/economics) |
+| Payout wallet registration | **Live** | Add a payout address in the Malibu dashboard. Registering does not send funds |
+| USDC-on-Base payouts | **Off (planned for public beta)** | The payout pipeline is built but switched off. No USDC is paid in pre-beta. See [Payments & payouts](/guides/payments) |
+| Off-chain reward ledger | **Preview** | A $MALIBU reward ledger for verified work, shown in the dashboard. Not withdrawable and not a token |
+| Wholesale partner traffic | **Live (partners)** | Selected partners send traffic under postpaid invoicing. Not a public buyer option |
+
+## Trust and privacy
+
+| Component | Status | Notes |
+| --- | --- | --- |
+| Signed catalog hash check | **Live** | A provider's reported model hash must match the signed catalog to route. Provider-reported, not attested |
+| Apple hardware attestation | **Beta (limited)** | Apple Managed Device Attestation reported for 1 node at the snapshot below. No effect on routing or settlement yet |
+| Relay-blind request encryption | **Default-off** | Built; disabled in production. Prompts are plaintext to the serving provider today. See [Security & trust model](/network/security) |
+| Trusted pools | **Default-off** | Built; not enabled in production |
+| Continuous batching | **Default-off** | Built in the provider runtime; production seats serve independent single-stream requests |
+| Compute-integrity sampling | **Default-off** | Reported as `unavailable` in the trust disclosure; no settlement effect |
 
 ## Token protocol (planned)
 
 | Component | Status | Target milestone |
 | --- | --- | --- |
 | On-chain $MALIBU emission | **Planned v0** | Mining launch |
-| PoMW mining in provider runtime | **Planned v0** | Prototype public; integration pending |
-| Burn-and-mint fee split (70/12/18) | **Planned v0** | Replaces 90/10 marketplace split at token launch |
+| PoMW mining in provider runtime | **Planned v0** | Prototype only; integration pending |
+| Burn-and-mint fee split (70/12/18) | **Planned v0** | Replaces the 90/10 marketplace split at token launch |
 | Protocol-owned USDC reserves floor | **Planned v0** | On-chain |
 | TOPLOC per-request verification | **Planned v1** | Lineage: Prime Intellect, 2025 |
-| Pooled serving (multi-Mac models) | **Planned** | Roadmap — not live |
 | DAO / coordinator sunset | **Planned v2** | Measurable decentralization criteria |
 
 ## Economics — today vs launch
 
-**Today (pre-beta marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits accrue on the billing ledger. **USDC-on-Base payout ships at public beta** — not while admission is invite-gated pre-beta. Details: [Economics](/guides/economics), [Payments & payouts](/guides/payments).
+**Today (pre-beta marketplace):** providers earn **90%** of gross credits; operator retains 10%. Credits accrue on the billing ledger. Public buyers use a free daily quota and are not charged. **USDC-on-Base payout is off** and planned for public beta. Details: [Economics](/guides/economics), [Payments & payouts](/guides/payments).
 
-**At token launch (planned):** buyer USDC splits **70%** provider / **12%** reserves / **18%** market-buy-and-burn. Described in the Litepaper flywheel section; not active in production billing yet.
+**At token launch (planned):** buyer USDC splits **70%** provider / **12%** reserves / **18%** market-buy-and-burn. Described in the Litepaper flywheel section; not active in production billing.
 
 ## Verification primitives
 
 | Primitive | Status | Proves | Does not prove |
 | --- | --- | --- | --- |
-| Signed receipts | **Live** | Provider key signed `(prompt, output, model_hash, timestamp)` | Forward-pass fidelity, hardware attestation |
+| Settlement receipts (v0.4) | **Live** | The provider key signed request, output, and route-snapshot digests, and its reported model hash matched the route-time catalog | Forward-pass fidelity, hardware attestation, private prompts |
+| Buyer receipts (v0.3) | **Live (partial)** | The provider key signed prompt hash, output hash, reported model, and timestamp | Same limits; not present on every response. Offline verification pending a verifier update |
 | PoMW (memory-hard walk) | **Prototype** | Model residency + memory-substrate rate | Inference equivalence, routing honesty |
 | TOPLOC | **Planned v1** | Served completion on attested weights | Pre-buyer readiness |
 
-Full trust boundaries: [Security & trust model](/network/security). Hardware attestation is **not** live (`nodes_hardware_attested` is 0 on the public snapshot).
+Full trust boundaries: [Security & trust model](/network/security) and [Trust disclosure](/network/trust-disclosure).
 
 ## Public observability
 
 | Endpoint | Status |
 | --- | --- |
-| `GET https://api.malibu.tech/v1/stats/overview` | **Live** — pool size, tokens, models serving. Cached ~30 s. See [Network stats](/api/network-stats). Also on `malibu.tech`. `/v1/network-stats` is an alias. |
-| `GET https://api.malibu.tech/v1/rate-card` | **Live** — per-model credit rates. Also on `malibu.tech`. |
-| `GET https://api.malibu.tech/v1/models` | **Live** — warm models only; **requires** Bearer token |
-| Pool dashboard | [malibu.tech/console](https://malibu.tech/console) |
+| `GET https://api.malibu.tech/v1/status` | **Live**: pool health and per-model availability. No key |
+| `GET https://api.malibu.tech/v1/stats/overview` | **Live**: pool size, tokens, requests, models serving. Cached ~30 s; can return `503 stats_stale` briefly while it refreshes. `/v1/network-stats` is an alias. See [Network stats](/api/network-stats) |
+| `GET https://api.malibu.tech/v1/stats/models`, `/v1/stats/routability`, `/v1/stats/providers` | **Live**: per-model and redacted per-provider routability. No key |
+| `GET https://api.malibu.tech/v1/rate-card` | **Live**: per-model credit rates. No key |
+| `GET https://api.malibu.tech/v1/openrouter/models` | **Live**: OpenRouter-format listing of priced catalog rows. No key |
+| `GET https://api.malibu.tech/v1/models` | **Live**: warm models only; **requires** a Bearer token |
 
-### Snapshot (16 August 2026)
+### Snapshot (23 September 2026)
 
-From `GET https://malibu.tech/v1/stats/overview` at 06:45 UTC:
+From `GET https://api.malibu.tech/v1/stats/overview`, `generated_at` 2026-09-23 04:59:29 UTC:
 
 | Field | Value |
 | --- | --- |
-| `nodes_online` | 4 |
+| `nodes_online` | 7 |
 | `models_serving` | 2 |
-| `requests_total` | 28,995 |
-| `tokens_served_total` | 7,332,222 |
-| `nodes_hardware_attested` | 0 |
+| `requests_total` | 230,885 |
+| `tokens_served_total` | 339,369,662 |
+| `unified_ram_gb_total` | 360 |
+| `nodes_hardware_attested` | 1 |
 
-Warm models at that time (auth’d `GET /v1/models`): `mlx-community/Llama-3.2-3B-Instruct-4bit`, `mlx-community/Qwen3-8B-4bit`. Treat narrative pool-size claims as unverified if the stats endpoint is down.
+From `GET https://api.malibu.tech/v1/status` at 04:59:35 UTC: 5 providers ready, none degraded or draining. Warm models: `mlx-community/Llama-3.2-3B-Instruct-4bit` (4 ready providers) and `mlx-community/Qwen3.6-27B-4bit` (1). `nodes_online` also counts connected Macs that were not ready to route at that moment. Treat narrative pool-size claims as unverified if the stats endpoints are down.
 
 ## Evidence pages (claim validation)
 
@@ -89,14 +139,14 @@ Warm models at that time (auth’d `GET /v1/models`): `mlx-community/Llama-3.2-3
 | PoMW / 10× / market sizing | [Benchmarks & methodology](/network/benchmarks-and-methodology) |
 | Buyer savings vs aggregators | [Pricing comparison](/guides/pricing-comparison) |
 | Today vs launch economics | [Economics](/guides/economics) |
-| Provider earnings tables | [Provider economics](/guides/provider-economics) |
+| Provider earnings mechanics | [Provider economics](/guides/provider-economics) |
 | Adversaries & residual risk | [Threat model](/network/threat-model) |
 | TOPLOC (v1) | [TOPLOC integration](/network/toploc) |
 | Terms | [Glossary](/network/glossary) |
 
 ## Related
 
-- [Roadmap](/roadmap) — milestone timeline
-- [Changelog](/changelog) — API and docs changes
-- [Privacy](https://malibu.tech/privacy) · [Terms](https://malibu.tech/terms) — operated by Malibu (Cayman Islands)
-- [Documentation architecture](https://github.com/MalibuAI/malibu/blob/main/docs-internal/ARCHITECTURE.md) — how docs lanes are organized (repo)
+- [Roadmap](/roadmap): milestone timeline
+- [Changelog](/changelog): API and docs changes
+- [Privacy](https://malibu.tech/privacy) · [Terms](https://malibu.tech/terms): operated by Malibu (Cayman Islands)
+- [Documentation architecture](https://github.com/MalibuAI/malibu/blob/main/docs-internal/ARCHITECTURE.md): how docs lanes are organized (repo)

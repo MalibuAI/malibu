@@ -1,0 +1,49 @@
+---
+title: Trust disclosure
+description: The machine-readable trust posture returned with GET /v1/models.
+icon: file-check
+---
+
+# Trust disclosure
+
+> The machine-readable trust posture returned with `GET /v1/models`.
+
+Every authenticated `GET https://api.malibu.tech/v1/models` response includes a `tier1_disclosure` object. It states what the network does and does not guarantee **right now**, computed from the live pool. When your agent or compliance process needs the current posture, read this object rather than relying on a static page.
+
+```bash
+curl -s https://api.malibu.tech/v1/models \
+  -H "Authorization: Bearer $MALIBU_API_KEY" \
+  | jq '.tier1_disclosure | {plaintext_to_provider, model_identity, hardware_attestation, model_hash_verified, sticky_affinity}'
+```
+
+## Fields
+
+| Field | Meaning | Value today |
+| --- | --- | --- |
+| `version` | Disclosure schema version | `v0.8`, or `v0.8+tier2-v0.2` when the Tier-2 block below is present |
+| `plaintext_to_provider` | Whether the serving Mac sees your prompt in plaintext | `true` |
+| `model_identity` | Where the model identity comes from | `provider_reported` |
+| `hardware_attestation` | How much of the pool is hardware-attested for this purpose | `none`, `partial`, `all` or `unsupported` |
+| `model_hash_verified` | How much of the pool reports a model hash that matches the signed catalog | `all`, `partial` or `none` |
+| `provider_leg_encryption` | Encryption of the coordinator-to-provider leg beyond TLS | Reported from live metadata |
+| `untrusted_provider_safety` | Behavioral safety checks on providers | Reported from live metadata |
+| `sticky_affinity` | Whether requests with the same conversation tag are preferentially routed back to one provider, and for how long | `enabled: true`, `ttl_seconds: 1800` |
+| `prefix_cache` | Automatic KV-cache reuse on the serving Mac, with a plain-language description. It does not pin routing | `enabled: true` |
+| `relay_blind_request_encryption` | Request encryption hidden from the relay. Present only when enabled | Omitted (default-off pilot) |
+| `model_verification_limit` | Plain-language limit of model verification | Text |
+| `verified_model_settlement` | Which paid entrypoints settle on receipts, the outcome meanings, and the claim limits | Object |
+| `compute_integrity` | Status of sampled compute-integrity checks | `unavailable`, with no settlement effect |
+| `tier2` | Per-pillar detail: `model_hash` (with verified and uncatalogued provider counts), `encrypted_leg`, `attestation`, `behavioral_safety` | Present when any Tier-2 check is active |
+
+## How to read it
+
+* **`plaintext_to_provider: true`** means Malibu is not private inference. See [Security & trust model](/network/security).
+* **`sticky_affinity.enabled: true`** means a sticky conversation tag lets one provider see more of your related traffic than default routing would. Omit the header if you prefer requests spread across providers. See [Sticky conversations](/guides/sticky-conversations).
+* **`model_identity: provider_reported`** means the model hash is measured and reported by the provider. Matching the signed catalog does not prove the provider ran that model honestly.
+* **`verified_model_settlement.model_identity_caveat`** states the settlement claim limit: verified settlement means the provider-reported model hash matched the route-time catalog snapshot and the settlement receipt. It is not hardware attestation, runtime-binary attestation, private prompts, malicious-output prevention, or detection of a provider falsifying its own hash.
+
+## Related
+
+* [Receipts](/network/receipts)
+* [Threat model](/network/threat-model)
+* [Verified model settlement](/operations/verified-model-settlement)

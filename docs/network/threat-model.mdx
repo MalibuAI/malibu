@@ -6,137 +6,162 @@ icon: triangle-alert
 
 # Threat model
 
-> Who can cheat, what breaks, and what cryptography actually bounds. **Last reviewed:** July 2026.
+> Who can cheat, what breaks, and what cryptography actually bounds. **Last reviewed:** September 2026.
 
-This page complements [Security & trust model](/network/security) with an adversary-oriented view. It is the canonical place for "what could go wrong" — the Litepaper stays narrative; this page stays falsifiable.
+This page complements [Security & trust model](/network/security) with a view organized by adversary. It is the canonical list of what could go wrong. The Litepaper stays narrative; this page stays falsifiable.
 
 ## Trust boundaries (summary)
 
 | Participant | Sees | Cryptographic bound |
 | --- | --- | --- |
-| Buyer | Prompts/responses via gateway | Receipt signature over `(prompt, output, model, provider)` |
-| Provider | Plaintext prompts on their Mac | Signs receipts with Ed25519 key |
-| Coordinator | Plaintext for routing/billing | Resolves pubkey; settlement verdicts |
-| Verifier (`malibu-verify`) | Receipt + optional `--pubkey` | Offline signature + catalog `model_hash` check |
+| Buyer | Prompts and responses via the gateway | Receipt metadata (`GET /v1/receipts/{request_id}`); v0.3 receipt headers on some responses (offline verification pending a verifier update) |
+| Provider | Plaintext prompts on their Mac | Signs receipts with an Ed25519 key |
+| Coordinator | Plaintext, for routing and metering | Holds provider receipt keys; issues settlement verdicts |
+| Verifier (`macprovider-verify`) | Receipt plus an optional explicit public key | Offline signature and catalog `model_hash` check. Pending: the released verifier cannot parse current receipts |
 
-**Not in scope today:** confidential compute, hardware attestation, forward-pass honesty (TOPLOC at v1).
+**Not in scope today:** confidential compute, private inference, and forward-pass honesty (TOPLOC is planned). Hardware attestation exists for a small number of Macs but does not affect routing or settlement (see the matrix below).
 
 ## Adversary catalog
 
-### A1 — Lazy or offline provider
+### A1: lazy, slow or offline provider
 
-**Goal:** Collect routing weight without serving quality responses.
+**Goal:** collect routing weight without serving good responses.
 
-**Mechanism:** Accept requests, return garbage or timeout; omit or delay receipts.
-
-**Mitigations (live):**
-
-- Receipt deadline — late receipts are non-settling ([Verified model settlement](/operations/verified-model-settlement))
-- Fault breaker — missing/invalid receipts → zero provider credits
-- Provisional vs pinned tiers — new providers start with lower weight ([Reputation](/network/reputation))
-
-**Residual risk:** Buyer wastes latency before fault detection; no automatic quality SLA beyond settlement.
-
-### A2 — Receipt log-forger (wrong key)
-
-**Goal:** Forge receipts without holding the provider signing key.
-
-**Mechanism:** Re-sign tuples with attacker key or replay old receipts.
+**Mechanism:** accept requests, then return garbage, time out, or omit or delay receipts.
 
 **Mitigations (live):**
 
-- Ed25519 verification against coordinator-resolved or explicit `--pubkey`
-- Catalog-anchored `model_hash` in v0.3 tuple
+- A missing, invalid or late settlement receipt pays the provider nothing ([Verified model settlement](/operations/verified-model-settlement)).
+- A per-provider circuit breaker marks a provider degraded and unroutable after repeated faults in a short window.
+- A throughput floor keeps providers whose estimated throughput is below the production minimum out of dispatch.
+- New providers start **provisional**, with lower routing weight and an hourly request quota ([Reputation](/network/reputation)).
 
-**Residual risk:** Compromised provider key allows valid-looking receipts until rotation. Coordinator compromise shifts default trust root — use `--pubkey` offline.
+**Residual risk:** the buyer loses latency before a fault is detected. There is no automatic quality SLA beyond settlement.
 
-### A3 — Model swap (honest hash, dishonest compute)
+### A2: receipt forger (wrong key)
 
-**Goal:** Serve from different weights or shortcut computation while advertising catalog model.
+**Goal:** forge receipts without holding the provider's signing key.
 
-**Mechanism:** Load catalog weights for hash check but run a cheaper approximation; or serve model A while signing hash for model B if implementation bug.
+**Mechanism:** re-sign tuples with the attacker's key, or replay old receipts.
 
 **Mitigations (live):**
 
-- Receipt binds `model_hash` to catalog entry — swap off-catalog fails verification
-- Settlement faults on hash mismatch
+- Ed25519 verification against the provider's receipt key on record. Settlement receipts name that key by fingerprint (`provider_receipt_key_id`).
+- Settlement receipts bind `request_id` and `attempt_n`, and the coordinator quarantines replayed receipts.
 
-**Mitigations (planned v1):**
+**Residual risk:** a stolen provider key produces valid-looking receipts until the key is rotated. A compromised coordinator shifts the default trust root.
 
-- [TOPLOC](/network/toploc) forward-pass attestation on buyer completions
+### A3: model swap (honest hash, dishonest compute)
 
-**Residual risk:** **Live receipts do not prove forward-pass fidelity.** A malicious provider with correct weights could still cheat computation until TOPLOC ships.
+**Goal:** serve from different weights, or shortcut the computation, while advertising a catalog model.
 
-### A4 — Mine-M, serve-M′ (mining vs serving divergence)
+**Mechanism:** report the catalog hash while running a cheaper model or an approximation.
 
-**Goal:** Mine on cheap substrate; serve buyers from different hardware or model.
+**Mitigations (live):**
 
-**Mechanism:** PoMW walk on one weight file; inference from another process or machine.
+- The coordinator routes only to providers whose **reported** model hash matches the signed catalog.
+- Settlement receipts bind the reported hash and the route-time catalog snapshot. A mismatch does not settle.
+
+**Mitigations (built, not active):**
+
+- Compute-integrity sampling (a sampled distribution-drift check) is built but not active. Buyers see its status as `unavailable`.
+- Losslessness probes and nonce canaries are implemented but disabled in production.
 
 **Mitigations (planned):**
 
-- PoMW walk hashes same canonical GGUF as inference catalog
-- Cooperative scheduler design: mining state ≈ serving state at v1
-- TOPLOC ties served output to attested forward pass
+- [TOPLOC](/network/toploc) forward-pass attestation on buyer completions.
 
-**Residual risk:** **Prototype PoMW does not enforce runtime equivalence today.** Threat is documented; protocol integration pending v0/v1.
+**Residual risk:** **the model hash is provider-reported.** A malicious provider can falsify its own hash measurement, or run different computation, and still produce receipts that verify. Live receipts do not prove forward-pass fidelity.
 
-### A5 — Coordinator / gateway compromise
+### A4: mine M, serve M′ (mining vs serving divergence)
 
-**Goal:** Mis-route traffic, alter billing, substitute pubkeys.
+**Goal:** mine on a cheap substrate while serving buyers from different hardware or a different model.
 
-**Mechanism:** Attacker controls `coordinator.malibu.tech` or gateway TLS termination.
+**Mechanism:** run the PoMW walk on one weight file and serve inference from another process or machine.
 
-**Mitigations:**
+**Mitigations (planned):**
 
-- Buyers can verify receipts offline with `--pubkey`, bypassing live key resolution
-- Signed static catalog feed for model hashes
-- Self-hosted coordinator on roadmap for trust-sensitive buyers
+- The PoMW walk hashes the same canonical weights as the inference catalog.
+- Cooperative scheduler design, so that at v1 mining state approximately equals serving state.
+- TOPLOC ties served output to an attested forward pass.
 
-**Residual risk:** Online routing and billing remain coordinator-trusted until decentralization milestones (v2).
+**Residual risk:** **PoMW is not part of the production provider runtime.** The threat is documented; protocol integration is pending.
 
-### A6 — Buyer tool-call injection
+### A5: coordinator or gateway compromise
 
-**Goal:** Trick agent runtime into executing model-suggested tools.
+**Goal:** mis-route traffic, alter billing, or substitute public keys.
 
-**Mechanism:** Model emits malicious `tool_calls[]`; buyer executes without validation.
+**Mechanism:** an attacker controls the coordinator or the gateway's TLS termination.
 
 **Mitigations:**
 
-- Documented buyer obligation — [Buyer-side validation](/agentic/buyer-side-validation)
-- Receipt proves model **output**, not safe intent
+- The verifier accepts an explicit provider public key, bypassing live key resolution. Offline verification of current receipts is pending a verifier update.
+- Model hashes come from a signed static catalog feed.
 
-**Residual risk:** Out of band for Malibu transport — buyer framework must enforce policy.
+**Residual risk:** routing, metering and settlement are coordinator-trusted. v0.4 settlement receipts are verified only by the coordinator today.
 
-### A7 — Privacy expectation mismatch
+### A6: buyer tool-call injection
 
-**Goal:** (Buyer mistake) Assume prompts are private.
+**Goal:** trick an agent runtime into running tools the model suggested.
 
-**Mechanism:** Misread marketing copy; prompts traverse gateway + provider as plaintext.
+**Mechanism:** the model emits malicious `tool_calls[]` and the buyer runs them without validation.
 
 **Mitigations:**
 
-- Security page + Introduction state cooperative-trust boundary explicitly
-- Litepaper uses "Cooperative trust" not "Private"
+- A documented buyer obligation: [Buyer-side validation](/agentic/buyer-side-validation).
+- Receipts prove model **output**, not safe intent.
 
-**Residual risk:** Enterprise buyers needing confidential compute must not use Malibu as-is.
+**Residual risk:** outside Malibu's transport. The buyer's framework must enforce policy.
+
+### A7: privacy expectation mismatch
+
+**Goal:** none. This is a buyer mistake: assuming prompts are private.
+
+**Mechanism:** misreading marketing copy. Prompts cross the gateway, the coordinator and the provider as plaintext.
+
+**Mitigations:**
+
+- The security page and the Introduction state the cooperative-trust boundary explicitly.
+- `GET /v1/models` returns `tier1_disclosure.plaintext_to_provider: true` ([Trust disclosure](/network/trust-disclosure)).
+- The Litepaper says "Cooperative trust", not "Private".
+
+**Residual risk:** buyers who need confidential compute must not use Malibu as it stands. Relay-blind request encryption is a default-off pilot.
+
+### A8: overstated hardware or capacity
+
+**Goal:** claim more RAM, throughput or serving seats than the Mac has.
+
+**Mechanism:** misreport hardware or benchmark values in heartbeats.
+
+**Mitigations (live):** the throughput floor and the circuit breaker. A Mac that fails requests it accepted can trip the circuit breaker and lose routing. Advertised seat counts themselves are provider-reported.
+
+**Mitigations (built, not active):** a hello-time gate that would require verified hardware evidence before admission is implemented but disabled in production.
+
+**Residual risk:** RAM and hardware profile values are provider-reported, and public capacity figures are labelled as estimates.
 
 ## Verification primitive matrix
 
 | Primitive | Status | Stops | Does not stop |
 | --- | --- | --- | --- |
-| Signed receipt v0.3 | **Live** | Unsigned/forged tuple without key; off-catalog hash | Dishonest forward pass |
-| Verified settlement | **Live** | Credit for bad/missing receipts | Buyer latency damage |
-| PoMW walk | **Prototype** | Nothing in production path yet | Inference equivalence |
-| TOPLOC | **Planned v1** | Served-output attestation (design target) | Pre-buyer fleet readiness |
+| Signed settlement receipt (v0.4) | **Live** | Forged or replayed receipts; hash or catalog mismatch at settlement | Dishonest forward pass; falsified self-reported hash |
+| Signed legacy receipt (v0.3) | **Live**; offline verification pending a verifier update | Unsigned or forged tuple without the key | Dishonest forward pass |
+| Verified model settlement | **Live** | Provider credit for bad or missing receipts | Buyer latency damage |
+| Signed-catalog hash routing | **Live** | Routing to providers reporting an off-catalog hash | Providers that report the right hash but serve something else |
+| Hardware attestation (Apple managed device attestation) | **Limited**: count shown as `nodes_hardware_attested` | Nothing in routing or settlement yet | Anything about the served computation |
+| Compute-integrity sampling | **Built, not active** | Nothing. Buyer-visible status is `unavailable` | Everything |
+| Canary and losslessness probes | **Built, disabled** | — | — |
+| Relay-blind request encryption | **Default-off pilot** | — | Plaintext at the provider |
+| PoMW walk | **Prototype** | Nothing in the production path | Inference equivalence |
+| TOPLOC | **Planned v1** | Served-output attestation (design target) | Readiness before buyers arrive |
 
 ## Reporting
 
-Security-sensitive findings: GitHub private vulnerability reporting on the relevant repository. Do not attach private prompts, API keys, or receipt bundles to public issues.
+Report security-sensitive findings through GitHub private vulnerability reporting on the relevant repository. Do not attach private prompts, API keys, or receipt bundles to public issues.
 
 ## Related
 
-- [Security & trust model](/network/security) — precise receipt semantics
-- [Benchmarks & methodology](/network/benchmarks-and-methodology) — PoMW scope
-- [TOPLOC integration](/network/toploc) — v1 verification design
-- [Glossary](/network/glossary) — term definitions
+- [Security & trust model](/network/security): precise receipt semantics
+- [Trust disclosure](/network/trust-disclosure): the live, machine-readable posture
+- [Benchmarks & methodology](/network/benchmarks-and-methodology): PoMW scope
+- [TOPLOC integration](/network/toploc): v1 verification design
+- [Glossary](/network/glossary): term definitions

@@ -1,100 +1,132 @@
 ---
 title: Flags & config
-description: malibu-cli command-line flags and config-file reference.
+description: Provider CLI flags, config file keys, environment variables, and on-disk paths.
 icon: settings
 ---
 
 # Flags & config
 
-> malibu-cli command-line flags and config-file reference.
+> Provider CLI flags, config file keys, environment variables, and on-disk paths.
 
-`malibu-cli` reads config in this order: command-line flags > environment variables > `~/.malibu/config.yaml` > defaults.
+The provider CLI resolves every setting in this order, highest first:
 
-## Common flags
+1. Command-line flag (for example `malibu-cli serve --port 8081`)
+2. Environment variable (`MACPROVIDER_*`)
+3. Config file (`~/.config/macprovider/config.yaml`)
+4. Built-in default
 
-| Flag                       | Env                     | Default                                     | Purpose                                      |
-| -------------------------- | ----------------------- | ------------------------------------------- | -------------------------------------------- |
-| `--config <path>`          | `MALIBU_CONFIG`         | `~/.malibu/config.yaml`                     | Config file location                         |
-| `--coordinator <url>`      | `MALIBU_COORDINATOR`    | `wss://coordinator.malibu.tech/ws/provider` | Coordinator WebSocket URL                    |
-| `--provider-id <id>`       | `MALIBU_PROVIDER_ID`    | —                                           | Stable provider handle used as pool identity |
-| `--provider-token <token>` | `MALIBU_PROVIDER_TOKEN` | —                                           | Bearer token minted at first admission       |
-| `--model <id>`             | `MALIBU_MODEL`          | (from autotune)                             | MLX model to load                            |
-| `--log-level <level>`      | `MALIBU_LOG_LEVEL`      | `info`                                      | `debug` \| `info` \| `warn` \| `error`       |
-| `--log-file <path>`        | `MALIBU_LOG_FILE`       | `~/Library/Logs/malibu/malibu-cli.log`      | Log destination                              |
-| `--data-dir <path>`        | `MALIBU_DATA_DIR`       | `~/.malibu`                                 | Config, keys, model cache root               |
+`malibu-cli` is the Malibu-branded command the installer puts on your `PATH`. It is a symlink to the shipped binary, `macprovider-cli`, so both names take the same flags. Environment variables and paths keep the `macprovider` name, because that is the layout the provider ships with on disk.
+
+<Note>
+  The installer and the Malibu app write this config for you. Most providers never need to edit it. If you do change it, restart the provider afterwards (see [Restart after a config change](#restart-after-a-config-change)).
+</Note>
+
+## `serve` flags
+
+`serve` is the default subcommand, and the launchd service runs `macprovider-cli serve --config <path>`. The table covers the flags you are most likely to need. Run `malibu-cli help serve` for the full list, including tuning and experimental options.
+
+| Flag | Env | Config key | Default | Purpose |
+| --- | --- | --- | --- | --- |
+| `--config <path>` | `MACPROVIDER_CONFIG` | — | `~/.config/macprovider/config.yaml` | Config file location |
+| `--model <id>` | `MACPROVIDER_MODEL` | `model` | set by autotune | Hugging Face MLX model id or local path to serve |
+| `--port <n>` | `MACPROVIDER_PORT` | `port` | `8080` | Local HTTP port for loopback status and inference |
+| `--coordinator <url>` | `MACPROVIDER_COORDINATOR_URL` | `coordinator_url` | written by the installer | Network WebSocket URL. Leave it unchanged unless Malibu support asks you to change it |
+| `--provider-id <id>` | `MACPROVIDER_PROVIDER_ID` | `provider_id` | written by the installer | Stable provider identity used for admission |
+| `--token-file <path>` | — | — | — | Read the provider token from an owner-only (`0600`) file |
+| — | `MACPROVIDER_PROVIDER_TOKEN` | `provider_token` | — | Provider token value, when it is not held in the Keychain |
+| `--credential-store <kind>` | `MACPROVIDER_CREDENTIAL_STORE` | `credential_store` | `keychain` | `keychain` or `protected_file` (headless installs use `protected_file`) |
+| `--log-level <level>` | `MACPROVIDER_LOG_LEVEL` | — | `info` | `trace`, `debug`, `info`, `notice`, `warning`, `error`, `critical` |
+| `--max-context <tokens>` | `MACPROVIDER_MAX_CONTEXT_OVERRIDE` | `max_context_override` | per RAM tier | Largest prompt accepted. Longer prompts get HTTP 413 `context_length_exceeded` |
+| `--max-batch <n>` | `MACPROVIDER_MAX_CONCURRENCY_OVERRIDE` | `max_concurrency_override` | `1` | Maximum concurrent in-flight requests. Autotune may raise it |
+| `--kv-bits <4\|8>` | `MACPROVIDER_KV_BITS` | `kv_bits` | unset (no KV quantization) | Quantize the KV cache to save memory |
+| `--enable-receipts` / `--no-enable-receipts` | `MACPROVIDER_ENABLE_RECEIPTS` | `enable_receipts` | off in the binary; on in configs written by a fresh invite install | Sign responses with the provider receipt key |
+| `--idle-prewarm` / `--no-idle-prewarm` | `MACPROVIDER_IDLE_PREWARM_ENABLED` | `idle_prewarm.enabled` | on | Keep Metal kernels warm between requests |
+| `--no-join` | — | — | off | Run the local HTTP server only, without connecting to the network |
+
+When `max_context_override` is unset, the default max context depends on unified memory:
+
+| Unified memory | Default max context |
+| --- | --- |
+| 8 GB | 20,000 tokens |
+| 16 GB | 50,000 tokens |
+| 32 GB | 120,000 tokens |
+| 64 GB+ | 200,000 tokens |
+
+<Warning>
+  The CLI rejects `--provider-token` / `--token` on purpose, because other processes run by the same user can read process arguments. Use `--token-file`, the environment variable, or the `0600` config file instead.
+</Warning>
 
 ## Config file
 
-Default: `~/.malibu/config.yaml`.
+The default path is `~/.config/macprovider/config.yaml`, with file mode `0600`. The installer merges in the keys it owns: `model`, `provider_id`, `coordinator_url`, `port`, `enable_receipts`, `credential_store`, and `auto_update_enabled`. It keeps any other keys you have set. When autotune applies a recommendation, it adds the model artifact binding and the tuned serve settings.
+
+A typical installer-written file looks like this. The values are illustrative:
 
 ```yaml theme={null}
-provider_id: my-mac-01
-provider_token: <token minted on first admission>
-coordinator: wss://coordinator.malibu.tech/ws/provider
-
-model:
-  id: mlx-community/Qwen3-8B-4bit
-  # Or a list to hold multiple warm:
-  # ids:
-  #   - mlx-community/Qwen3-8B-4bit
-  #   - mlx-community/Llama-3.2-3B-Instruct-4bit
-
-runtime:
-  max_context: 8192          # tokens
-  max_batch: 1
-  gpu_memory_reserve_gb: 2   # leave this much unified memory for the OS
-
-heartbeat:
-  interval_s: 30
-
-autoupdate:
-  enabled: true              # opt out only for pinned/audited fleets
-
-autotune:
-  enabled: true              # run recommend on first launch
-  min_tps: 15                # skip candidates below this
-  max_ttft_ms: 4000          # skip candidates above this on 4K prompts
-
-logging:
-  level: info
-  file: ~/Library/Logs/malibu/malibu-cli.log
+model: mlx-community/Llama-3.2-3B-Instruct-4bit
+provider_id: <your provider id>
+coordinator_url: <written by the installer>
+port: 8080
+enable_receipts: true
 ```
 
-## Environment variables
+These are the keys that are reasonable to change by hand:
 
-Every config field has an environment equivalent, uppercased with dots replaced by underscores:
+| Key | Type | Meaning |
+| --- | --- | --- |
+| `port` | integer | Local HTTP port |
+| `max_context_override` | integer | Prompt token cap |
+| `max_concurrency_override` | integer | Concurrent request slots |
+| `kv_bits` | 4 or 8 | KV-cache quantization |
+| `auto_update_enabled` | boolean | Set `false` to opt out of [autoupdate](/operations/provider-autoupdate). Leave it on unless you manage updates yourself |
+| `idle_prewarm` | map | `enabled`, `idle_threshold_seconds`, `tick_seconds`, `max_tokens`, `prompt`, `run_on_battery` |
 
-| Env                           | Config field           |
-| ----------------------------- | ---------------------- |
-| `MALIBU_COORDINATOR`          | `coordinator`          |
-| `MALIBU_PROVIDER_ID`          | `provider_id`          |
-| `MALIBU_PROVIDER_TOKEN`       | `provider_token`       |
-| `MALIBU_MODEL_ID`             | `model.id`             |
-| `MALIBU_RUNTIME_MAX_CONTEXT`  | `runtime.max_context`  |
-| `MALIBU_HEARTBEAT_INTERVAL_S` | `heartbeat.interval_s` |
-| `MALIBU_AUTOUPDATE_ENABLED`   | `autoupdate.enabled`   |
-| `MALIBU_LOG_LEVEL`            | `logging.level`        |
+Do not hand-edit `model` to point at a model outside the signed catalog. To change models, use `malibu-cli autotune --recommend --apply` or `malibu-cli models switch`. Paid traffic requires the served weights to match a signed catalog artifact. See [Model catalog](/operations/model-catalog).
 
-## Data directory layout
+## Installer environment variables
 
+`install.sh` takes only `--dry-run` and `--help`. Everything else is set through environment variables. `bash install.sh --help` lists most of them; it does not list `MACPROVIDER_DONOR_MODE`.
+
+| Env | Purpose |
+| --- | --- |
+| `MACPROVIDER_VERSION=vX.Y.Z` | Install a pinned release instead of GitHub Latest |
+| `MACPROVIDER_NO_PROMPT=1` | Use defaults and skip interactive prompts |
+| `MACPROVIDER_HEADLESS=1` | SSH-only fleet mode. Installs launchd system daemons. See [Headless install](/cli/headless-install) |
+| `MACPROVIDER_HEADLESS_USER=<user>` | Non-root account that owns provider data in headless mode |
+| `MACPROVIDER_PORT=<n>` | Local HTTP port |
+| `MACPROVIDER_DONOR_MODE=1` | Accept unpaid donor mode when no paid model clears on this Mac |
+| `MACPROVIDER_NO_WATCHDOG=1` | Expert/debug only. Skips the companion watchdog |
+| `MACPROVIDER_NO_LAUNCHD=1` | Expert/debug only. Skips both launchd services, so you have to run `malibu-cli serve` yourself |
+
+## Paths
+
+| Path | Contents |
+| --- | --- |
+| `~/.local/bin/malibu-cli` | Symlink to `macprovider-cli` (the Malibu-branded command) |
+| `~/.local/bin/macprovider-cli` | Canonical entrypoint, pointing into the install directory |
+| `~/macprovider/` | Install directory: binary, MLX Metal library, bundled resources |
+| `~/.config/macprovider/config.yaml` | Provider config (`0600`) |
+| `~/.config/macprovider/provider_id` | Provider identity handle |
+| `~/.config/macprovider/last-recommendation.json` | Last autotune recommendation |
+| `~/.config/macprovider/autotune.sqlite` | Autotune run history |
+| `~/Library/Application Support/macprovider/` | Install manifest, lifecycle state, verified model weights (`models/`), local stats |
+| `~/Library/Logs/macprovider/` | `macprovider.out.log`, `macprovider.err.log`, watchdog log |
+| `~/Library/LaunchAgents/live.malibu.provider.plist` | Provider launchd agent. Headless installs use `/Library/LaunchDaemons` instead |
+| `~/Library/LaunchAgents/live.malibu.provider-watchdog.plist` | Watchdog launchd agent |
+
+By default the provider credential lives in the macOS Keychain. Headless installs keep it in an owner-only protected file.
+
+Logs can contain request metadata and local paths, so do not paste raw logs into public issues or chats. Share the output of `malibu-cli status --advanced` or `malibu-cli doctor report --json` instead.
+
+## Restart after a config change
+
+```bash theme={null}
+launchctl kickstart -k gui/$(id -u)/live.malibu.provider
+malibu-cli status
 ```
-~/.malibu/
-├── config.yaml
-├── keys/
-│   ├── provider.pub.pem      # advertised via /v1/receipt-keys
-│   └── provider.key.pem      # signs every receipt (chmod 600)
-├── models/                    # MLX weight cache
-│   └── mlx-community__Qwen3-8B-4bit/
-└── state/
-    ├── last-connect.json
-    └── autoupdate.json
-```
 
-## Verifier config
+## Related
 
-`malibu-verify` reads a subset:
-
-| Env                                       | Purpose                                                  |
-| ----------------------------------------- | -------------------------------------------------------- |
-| `MALIBU_COORDINATOR`                      | Default `--coordinator` for receipt-key resolution       |
-| `MALIBU_VERIFY_ALLOW_PRIVATE_COORDINATOR` | Set to `1` to allow RFC1918 / loopback coordinator hosts |
+* [malibu-cli](/cli/malibu-cli): command reference
+* [Headless install](/cli/headless-install)
+* [Provider autoupdate](/operations/provider-autoupdate)

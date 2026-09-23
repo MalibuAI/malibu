@@ -7,7 +7,7 @@ icon: scan-search
 # TOPLOC integration
 
 <Note>
-  **Status: Planned v1** — not live in production routing or settlement. Signed receipts v0.3 are the live verification primitive today.
+  **Status: Planned v1** — not live in production routing or settlement. Signed receipts (v0.4 settlement receipts and v0.3 legacy receipts) are the live verification primitive today.
 </Note>
 
 > Per-request forward-pass attestation for buyer-paid inference. **Lineage:** TOPLOC (Prime Intellect, 2025).
@@ -16,9 +16,9 @@ TOPLOC closes the gap between "the provider signed this output" (receipt) and "t
 
 ## What receipts do today vs what TOPLOC adds
 
-| Question | Receipt v0.3 (live) | TOPLOC (planned v1) |
+| Question | Signed receipt (live) | TOPLOC (planned v1) |
 | --- | --- | --- |
-| Did the provider sign this `(prompt, output)`? | Yes, if `valid` | Complementary |
+| Did the provider sign this `(prompt, output)`? | Yes, if the receipt verifies | Complementary |
 | Was output produced by forward pass on catalog weights? | **Not proven** | **Design target** |
 | Cost vs serving | Signature verify (~microseconds) | ~**1% of serving cost** (Prime Intellect estimate, cited in Litepaper) |
 
@@ -46,7 +46,7 @@ sequenceDiagram
 
 Exact wire format and verifier placement will be documented here when integration ships. Expect:
 
-- Verifier runs on attested weights aligned with catalog `model_hash`
+- Verifier runs on weights aligned with the catalog `model_hash`
 - Failed attestation → settlement fault (same class as invalid receipt)
 - Buyer-visible status distinct from receipt-only `valid`
 
@@ -56,7 +56,7 @@ Exact wire format and verifier placement will be documented here when integratio
 | --- | --- |
 | Verifier timeout | Treat as fault; zero provider credits; buyer refund path per settlement rules |
 | Provider skips attestation | Non-settling response; routing penalty |
-| Weight file drift | Catalog hash mismatch → already `invalid` at receipt layer |
+| Weight file drift | A reported-hash mismatch against the catalog already fails routing and settlement |
 | Verifier compromise | Coordinator-trusted component — threat model A5 applies |
 
 ## Cost and latency budget
@@ -65,11 +65,11 @@ Litepaper cites ~**1% of serving cost** for TOPLOC verification (Prime Intellect
 
 ## Lineage and credit
 
-TOPLOC is **not** a Malibu invention. Malibu integrates it as the v1 buyer-response attestation layer. Research references live in the repo under `whitepaper/research/` when synced.
+TOPLOC is **not** a Malibu invention. Malibu plans to integrate it as the v1 buyer-response attestation layer. No TOPLOC code runs in the provider or coordinator today.
 
 ## Related
 
 - [Threat model](/network/threat-model) — model-swap adversary A3
-- [Receipts](/network/receipts) — live v0.3 primitive
+- [Receipts](/network/receipts) — live receipt primitive
 - [Network status](/status) — TOPLOC row in verification table
 - [Roadmap](/roadmap) — v1 marketplace milestone

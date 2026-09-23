@@ -8,54 +8,73 @@ icon: receipt
 
 > Signed inference receipts as the network's proof primitive.
 
-Every response emitted by a Malibu provider is bound to a signed **receipt tuple** — an Ed25519 signature over the canonical `(prompt, output, model, provider, timestamp)` binding. The receipt is what turns the network from "trust the coordinator" into "verify the provider's signature."
+Each completion a Malibu provider serves normally ends with a signed **receipt**: an Ed25519 signature over a canonical tuple that binds the request, the output, the provider and the provider's reported model hash. Receipts let the coordinator settle a request by checking the provider's signature instead of taking its word.
 
-For a buyer-facing guide including capture and verification, see [Guides → Signed receipts](/guides/receipts).
+For the buyer-facing guide, see [Guides → Signed receipts](/guides/receipts).
 
-## The v0.3 tuple
+## Two receipt profiles
 
-Nine fields, canonicalized in a fixed order:
+| Profile | `receipt_version` | Used for | Buyer can verify offline today |
+| --- | --- | --- | --- |
+| **Settlement receipt (v0.4)** | `"4"` | Paid chat completions the coordinator dispatches with a route-time settlement snapshot. In production that covers most dispatches, but not all. It drives [verified model settlement](/operations/verified-model-settlement). | **No.** It is checked by the coordinator and never returned in a response header. |
+| **Legacy receipt (v0.3)** | `"3"` | Requests dispatched *without* a settlement snapshot, when the snapshot step is skipped under store pressure (currently roughly a quarter to a third of non-streaming responses). These requests settle as quarantined | **Pending.** Offline verification of current receipts is pending a verifier update. See [`macprovider-verify`](/cli/malibu-verify) |
 
-| Field             | Meaning                                                                         |
-| ----------------- | ------------------------------------------------------------------------------- |
-| `model_hash`      | SHA-256 of the model weights actually loaded on the provider (catalog-anchored) |
-| `model_id`        | Model identifier (`mlx-community/…`)                                            |
-| `prompt_hash`     | SHA-256 of the canonicalized request body                                       |
-| `output_hash`     | SHA-256 of the canonicalized response body                                      |
-| `provider_pubkey` | Ed25519 public key that signed this receipt                                     |
-| `receipt_version` | `0.3.x`                                                                         |
-| `tokens_out`      | Completion tokens generated                                                     |
-| `ttft_ms`         | Time-to-first-token in milliseconds                                             |
-| `unix_ts`         | Signing timestamp (seconds since epoch)                                         |
+Both profiles are signed the same way:
 
-Signed as `Ed25519(canonicalize(tuple))`. Streaming responses emit a settlement-capable receipt too.
+```
+receipt = base64(JCS(tuple)) + "." + base64(Ed25519_sign(provider_receipt_key, JCS(tuple)))
+```
+
+`JCS` is RFC 8785 JSON canonicalization, so key order comes from JCS rather than the order in the tables below.
+
+## The v0.4 settlement tuple
+
+Twenty-three signed fields:
+
+| Group | Fields |
+| --- | --- |
+| Request and attempt | `request_id`, `attempt_n`, `account_scope` (a privacy-preserving digest, never a bearer token) |
+| Content | `prompt_hash`, `output_hash`, `output_prefix_start_byte`, `output_prefix_end_byte` |
+| Model | `model_id`, `model_hash` (provider-reported hash of the loaded model at request start), `expected_catalog_model_hash` |
+| Catalog and route | `catalog_id`, `catalog_body_digest`, `route_snapshot_digest`, `route_snapshot_mode`, `route_snapshot_policy_version` |
+| Provider and key | `provider_id`, `provider_receipt_key_id` (`ed25519-sha256:<hex>`), `signature_key_alg` (`"Ed25519"`) |
+| Outcome | `terminal_state`, `terminal_state_ts_unix_ms`, `issued_at_unix_ms`, `usage` |
+| Version | `receipt_version` (`"4"`) |
+
+`usage` holds five integers: `observed_input_tokens`, `observed_output_tokens`, `billable_input_tokens`, `billable_output_tokens` and `delivered_output_bytes`.
+
+## The v0.3 legacy tuple
+
+Nine fields: `model_hash`, `model_id`, `output_hash`, `prompt_hash`, `provider_pubkey`, `receipt_version` (`"3"`), `tokens_out`, `ttft_ms` and `unix_ts`. `model_hash` may be `null`.
+
+## Getting a receipt as a buyer
+
+* **Response header: on some non-streaming responses.** Some non-streaming responses carry a v0.3 receipt in `X-MacProvider-Receipt` (currently roughly a quarter to a third); streams never do. For the rest, use `/v1/receipts`. The header is set only when the serving provider has a registered receipt key and the request was dispatched without a settlement snapshot, so the provider signed a v0.3 receipt. Replayed responses and guard-modified bodies never carry it, and v0.4 settlement receipts are never put in it. For a request that carries the header, the metadata endpoint returns `attempts: []`: the two are complementary.
+* **Receipt metadata.** `GET https://api.malibu.tech/v1/receipts/{request_id}` returns a metadata-only view of each settlement attempt for your own request. It needs the bearer API key of the account that made the request. The view includes the settlement outcome, receipt result, prompt and output hashes, model id and hash, catalog id and receipt key fingerprint. It never includes raw prompts, outputs or signatures.
 
 ## Trust source
 
-The verifier resolves `provider_pubkey` through `/v1/receipt-keys/{provider_id}` on the coordinator. The endpoint returns the currently-active key plus any keys within the operator-defined **grace window** for recent rotations. Verifications against an expired key outside the grace window return `invalid`.
+The coordinator keeps each provider's current Ed25519 receipt public key. After a key rotation, the previous key stays valid for **7 days**. The coordinator's receipt-key lookup is not exposed on `api.malibu.tech`. The released verifier's built-in key-lookup default is no longer valid, so do not rely on default key lookup. Offline verification of current receipts is pending a verifier update.
 
-For offline verification, pass `--pubkey` explicitly and skip the resolver. `--pubkey` is the trust root — an explicit key wins over live resolution.
+## Verifier compatibility
 
-## Version compatibility
+The open-source verifier is `macprovider-verify`, published under release tags `verify-v<version>` (latest `verify-v1.1.0`).
 
-| Verifier              | Receipts accepted |
-| --------------------- | ----------------- |
-| `malibu-verify` 1.0.x | 0.2.0 – 0.2.4     |
-| `malibu-verify` 1.1.x | 0.2.0 – 0.3.3     |
+| `macprovider-verify` | Receipts accepted |
+| --- | --- |
+| 1.1.0 | Specified for v0.1, v0.2.0 – v0.2.4 and v0.3, but it rejects the current v0.3 buyer receipts (exit 65, `unknown field "model_hash"`). v0.4 returns `inconclusive` (`unknown_receipt_version`). |
+| 1.0.x | v0.3 and v0.4 receipts report `invalid`. |
 
-Locked 1.0.x verifiers report v0.3 receipts as `invalid`. Operators rolling out v0.3-emitting providers must release v1.1.x to buyers **before** that provider rollout reaches them.
+Offline verification of current receipts is pending a verifier update.
 
 ## Where receipts get used
 
-* **Buyer audit trails.** Batch verification of a day's receipts for dispute resolution.
-* **Verified model settlement.** Coordinator receipt verdicts drive gateway buyer debit/refund. Missing or invalid receipts settle with zero provider credits. See [Operations → Verified model settlement](/operations/verified-model-settlement).
-* **Reputation.** Aggregate receipt validity by provider surfaces to the public [Reputation](/network/reputation) view.
+* **Verified model settlement.** The coordinator's verdict on the receipt decides whether the buyer is debited and the provider is credited. Missing, invalid or late receipts pay the provider nothing and release the buyer's reservation. See [Operations → Verified model settlement](/operations/verified-model-settlement).
+* **Buyer audit trails.** Use the receipt metadata endpoint when resolving disputes. Keep any v0.3 header you receive, with the raw request and response bodies, for verification once the updated verifier ships.
+* **Public stats.** The per-provider routability snapshot reports whether a receipt key is present (`present`, `pending_rotation` or `missing`). It does not report a receipt validity rate. See [Reputation](/network/reputation).
 
 ## What a valid receipt proves
 
-A `valid` result proves:
+A valid receipt proves that a holder of the provider's receipt key signed the canonical tuple, and that the key was the one the coordinator had on record.
 
-* A holder of the provider signing key signed the canonical tuple.
-* The verifier resolved that key through the configured trust source.
-
-It does **not** prove: model honesty (beyond `model_hash` matching the catalog), timestamp honesty, response uniqueness, privacy, replay resistance, or absolute trust in the coordinator. Full text: [Security & trust model](/network/security).
+It does **not** prove: honest computation (the model hash is provider-reported), hardware or binary integrity, timestamp honesty, privacy, or independence from the coordinator. Full text: [Security & trust model](/network/security).

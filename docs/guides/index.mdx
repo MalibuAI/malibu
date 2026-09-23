@@ -13,28 +13,28 @@ icon: book-open
     Streaming, tool calling, structured output, sticky conversations.
   </Card>
   <Card title="Receipts" icon="receipt" href="/guides/receipts">
-    Verify signed inference receipts offline.
+    Receipt status lookup and offline checks of the buyer receipt header.
   </Card>
   <Card title="Payments & payouts" icon="coins" href="/guides/payments">
-    Credits, USDC settlement, provider tiers.
+    Credits, routing tiers, wallet registration. USDC payouts are off in pre-beta.
   </Card>
 </Columns>
 
 <Columns cols={3}>
   <Card title="Sticky conversations" icon="messages-square" href="/guides/sticky-conversations">
-    Prefix-cache reuse with stable `conversation_id`.
+    Ask the router to prefer the same provider across turns with `X-MacProvider-Conversation`.
   </Card>
-  <Card title="Provider pinning" icon="pin" href="/guides/pinning">
-    Route requests to a specific provider.
+  <Card title="Provider attribution" icon="pin" href="/guides/pinning">
+    Why buyers cannot pin a provider, and what to use instead.
   </Card>
   <Card title="Pricing comparison" icon="chart-line" href="/guides/pricing-comparison">
-    Malibu vs hyperscaler pricing methodology.
+    Dated Malibu rate card vs OpenRouter list prices.
   </Card>
 </Columns>
 
 <Columns cols={2}>
   <Card title="Provider economics" icon="calculator" href="/guides/provider-economics" horizontal>
-    Earnings models, hardware payback, duty-cycle assumptions.
+    What drives provider credits, and the assumptions behind token scenarios.
   </Card>
   <Card title="Economics (90/10 vs 70/12/18)" icon="banknote" href="/guides/economics" horizontal>
     Live marketplace split vs planned token flywheel.

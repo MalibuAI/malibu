@@ -1,20 +1,32 @@
 ---
 title: Structured output
-description: JSON-schema constrained decoding. OpenAI strict-mode subset.
+description: response_format json_schema and json_object, validated against your schema before success.
 icon: braces
 ---
 
 # Structured output
 
-> JSON-schema constrained decoding. OpenAI strict-mode subset.
+> `response_format` `json_schema` and `json_object`, validated against your schema before success.
 
-Malibu supports OpenAI's `response_format` for structured output — both `json_schema` (schema-constrained) and `json_object` (top-level JSON enforced). Locked surface.
+Malibu accepts OpenAI's `response_format` on `/v1/chat/completions`:
+
+| `response_format`                                  | What you get                                                                  |
+| -------------------------------------------------- | ----------------------------------------------------------------------------- |
+| omitted or `{"type": "text"}`                      | Normal assistant text.                                                        |
+| `{"type": "json_object"}`                          | `content` is guaranteed to parse as JSON with an object or array at the top level. |
+| `{"type": "json_schema", "json_schema": {...}}`    | `content` is guaranteed to parse as JSON that validates against your schema.  |
+
+**How the guarantee works.** The provider adds your schema to the system prompt to steer the model. After inference, it parses and validates the output before it returns success. This is validation, **not** constrained decoding: the model can still produce invalid output. When it does, you get a retryable error instead of bad JSON. See [Failure modes](#failure-modes).
+
+It works on every catalog model and with both `stream: false` and `stream: true`. Larger instruct models such as `mlx-community/Qwen3.6-27B-4bit` follow schemas more reliably than small ones. `GET https://api.malibu.tech/v1/status` lists the models that are serving right now.
 
 ## JSON Schema (strict)
 
 ```python theme={null}
+import json
+
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
+    model="mlx-community/Qwen3.6-27B-4bit",
     messages=[
         {"role": "system", "content": "Extract contact info as JSON."},
         {"role": "user", "content": "Call John at 555-0100, john@example.com"},
@@ -23,6 +35,7 @@ resp = client.chat.completions.create(
         "type": "json_schema",
         "json_schema": {
             "name": "contact",
+            "strict": True,
             "schema": {
                 "type": "object",
                 "properties": {
@@ -31,43 +44,63 @@ resp = client.chat.completions.create(
                     "email": {"type": "string"},
                 },
                 "required": ["name", "phone", "email"],
+                "additionalProperties": False,
             },
-            "strict": True,
         },
     },
 )
 
-import json
 contact = json.loads(resp.choices[0].message.content)
 ```
 
-`strict: true` guarantees schema conformance via **constrained decoding** — the model can only emit tokens that keep the output valid against the schema. Combined with a post-hoc validate-and-fault, this is a hard guarantee, not a best-effort heuristic.
+Request rules:
+
+* `json_schema.name` is required and must match `^[A-Za-z0-9_-]{1,64}$`.
+* `json_schema.schema` is required.
+* `json_schema.description` is optional. The model sees it as prompt text only.
+* `strict` defaults to `true`. `strict: false` returns `400 json_schema_non_strict_unsupported`.
 
 ## Supported schema subset
 
-Malibu implements the **OpenAI strict-mode JSON Schema subset**:
+Malibu checks your schema before inference. Anything outside this subset returns `400` with a `json_schema_*` error code. `param` is `null` on these errors.
 
-* `type: "object"` with `properties` and `required`
-* `type: "string" | "number" | "integer" | "boolean" | "array"`
-* `enum`
-* `additionalProperties: false` (recommended)
-* Nested objects and arrays
-* `$ref` to definitions within the same schema
+**Allowed keywords**
 
-Not supported (return 400):
+* `type`: one of `object`, `array`, `string`, `number`, `integer`, `boolean`, `null`. **Required on every schema node.**
+* `properties` and `required`, on `object` nodes only.
+* `additionalProperties: false`, **required** on every `object` node, nested ones included.
+* `items`, required on `array` nodes.
+* `enum` and `const`. Values must be JSON scalars that match the node's `type`.
+* `minimum`, `maximum`, and `multipleOf`, on `number` / `integer` nodes only. `multipleOf` must be greater than 0.
+* `description` and `title`. The model sees these as prompt text. They don't affect validation.
+* `$schema`, at the top level only. It is ignored for validation.
 
-* `oneOf`, `anyOf` at the top level (some nested uses OK)
-* `pattern`, `format` (validated post-hoc as best-effort but not constrained)
-* Unbounded recursion
-* `if` / `then` / `else` conditionals
+**Strict-mode rules**
 
-If your schema uses features outside the subset, the request returns 400 with the field named.
+* Every key in `properties` must also appear in `required`. Otherwise you get `400 json_schema_strict_requires_all_properties_required`. Optional fields have no special form. Make the field required and let the model return an empty value, such as `""`.
+* A missing `additionalProperties: false` returns `400 json_schema_strict_requires_additional_properties_false`.
+* An `enum` or `const` value that doesn't match `type` returns `400 json_schema_invalid_const_or_enum_type`.
 
-## `json_object` — top-level JSON without a schema
+**Not supported** (`400 json_schema_unsupported_keyword`): `oneOf`, `anyOf`, `allOf`, `not`, `$ref`, `$defs`, `definitions`, `pattern`, `format`, `minLength`, `maxLength`, `minItems`, `maxItems`, `uniqueItems`, `exclusiveMinimum`, `exclusiveMaximum`, `if` / `then` / `else`, `default`, `examples`, and any other keyword not listed above. Inline repeated sub-schemas instead of using `$ref`.
+
+**Caps**
+
+| Limit                                          | Cap          | When exceeded                  |
+| ---------------------------------------------- | ------------ | ------------------------------ |
+| Schema size (raw UTF-8 bytes of `schema`)      | 16,384 bytes | `413 json_schema_too_large`    |
+| Schema nesting depth                           | 32           | `400 json_schema_too_deep`     |
+| Output JSON nesting depth                      | 32           | `502 json_schema_validation_failed` |
+| Raw output size                                | 2 MiB        | `502 response_byte_cap_exceeded` |
+
+<Note>
+  Pydantic and Zod generate schemas with `$ref`, `anyOf` (for `Optional`), string `format`s, and length constraints. Flatten those before you send, or the request is rejected with `400`.
+</Note>
+
+## `json_object`: top-level JSON without a schema
 
 ```python theme={null}
 resp = client.chat.completions.create(
-    model="mlx-community/Qwen3-8B-4bit",
+    model="mlx-community/Qwen3.6-27B-4bit",
     messages=[
         {"role": "system", "content": "Reply as a JSON object with keys `answer` and `confidence`."},
         {"role": "user", "content": "Is 42 prime?"},
@@ -78,14 +111,30 @@ resp = client.chat.completions.create(
 data = json.loads(resp.choices[0].message.content)
 ```
 
-Malibu ships the bundled fix that makes `json_object` actually enforce top-level JSON on the wire — you get a parseable object even when the model would otherwise wrap it in prose.
+`json_object` is enforced, not a hint. If the output isn't valid JSON with an object or array at the top level, you get `502 malformed_json_response` instead of prose. If your client relied on getting best-effort text back under `json_object`, switch to `{"type": "text"}`.
 
 ## Streaming + structured output
 
-Both `json_schema` and `json_object` work with `stream: true`. The emitted `delta.content` chunks are still constrained; concatenating them yields valid JSON.
+Both `json_schema` and `json_object` work with `stream: true`. You receive normal `delta.content` chunks as the model generates. They are **not** constrained token by token. Malibu validates the full concatenated content once the stream finishes:
+
+* **Valid:** the stream ends with `data: [DONE]` as usual.
+* **Invalid:** the stream ends with a terminal `data: {"error": …}` event (`malformed_json_response` or `json_schema_validation_failed`), followed by `data: [DONE]`.
+
+Don't act on streamed JSON until the stream has finished without an error event. Structured streams have a 300-second overall limit. A stream that runs past it ends with `provider_timeout`. On the stable provider release, a structured request that produces no content within 60 seconds also ends with `504 provider_timeout`.
+
+## Tools and structured output together
+
+When a request has both `tools` and `response_format`, a valid tool call takes precedence. You get a normal `tool_calls[]` response, and the tool's own `parameters` schema governs its arguments, not `response_format`. If the model answers without calling a tool, the content must satisfy `response_format`.
 
 ## Failure modes
 
-* **Schema outside the subset** → 400 with the offending field.
-* **Model can't satisfy the schema in the token budget** → response truncated; parse fails. Increase `max_tokens` or simplify the schema.
-* **Fallback model** (non-supported chat template) → structured output falls back to prompted JSON with post-hoc validation. `strict: true` will still fault the response if the output doesn't parse.
+| Error                                | HTTP                   | When                                                   | Retry?                                              |
+| ------------------------------------ | ---------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| `json_schema_*` (see above)          | 400 / 413              | Schema or request is outside the subset. Inference does not run. | No. Fix the schema.                        |
+| `malformed_json_response`            | 502 (or terminal SSE)  | Output isn't valid JSON, has duplicate keys, or `json_object` root isn't an object/array | Yes. Empty output is the exception: `retryable: false` |
+| `json_schema_validation_failed`      | 502 (or terminal SSE)  | JSON parsed but doesn't match the schema. `param` is `null`. | Yes                               |
+| `response_byte_cap_exceeded`         | 502 (or terminal SSE)  | Output was over 2 MiB. Validation did not run.         | No                                                  |
+
+Every error body includes `retryable`, so your client can decide whether to retry. If validation fails often, simplify the schema, raise `max_tokens` so the JSON isn't cut off, or state the format in your own system prompt as well.
+
+Malibu checks syntax and schema conformance only. Whether the values are safe to store or act on is still your call. See [Buyer-side validation](/agentic/buyer-side-validation).

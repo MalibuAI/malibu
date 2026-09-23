@@ -1,14 +1,14 @@
 ---
 title: Models
-description: GET /v1/models — list models currently warm in the pool.
+description: GET /v1/models — list the models connected providers are serving right now.
 icon: boxes
 ---
 
 # Models
 
-> GET /v1/models — list models currently available in the pool.
+> GET /v1/models — list the models connected providers are serving right now.
 
-Standard OpenAI-shape `/v1/models`. Returns the set of models advertised by connected providers right now — the list changes as Macs come online and offline.
+An OpenAI-shaped `/v1/models`. It returns the models that have at least one routable provider right now, so the list changes as Macs come online and go offline.
 
 **Authentication required.** Unauthenticated calls return `401 missing_bearer_token`.
 
@@ -21,7 +21,7 @@ Authorization: Bearer <MALIBU_API_KEY>
 
 ## Response
 
-Example shape (IDs are illustrative — call the endpoint):
+This is a live response from 23 Sep 2026, trimmed, after the 17-model signed catalog went live. Call the endpoint for the current set.
 
 ```json theme={null}
 {
@@ -30,20 +30,50 @@ Example shape (IDs are illustrative — call the endpoint):
     {
       "id": "mlx-community/Llama-3.2-3B-Instruct-4bit",
       "object": "model",
-      "created": 1720000000,
-      "owned_by": "mlx-community"
+      "provider_count": 4,
+      "total_slots": 4,
+      "max_context_tokens": 120000,
+      "hash_verified": true,
+      "hash_verification": {"status": "all_verified", "catalogued": true, "verified_provider_count": 4}
     },
     {
-      "id": "mlx-community/Qwen3-8B-4bit",
+      "id": "mlx-community/Qwen3.6-27B-4bit",
       "object": "model",
-      "created": 1720000000,
-      "owned_by": "mlx-community"
+      "provider_count": 1,
+      "total_slots": 8,
+      "max_context_tokens": 200000,
+      "hash_verified": true,
+      "hash_verification": {"status": "all_verified", "catalogued": true, "verified_provider_count": 1}
     }
-  ]
+  ],
+  "tier1_disclosure": {
+    "plaintext_to_provider": true,
+    "model_identity": "provider_reported",
+    "hardware_attestation": "partial",
+    "model_hash_verified": "all",
+    "provider_leg_encryption": "all",
+    "sticky_affinity": {"enabled": true, "ttl_seconds": 1800, "description": "..."}
+  },
+  "tier2": {
+    "attestation": {"state": "partial", "attested_provider_count": 1, "unsupported_provider_count": 4},
+    "encrypted_leg": {"state": "all", "scope": "coordinator_to_provider_only"},
+    "model_hash": {"state": "all", "require_verified": true}
+  }
 }
 ```
 
-On 16 August 2026 those two IDs were the warm set. Do not hard-code availability.
+| Field | Meaning |
+| --- | --- |
+| `id` | The model ID to send as `model`. It is the ID the serving provider reports. |
+| `provider_count` | Connected providers advertising this model. No per-provider rows are returned. |
+| `total_slots` | Concurrent request slots those providers advertise. |
+| `max_context_tokens` | Context limit for routing. |
+| `hash_verification` | Whether providers' reported model-weight hashes match the signed catalog. `catalogued: false` means the model has no catalog hash to compare against yet. |
+| `compute_integrity` | Present on each entry. It currently reports `status: "unavailable"`. No live compute-integrity telemetry backs it yet. |
+| `tier1_disclosure` | The trust posture: prompts are plaintext to the provider, and model identity is provider-reported. It also shows whether sticky routing is on and its TTL. |
+| `tier2` | Pool-wide counts for hardware attestation, coordinator-to-provider leg encryption, and model-hash verification. On 23 Sep 2026, 1 of the 5 providers counted here was hardware-attested (`partial`). These counts cover providers advertising a listed model. The public `nodes_online` stat (7 at the time) counts every connected Mac, including ones not serving a listed model. Leg encryption covers the coordinator-to-provider hop only, and the provider still reads your prompt. |
+
+Model identity is **provider-reported**. Hash matching is a check against the catalog. It is not hardware attestation, and it cannot detect a provider that falsifies its own hash measurement. See [Security & trust model](/network/security).
 
 ## From Python
 
@@ -57,18 +87,22 @@ for model in client.models.list().data:
 
 ## Availability
 
-A model appears in the list when **at least one connected provider** advertises it warm. If every provider serving a given model disconnects, the model drops out of the list within a heartbeat cycle. Requests for a dropped-out model return `404`.
+A model appears when **at least one routable provider** is serving it. If no routable provider is left, the model drops off the list. Requests for a model no provider advertises return `404 model_not_found`. Requests for a listed model whose slots are all busy wait briefly for a free slot, then return `503 no_provider_available`.
 
-## Full catalog vs available now
+For the same availability without a key, use the public [routability snapshot](/api/network-stats#routability) (`GET /v1/stats/models`).
 
-`/v1/models` shows only what's **available right now**. For priced rows and the signed catalog (including models not currently loaded), see [Operations → Model catalog](/operations/model-catalog).
+## Listed now vs catalog
+
+`/v1/models` shows only what is **routable right now**: models with at least one routable provider. Both warm models in the response above are covered by the live 17-model signed catalog (`catalogued: true`). For priced rows and the signed catalog, including models no provider has loaded, see [Operations → Model catalog](/operations/model-catalog).
+
+A public, OpenRouter-format listing of every priced catalog row is at `GET https://api.malibu.tech/v1/openrouter/models` (no key needed). A row there does not mean a provider is serving it.
 
 ## Rate card
 
-Per-model pricing:
+Per-model pricing, public:
 
 ```bash theme={null}
 curl -s https://api.malibu.tech/v1/rate-card | jq .
 ```
 
-Returns per-model `prompt_rate_per_mtok`, `completion_rate_per_mtok`, and `prompt_cache_hit_rate_per_mtok`, plus `usd_per_million_credits`. Rate-card slugs may differ from MLX serve IDs. Dated comparison: [Pricing comparison](/guides/pricing-comparison).
+Each row has `prompt_rate_per_mtok`, `completion_rate_per_mtok`, and `prompt_cache_hit_rate_per_mtok` in credits per million tokens. `usd_per_million_credits` (currently `1.0`) converts credits to USD. Rate-card keys are normalized slugs, not serve IDs: `mlx-community/Llama-3.2-3B-Instruct-4bit` bills against the `meta-llama/llama-3.2-3b-instruct` row. A model with no matching row falls back to the `default` row. The detached signature is at `GET /v1/rate-card.sig`. Dated comparison: [Pricing comparison](/guides/pricing-comparison).

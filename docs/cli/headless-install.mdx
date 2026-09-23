@@ -1,98 +1,139 @@
 ---
 title: Headless install
-description: Install the malibu-cli binary directly without the app.
+description: Install the provider CLI from the terminal, including SSH-only Mac fleets.
 icon: server
 ---
 
 # Headless install
 
-> Install the malibu-cli binary directly without the app.
+> Install the provider CLI from the terminal, including SSH-only Mac fleets.
 
 <Note>
-  Most providers should use the [Malibu app](/getting-started/download-malibu). This page documents the headless installer for CI environments, remote Macs without a display, and power users.
+  Most providers should use the [Malibu app](/getting-started/download-malibu). This page covers the terminal installer. It suits power users, remote Macs, and SSH-only Mac minis. A fresh provider still needs an invite code.
 </Note>
 
 ## Install
 
-Run on any Apple Silicon Mac (M1 or newer, macOS 14+):
+Run this on an Apple Silicon Mac (M1 or newer) with macOS 14 or later:
 
 ```bash theme={null}
 curl -fsSL https://get.malibu.tech/install.sh | bash
 ```
 
-The installer:
+The installer does the following, in order:
 
-* Picks a recommended MLX model by running the `autotune recommend` flow against a signed static feed of demand rank + candidate models, filtered by your Mac's RAM tier, sustained TPS, and 4K-prompt TTFT (you can override).
-* Asks for a stable provider handle used as your pool identity.
-* Downloads and verifies the latest `malibu-cli` release against a signed checksum manifest.
-* Installs under `~/.malibu` and sets up a user-level `launchd` service.
-* Runs a local `/v1/models` check and a coordinator pool visibility check.
-* Enrolls the provider in [autoupdate](/operations/provider-autoupdate): once the coordinator advertises a newer `recommended_binary_version`, the provider validates the signed release, drains in-flight traffic, and swaps itself in place.
+1. Resolves the current stable release from GitHub (`Augustas11/macprovider`, the Latest release). It verifies the release assets against the signed `checksums.txt` manifest and the signed compatibility set before installing anything.
+2. Asks for your **invite code** on a fresh install. Without one it stops. If a preserved provider identity is found from an earlier install, it reuses that identity instead.
+3. Installs the CLI under `~/macprovider/`, links `~/.local/bin/macprovider-cli`, and adds the `~/.local/bin/malibu-cli` alias.
+4. Runs `autotune --recommend --apply`. This benchmarks the Mac and picks the best paid model that fits, using the signed catalog and rate card. It then downloads the model and verifies its SHA-256 artifact hash. If no paid model clears after a few attempts, you are offered donor mode (unpaid). In donor mode the service is not started automatically.
+5. Writes `~/.config/macprovider/config.yaml` (`0600`).
+6. Installs two launchd user agents: the provider (`live.malibu.provider`) and a companion watchdog (`live.malibu.provider-watchdog`).
+7. Starts the provider and waits until the network admits the exact model artifact for buyer traffic. If admission fails, the install rolls back instead of leaving a half-working provider.
+
+The first model download and benchmark can take a while on a slow connection.
+
+The CLI binary and the Malibu app are Developer ID signed, and the app is notarized. The installer clears the macOS quarantine attribute on the files it installed.
 
 ## Inspect before running
 
-`curl | bash` gives the downloaded script control of your user account. Inspect first if you prefer:
+`curl | bash` hands your user account to the downloaded script. If you want to read it first:
 
 ```bash theme={null}
 curl -fsSL https://get.malibu.tech/install.sh -o install.sh
 less install.sh
+bash install.sh --dry-run   # print what would change
 bash install.sh
 ```
 
-The binary is checksum-verified against a signed release manifest. macOS quarantine (`xattr`) is cleared with your approval during install. Developer ID signing and notarization are planned for a future release.
+## Options
 
-## Non-interactive install
-
-For CI or automated provisioning, pass flags to skip prompts:
+`install.sh` takes only `--dry-run` and `--help`. Everything else is set through environment variables:
 
 ```bash theme={null}
-curl -fsSL https://get.malibu.tech/install.sh | bash -s -- \
-  --provider-id ci-runner-01 \
-  --model mlx-community/Qwen3-8B-4bit \
-  --no-launchd \
-  --yes
+curl -fsSL https://get.malibu.tech/install.sh | MACPROVIDER_VERSION=v1.8.123 bash
 ```
 
-Flags:
+| Env | Purpose |
+| --- | --- |
+| `MACPROVIDER_VERSION=vX.Y.Z` | Install a pinned release instead of GitHub Latest |
+| `MACPROVIDER_NO_PROMPT=1` | Use defaults and skip prompts |
+| `MACPROVIDER_PORT=<n>` | Local HTTP port (default `8080`) |
+| `MACPROVIDER_DONOR_MODE=1` | Accept donor mode if no paid model clears on this Mac |
+| `MACPROVIDER_HEADLESS=1` | SSH-only fleet mode (below) |
+| `MACPROVIDER_HEADLESS_USER=<user>` | Account that owns provider data in headless mode |
+| `MACPROVIDER_NO_LAUNCHD=1` | Expert/debug only. Installs no launchd services, so you run `malibu-cli serve` yourself |
 
-| Flag                 | Purpose                                                             |
-| -------------------- | ------------------------------------------------------------------- |
-| `--provider-id <id>` | Skip the identity prompt                                            |
-| `--model <id>`       | Skip autotune, use this model                                       |
-| `--no-launchd`       | Skip user-level launchd setup (you run `malibu-cli serve` yourself) |
-| `--data-dir <path>`  | Override `~/.malibu`                                                |
-| `--yes`              | Assume yes to all prompts                                           |
+`bash install.sh --help` lists most of these; it does not list `MACPROVIDER_DONOR_MODE`.
 
-## Manual install
+## SSH-only Mac fleets
 
-If you need full control, skip the installer entirely:
+Use `MACPROVIDER_HEADLESS=1` for a Mac mini or Studio that you manage only over SSH and that should serve without anyone logged in to the desktop:
 
 ```bash theme={null}
-VERSION=$(gh release view --repo MalibuAI/malibu --json tagName -q .tagName)
-gh release download "$VERSION" --repo MalibuAI/malibu \
-  --pattern "malibu-cli-*-darwin-arm64" \
-  --pattern "malibu-cli-*-darwin-arm64.sha256"
-shasum -a 256 -c malibu-cli-*-darwin-arm64.sha256
-chmod +x malibu-cli-*-darwin-arm64
-mv malibu-cli-*-darwin-arm64 /usr/local/bin/malibu-cli
-malibu-cli serve --config ~/.malibu/config.yaml
+ssh fleet-user@your-mac
+curl -fsSL https://get.malibu.tech/install.sh -o install.sh
+MACPROVIDER_HEADLESS=1 bash install.sh
+```
+
+Run it as the non-root account that should own the provider. Do not run it as root. In headless mode the installer:
+
+* installs the provider and watchdog as launchd **system** daemons in `/Library/LaunchDaemons`. They survive a reboot without a GUI login. This step needs `sudo`.
+* stores the provider credential in an owner-only protected file instead of the login Keychain.
+* sets `auto_update_enabled: false`, because headless nodes are upgraded by the operator, not by autoupdate.
+* records `install_profile=headless_fleet` in the install manifest.
+
+Check it after install:
+
+```bash theme={null}
+malibu-cli status
+sudo launchctl print system/live.malibu.provider
+```
+
+### Upgrade
+
+Headless installs do not self-update. `malibu-cli update` skips with `headless_operator_update_required`. Upgrades are operator-driven: run the signed installer again in headless mode (`MACPROVIDER_HEADLESS=1`, same user). Malibu support can tell you which installer bundle to use.
+
+## Check the install
+
+```bash theme={null}
+malibu-cli --version
+malibu-cli status
+malibu-cli doctor
 ```
 
 ## Uninstall
 
+For a standard install, from the CLI:
+
 ```bash theme={null}
-launchctl unload ~/Library/LaunchAgents/tech.malibu.malibu-cli.plist
-rm ~/Library/LaunchAgents/tech.malibu.malibu-cli.plist
-rm -rf ~/.malibu
+malibu-cli uninstall
 ```
+
+Or with the standalone uninstaller. `--dry-run` shows what it would remove:
+
+```bash theme={null}
+curl -fsSL https://get.malibu.tech/uninstall.sh -o uninstall.sh
+less uninstall.sh
+bash uninstall.sh --dry-run
+bash uninstall.sh
+```
+
+The Malibu app has **Quit and Uninstall…** in its menu bar.
+
+All three paths remove the launchd services, installed binaries, logs, and install support files. They **preserve your provider identity** (`provider_id` in `~/.config/macprovider/` plus its credential), so a later reinstall can reuse it without a new invite.
+
+Model weights differ by path. The app's **Quit and Uninstall…** runs `malibu-cli uninstall --yes`, which deletes `~/Library/Application Support/macprovider/models`; only the Hugging Face cache survives. The standalone `uninstall.sh` keeps that `models/` directory.
+
+<Warning>
+  On current stable (v1.8.123), `malibu-cli uninstall` refuses headless (system-domain) installs rather than leave system daemons half-removed. The live standalone `uninstall.sh` does not cover headless installs either: it stops only per-user (GUI) LaunchAgents, not headless daemons, and it can leave a dangling `~/.local/bin/malibu-cli` symlink. Support for headless uninstall is merged and ships in a later release.
+</Warning>
 
 ## Agent-readable onboarding
 
-Prefer to hand this to a coding agent? Point it at [https://get.malibu.tech/skill.md](https://get.malibu.tech/skill.md). Same installer, plus status, recovery, update, and uninstall. [Agent-readable onboarding](/getting-started/agent-onboarding).
+To hand this to a coding agent, point it at [https://get.malibu.tech/skill.md](https://get.malibu.tech/skill.md). It covers the same installer plus status, recovery, update, and uninstall. See [Agent-readable onboarding](/getting-started/agent-onboarding).
 
 ## Related
 
-* [malibu-cli](/cli/malibu-cli) — command reference
-* [Flags & config](/cli/flags-and-config) — every flag and env variable
-* [Provider autoupdate](/operations/provider-autoupdate) — how in-place binary swaps work
-* [Agent-readable onboarding](/getting-started/agent-onboarding) — skill for coding agents
+* [malibu-cli](/cli/malibu-cli): command reference
+* [Flags & config](/cli/flags-and-config): flags, env vars, paths
+* [Provider autoupdate](/operations/provider-autoupdate): how new releases are applied

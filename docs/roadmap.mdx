@@ -8,6 +8,19 @@ icon: map
 
 > Protocol milestones. Dates are directional until committed on this page.
 
+## In development (marketplace)
+
+These are planned or built but **not live** for users today. They ship when they are enabled in production and listed as **Live** on [Network status](/status). No dates are committed.
+
+- **USDC-on-Base payouts.** The payout pipeline is built but switched off; wallet registration is live. Planned for public beta
+- **Buyer checkout.** Card or prepaid top-up for public buyers. Today every public account runs on a free daily token quota
+- **Wallet-authenticated buyer sessions.** In development, not live
+- **Bring your own model (BYOM).** Providers can inventory non-catalog local models today. Offering them to buyers and earning on them needs a separate admission path and is not live
+- **Continuous batching.** Serving several requests per model on one Mac at once. Built in the provider runtime, default-off
+- **Relay-blind request encryption.** Hides request bodies from the relay. Built, default-off
+- **Trusted pools.** Built, default-off
+- **Broader hardware attestation.** Apple device attestation covers one provider today, with no routing or settlement effect
+
 ## v0 — Mining launch
 
 - `malibu-miner` binary public on GitHub Releases
@@ -22,7 +35,7 @@ icon: map
 - TOPLOC verifier integration (Prime Intellect lineage)
 - Flywheel activates on first buyer transaction under token economics
 - Mining reputation transfers to serving-routing priority
-- Expanded OSS frontier catalog where pool hardware supports it
+- Expanded open-weight catalog where pool hardware supports it (the signed catalog lists 17 models today)
 
 **Buyer entry:** [malibu.tech/console](https://malibu.tech/console)
 

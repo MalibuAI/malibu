@@ -1,89 +1,112 @@
 ---
 title: Signed receipts
-description: Every response carries an Ed25519-signed receipt. Verify offline with malibu-verify.
+description: Some non-streaming responses carry an Ed25519-signed receipt. Offline verification of current receipts is pending a verifier update.
 icon: file-check
 ---
 
 # Signed receipts
 
-> Every response carries an Ed25519-signed receipt. Verify offline with malibu-verify.
+> Some non-streaming responses carry an Ed25519-signed receipt. Offline verification of current receipts is pending a verifier update.
 
-Every Malibu response carries an `X-Malibu-Receipt` header signed with the provider's Ed25519 receipt key. The receipt binds the canonical prompt hash, output hash, model hash, provider public key, and timestamp. You can verify it offline — no gateway trust required.
+Some non-streaming `POST /v1/chat/completions` responses carry a v0.3 receipt in the `X-MacProvider-Receipt` header (currently roughly a quarter to a third). Streams never do. For the rest, use [`GET /v1/receipts`](#receipt-metadata). The provider signs the receipt with its Ed25519 receipt key. It binds the canonical prompt hash, output hash, model ID, provider public key, and timestamp.
+
+<Warning>
+Offline verification of current receipts is pending a verifier update. The released verifier (`macprovider-verify` 1.1.0) rejects today's receipts with exit code 65 (`unknown field "model_hash"`), and its built-in receipt-key lookup host is no longer valid. Keep the receipt with the raw request and response bodies so you can verify it once the update ships.
+</Warning>
+
+**Scope:**
+
+* **Non-streaming only.** Streaming responses carry no buyer-visible receipt header, trailer, or trailing chunk.
+* A missing header means no v0.3 receipt was issued. There is no placeholder value. Expect it to be absent on most responses: requests that settle through the v0.4 settlement receipt do not get this header, and v0.4 settlement receipts are never put in it. Replayed and guard-modified responses never carry it either. When a response does carry the header, `GET /v1/receipts` for that request returns `attempts: []`; the two are complementary.
+* The verifier's bundle mode (once updated) expects the OpenAI chat-completions request and response bodies. The [Anthropic Messages](/api/messages) and [Responses](/api/responses) facades return translated bodies, so use `/v1/chat/completions` for receipts you plan to verify.
 
 ## What the receipt contains
 
-The v0.3 receipt is a nine-field tuple:
+The header value is `<base64(tuple JSON)>.<base64(signature)>`. The v0.3 tuple has nine fields. This one is decoded from a live response on 23 Sep 2026:
 
-| Field             | Meaning                                                          |
-| ----------------- | ---------------------------------------------------------------- |
-| `model_hash`      | SHA-256 of the model weights actually loaded on the provider     |
-| `model_id`        | Model identifier (e.g. `mlx-community/Qwen3-8B-4bit`) |
-| `prompt_hash`     | SHA-256 of the canonicalized request body                        |
-| `output_hash`     | SHA-256 of the canonicalized response body                       |
-| `provider_pubkey` | Ed25519 public key that signed this receipt                      |
-| `receipt_version` | `0.3.x`                                                          |
-| `tokens_out`      | Completion tokens generated                                      |
-| `ttft_ms`         | Time-to-first-token in milliseconds                              |
-| `unix_ts`         | Signing timestamp (seconds since epoch)                          |
+```json theme={null}
+{
+  "model_hash": null,
+  "model_id": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+  "output_hash": "ddbb5fdd…0533",
+  "prompt_hash": "e2fd3903…6a5c",
+  "provider_pubkey": "/ZH2/aIEzoMouG53L82xSEG8DHVm7I6+ERs4u4KMDDg=",
+  "receipt_version": "3",
+  "tokens_out": 2,
+  "ttft_ms": 71,
+  "unix_ts": 1790138407
+}
+```
 
-Signed with the provider's Ed25519 key. Streaming responses emit a settlement-capable receipt too. Back-compat with v0.1/v0.2 receipts is preserved.
+| Field             | Meaning                                                                 |
+| ----------------- | ----------------------------------------------------------------------- |
+| `model_hash`      | SHA-256 of the loaded model weights, or `null` when the provider did not bind one into this receipt |
+| `model_id`        | Model identifier as the provider reports it                              |
+| `prompt_hash`     | SHA-256 of the canonicalized request                                     |
+| `output_hash`     | SHA-256 of the canonicalized response                                    |
+| `provider_pubkey` | Ed25519 public key that signed this receipt                              |
+| `receipt_version` | `"3"` for this profile                                                   |
+| `tokens_out`      | Completion tokens generated                                              |
+| `ttft_ms`         | Time to first token, in milliseconds                                     |
+| `unix_ts`         | Signing time, in seconds since the epoch                                 |
+
+Settlement uses a separate v0.4 receipt that providers send to the coordinator. You never receive that receipt. You can see its outcome through [receipt metadata](#receipt-metadata).
 
 ## Capturing the receipt
 
 ```python theme={null}
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen3-8B-4bit",
+    model="mlx-community/Llama-3.2-3B-Instruct-4bit",
     messages=[{"role": "user", "content": "Hello"}],
 )
 resp = raw.parse()
-receipt = raw.headers.get("X-Malibu-Receipt")
+receipt    = raw.headers.get("X-MacProvider-Receipt")   # None if no receipt was issued
+provider   = raw.headers.get("X-Provider-Id")
+request_id = raw.headers.get("X-Request-ID")
 ```
+
+Store the raw request body and raw response body with the receipt. Verification recomputes the hashes from them.
 
 ## Verifying offline
 
-Install `malibu-verify` from [CLI Reference → malibu-verify](/cli/malibu-verify). Then:
+**Pending.** Offline verification of current receipts is pending a verifier update. See [Receipt verifier](/cli/malibu-verify) for the flag reference and status. Until then, record the receipt, the response's `X-Provider-Id`, the `X-Request-ID`, and the raw request and response bodies. Verification recomputes the hashes from them.
+
+## Receipt metadata
+
+`GET /v1/receipts/{request_id}` returns the settlement view for one of your requests, keyed by the `X-Request-ID` you received:
 
 ```bash theme={null}
-malibu-verify \
-  --receipt "$RECEIPT" \
-  --prompt-hash "$PROMPT_SHA256_HEX" \
-  --output-hash "$OUTPUT_SHA256_HEX" \
-  --provider-id m1-anon \
-  --json
+curl -s -H "Authorization: Bearer $MALIBU_API_KEY" \
+  https://api.malibu.tech/v1/receipts/$REQUEST_ID
 ```
 
-Or verify a bundled capture (receipt + OpenAI request body + OpenAI response body + provider\_id):
-
-```bash theme={null}
-malibu-verify --bundle receipt-bundle.json --json
+```json theme={null}
+{
+  "schema_version": "macprovider.buyer-receipt-view.v1",
+  "request_id": "450fcea3-4144-48d3-bd44-835a29d2b3ae",
+  "surface": "metadata",
+  "pending_quarantined_visible": true,
+  "attempts": []
+}
 ```
 
-Exit codes:
-
-| Code | Meaning                                                                       |
-| ---- | ----------------------------------------------------------------------------- |
-| 0    | `valid`                                                                       |
-| 1    | `invalid` (signature, canonicalization, or previous-key-outside-grace-window) |
-| 2    | `inconclusive` (pubkey unresolvable, cache stale + live unreachable)          |
-| 64   | Usage error                                                                   |
-| 65   | Input format error                                                            |
+Each entry in `attempts` carries a `settlement_outcome` (`pending`, `verified`, `quarantined`, or `zero_settled`), a `receipt_result`, and prompt and output hashes. This view is **metadata, not signed proof**. It never includes raw prompts, raw outputs, or the signed receipt itself. `attempts` can be empty when no settlement verdict has been recorded for the request. Another account's request ID returns `403 receipt_forbidden`, and an unknown ID returns `404`.
 
 ## When to verify
 
-Most buyers verify **post-hoc** for audit trails rather than on every request — per-request verification adds a round-trip. Batch a day's receipts, run `malibu-verify` in a nightly job, keep the verified receipts for dispute resolution.
+Most buyers verify **after the fact** for audit trails, not on every request. Archive receipts with their request and response bodies now; you can run them through the verifier once the update ships.
 
 ## Trust boundary
 
-A `valid` result proves:
+Once verification is available, a `valid` result proves:
 
-* A holder of the provider signing key signed the canonical tuple.
+* A holder of the provider's signing key signed the canonical tuple.
 * The verifier resolved that key through the configured trust source.
 
-It does **not** prove: model honesty (beyond `model_hash` matching the catalog), timestamp honesty, response uniqueness, privacy, replay resistance, or absolute trust in the coordinator. See [Network overview → Security & trust model](/network/security).
+It does **not** prove model honesty beyond what `model_hash` binds, timestamp honesty, response uniqueness, privacy, replay resistance, or absolute trust in the coordinator. See [Network overview → Security & trust model](/network/security).
 
 ## Why it matters
 
-* **Audit trail.** A buyer can prove an inference happened, on which model, at which provider — without trusting the gateway to be honest after the fact.
-* **Provider accountability.** Disputes over output quality or downtime become resolvable from receipts rather than from memory.
-* **New compositions.** Receipts can be replayed into systems that don't trust the issuer but trust the signature (escrow, reputation, on-chain settlement).
-* **Settlement.** Coordinator receipt verdicts drive gateway buyer debit/refund on the money path. See [Verified model settlement](/operations/verified-model-settlement).
+* **Audit trail.** You can show that an inference happened, on which model, and at which provider key, without trusting the gateway after the fact.
+* **Provider accountability.** Disputes over output become resolvable from signed evidence.
+* **Settlement.** Separate settlement receipts, checked against the route-time catalog, decide whether a request settles. See [Verified model settlement](/operations/verified-model-settlement).

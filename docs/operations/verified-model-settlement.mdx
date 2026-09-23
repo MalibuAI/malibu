@@ -1,75 +1,88 @@
 ---
 title: Verified model settlement
-description: Coordinator receipt verdicts drive the money path.
+description: How signed settlement receipts decide whether a buyer is charged and a provider is credited.
 icon: circle-dollar-sign
 ---
 
 # Verified model settlement
 
-> Coordinator receipt verdicts drive the money path.
+> How signed settlement receipts decide whether a buyer is charged and a provider is credited.
 
-For settlement-capable traffic (v0.3+ receipts), the coordinator's receipt verdict is what drives gateway buyer debit/refund. Missing or invalid receipts settle with zero provider credits — no receipt, no pay.
+A billed request settles only when the network can verify a signed **settlement receipt** from the provider. The receipt ties the request and response to the provider's key and to the exact catalog model artifact the provider served. If the receipt is missing or invalid, the buyer is not charged and the provider earns nothing for that request.
 
 ## The money path
 
-For each billed request:
-
 ```
-provider response
+buyer request
       │
       ▼
-provider signs receipt (Ed25519)  ── settlement-capable if v0.3+
+network reserves the buyer's charge (not yet final)
       │
       ▼
-coordinator verifies:
-  - signature vs current or grace-window pubkey
-  - canonical tuple hashes vs seen request/response
-  - model_hash vs catalog
+provider serves the request and signs a settlement receipt (Ed25519)
       │
       ▼
-verdict:
-  valid          → buyer debited, provider credited, settlement proceeds
-  invalid        → FaultBreakerQualifying, zero provider credit, buyer NOT debited
-  missing / late → FaultBreakerQualifying, zero provider credit, buyer NOT debited
+network checks:
+  - signature vs the provider's registered receipt key
+  - request / response hashes vs what the network relayed
+  - served model artifact vs the signed catalog entry
+      │
+      ▼
+outcome:
+  verified      → buyer charge becomes final, provider credited
+  pending       → waiting for the receipt (bounded by a deadline)
+  quarantined   → missing, invalid, legacy, or mismatched receipt:
+                  buyer reservation released, provider credit zero
+  zero_settled  → verified but not billable: buyer not charged,
+                  provider credit zero
 ```
 
-## The receipt deadline
+The buyer charge is reservation-first. It becomes a final debit only once the request reaches `verified`.
 
-For settlement-capable traffic a provider receipt must arrive before the coordinator's `pending_deadline_seconds` window closes. Receipts arriving after the deadline are **non-settling and non-recoverable** — they cannot create provider credit, payout readiness, or a new buyer debit unless a future operator-review exception spec explicitly changes that rule.
+## Receipt deadline
 
-The deadline is measured from the end of the response frame; typical operator defaults are on the order of tens of seconds. Providers on a healthy network sign and emit receipts inside the same tick that completes the response, so the deadline is a backstop, not an active constraint.
+A settlement receipt has to arrive before the pending deadline closes. The deadline is measured from when the request reached its terminal state, and the network default is **300 seconds**. A request still `pending` at the deadline becomes `quarantined`: the buyer reservation is released and the provider gets zero credit.
 
-## Fault-qualifying outcomes
+Late receipts do not settle and cannot be recovered. They cannot create provider credit, payout eligibility, or a new buyer charge.
 
-A `FaultBreakerQualifying` outcome means:
+A healthy provider emits its receipt as part of completing the response, so the deadline is a backstop rather than something you plan around.
 
-* Provider gets **zero** credit for this request.
-* Buyer is **not debited** for this request.
-* The event contributes to the provider's fault rate for the current window.
-* Repeated faults trip the per-provider circuit breaker, excluding the provider from routing until recovery.
+## Receipt versions
+
+| Receipt | Used for | Who sees it |
+| --- | --- | --- |
+| Settlement receipt (v0.4) | Settlement decisions | Network only. It is removed from buyer responses |
+| Buyer receipt (v0.3) | Buyer-side audit. Offline verification of current receipts is pending a verifier update; see [the receipt verifier](/cli/malibu-verify) | Buyers, in the `X-MacProvider-Receipt` header on some non-streaming responses (currently roughly a quarter to a third); never on streams |
+
+Only v0.4 settlement receipts can create provider credit. v0.3 and older receipts are not settlement-capable, and traffic that carries only a legacy receipt settles as `quarantined`. Which kind a provider signs depends on whether the request was dispatched with a settlement snapshot. Fresh invite installs enable receipts.
+
+A buyer's verifier version affects only the buyer's own audit, never settlement. 1.0.x verifiers report v0.3 buyer receipts as `invalid`, and 1.1.0 cannot parse current v0.3 buyer receipts, so offline verification of current receipts is pending a verifier update.
+
+## Checking a request's settlement
+
+Buyers can look up metadata-only receipt status for their own requests:
+
+```bash theme={null}
+curl -H "Authorization: Bearer $MALIBU_API_KEY" \
+  https://api.malibu.tech/v1/receipts/<request_id>
+```
+
+The response contains hashes and the settlement outcome, never prompt or completion text. It returns `401` without a key and `403` for another buyer's request or for a demo key.
 
 ## Why this matters
 
-* **Buyer safety.** A buyer never pays for a request that can't be cryptographically attributed to the claimed model on the claimed provider.
-* **Provider incentive alignment.** A provider that skips signing, tampers with the tuple, or serves a mismatched model earns nothing.
-* **Operator solvency.** The gateway ledger balances against verified receipts, not raw request counts.
+* **Buyer safety.** A buyer's charge only becomes final once a signed receipt ties the response to a catalog model on an identified provider.
+* **Provider incentives.** A provider that skips signing, tampers with the tuple, or serves weights that don't match the catalog earns nothing for that request.
+* **Ledger integrity.** Provider credits come from verified receipts, not raw request counts.
 
-## Version rollout hazard
+## Recent reliability changes
 
-Locked `malibu-verify` 1.0.x buyers see v0.3 receipts as `invalid`. If a provider running v0.3 emissions is routed to a buyer whose verifier is stuck at 1.0.x, that buyer's audit reads `invalid` even though settlement passed.
-
-The operator runbook says: **roll `malibu-verify` 1.1.x to buyers BEFORE v0.3-emitting providers reach them.** The coordinator's own verifier is always current — settlement itself isn't affected — but buyer-side audits are.
-
-Full compatibility matrix: [Receipts](/network/receipts).
-
-## What's NOT tied to receipts
-
-* **Non-settlement-capable legacy traffic** (v0.1/v0.2 receipts) still settles on the old path — receipt validity is verified but the fail-closed logic doesn't apply.
-* **Free-tier / demo traffic** (if enabled by the operator) is metered but not settlement-capable.
-* **Coordinator-internal probes** (warmup, health checks) do not go through settlement at all.
+* If the settlement-evidence database write hits its deadline after the provider credit has already been recorded, the buyer now receives the completed response instead of an HTTP 500. The write is retried.
+* The gateway now reconciles settlement holds promptly, and holds that were already verified are recovered instead of left pending.
 
 ## Related
 
-* [Signed receipts](/guides/receipts) — buyer-side verification
-* [malibu-verify](/cli/malibu-verify) — the verifier CLI
-* [Metering & billing](/network/metering-and-billing) — how credits become USDC
+* [Signed receipts](/guides/receipts): buyer-side verification
+* [Receipt verifier](/cli/malibu-verify): the `macprovider-verify` CLI
+* [Model catalog](/operations/model-catalog): the signed artifacts receipts bind to
+* [Metering & billing](/network/metering-and-billing): how credits are computed

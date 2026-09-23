@@ -8,6 +8,66 @@ icon: list
 
 > API field additions, receipt version bumps, and docs semantic changes.
 
+## September 2026
+
+### Buyer API
+
+- **Sticky conversations are live.** Send `X-MacProvider-Conversation: <tag>` to prefer the provider that served earlier turns, for up to 1,800 seconds. It is a preference, not a guarantee, and often routes elsewhere; only sticky hits bill at the cache-hit rate. `DELETE /v1/sticky` clears your sticky state. The live posture is in `tier1_disclosure.sticky_affinity` on `GET /v1/models`
+- Automatic prefix-cache reuse for OpenAI-compatible clients: repeated system prompts and tool scaffolds can reuse a Mac's KV cache without any header. These hits are reported in the OpenAI-standard `usage.prompt_tokens_details.cached_tokens` and billed at the full prompt rate
+- Tool calling: tool-call IDs from other OpenAI-compatible clients are accepted and rewritten; `tool_choice: "required"` or a named function is served as `auto`; streamed tool calls are safe to concatenate
+- Next provider release (not in stable v1.8.123): removal of the 256-message cap on chat requests (stable providers still return `400 messages_too_long` above 256 messages), and recovery of incomplete Qwen XML tool-call wrappers and leftover tool markup instead of failing the stream
+- Routing skips providers below a minimum throughput floor, and seat accounting no longer hides free seats when a Mac reports "busy" late
+- Settlement robustness: a served completion is returned to the buyer even if recording its settlement evidence hits a database deadline, and settlement holds are reconciled promptly
+- New reference pages for the **Beta** OpenAI Responses facade (`POST /v1/responses`) and the experimental Anthropic Messages facade (`POST /v1/messages`)
+
+### Models and pricing
+
+- The signed model catalog was re-signed on 23 Sep 2026 to cover **17 models**, and it is live. Stable provider v1.8.123 fetches the live 17-row feed and falls back to its compiled-in 10 rows if the fetch, signature, or age check fails. See [Model catalog](/operations/model-catalog)
+- Seven new priced rate-card rows: Qwen3 30B A3B Instruct 2507, GLM-4.5-Air, Qwen3.5 27B, Qwen3.5 35B A3B, Qwen3.6 27B, Qwen3.6 35B A3B and Qwen3.8 27B
+- gpt-oss-120b joined the autotune catalog for 90 GB+ Macs
+- The rate card is now a signed feed derived from a dated market snapshot, with a guard that stops the signed rates and the billing configuration from drifting apart
+- Corrected the Qwen3.6 27B catalog artifact identity so providers serving it match the signed row. Parts of this fix are provider-side and ship in the next provider release
+
+### Providers
+
+- **Provider CLI v1.8.123** (8 Sep 2026, GitHub Latest):
+  - `malibu-cli` command (a symlink to the canonical `macprovider-cli`, which keeps working)
+  - `malibu-cli doctor report --json` read-only diagnostics report and one consistent provider status
+  - `malibu-cli autotune --calibrate-context` to size context after model selection
+  - Model-recommendation adoption in the Malibu app (**Adopt** / **Not now**)
+  - Verified model weights kept in a durable app-owned store
+  - Installer and updater recovery, including `malibu-cli recover-update` for a wedged update
+  - Idempotent uninstall that keeps saved provider access
+  - Autoupdate reliability: recovery through the signed release channel when a session is stuck, and backoff on repeated failures
+  - Fresh-install fixes for hangs and for Macs where no paid model fit
+- Installer fixes served from `get.malibu.tech` after v1.8.123: latest-release lookup no longer fails with a 404; fresh Macs install without the Command Line Tools `python3` stub; no false `rollback_failed` on a first install
+- Headless installs over SSH for Macs without a logged-in GUI session
+
+### Docs catch-up (late August)
+
+- Public, no-key endpoints on `api.malibu.tech`: `/v1/rate-card`, `/v1/stats/overview`, and the routability views `/v1/stats/models`, `/v1/stats/routability` and `/v1/stats/providers`
+- `GET /v1/receipts/{request_id}`: metadata-only receipt status for the requesting account
+- Malibu dashboard: payout wallet registration (it does not send funds) and a preview off-chain reward ledger; earnings open through a portal link
+- Apple hardware attestation reported for a first provider; no routing or settlement effect yet
+
+### Documentation
+
+A full refresh against the shipped system on 23 Sep 2026. Corrections:
+
+- **Header names.** There are no `X-Malibu-*` headers. Real ones include `X-MacProvider-Conversation` and `Idempotency-Key` (request) and `X-Provider-Id`, `X-Request-ID`, `X-RateLimit-*`, `Retry-After`, `X-MacProvider-Receipt` and `X-MacProvider-Streaming-Mode` (response). See [Headers](/api/headers) for the full list
+- **Receipt verifier.** The tool is `macprovider-verify` (release `verify-v1.1.0`); `malibu-verify` never existed. Offline verification of current receipts is pending a verifier update: 1.1.0 cannot parse today's v0.3 buyer receipts. Settlement receipts (v0.4) are checked by the network and are never sent to buyers. Some non-streaming responses carry a v0.3 receipt header (currently roughly a quarter to a third); streams never do. For the rest, use `/v1/receipts`
+- **Provider CLI.** Config lives at `~/.config/macprovider/config.yaml`, environment variables use the `MACPROVIDER_` prefix, and the LaunchAgent label is `live.malibu.provider`. Invented flags, commands, env vars and `~/.malibu` paths were removed
+- **Autoupdate.** Releases are checked with an ECDSA P-256 signature over `checksums.txt`, not Ed25519. Nonexistent `channel`, `drain_timeout_s` and `autoupdate rollback` options were removed; manual recovery is `recover-update`
+- **Structured output** is validated after generation, not enforced by constrained decoding
+- **Pinning.** Buyers cannot pin a request to a provider; sticky conversations are the supported way to prefer one
+- **Cache billing.** Only sticky-conversation hits bill at the cache-hit rate; automatic prefix-cache hits bill at the full prompt rate
+- **Settlement.** Outcomes are `verified`, `pending`, `quarantined` and `zero_settled`, with a 300-second pending deadline
+- **Model catalog.** The 17-model signed catalog with per-model memory floors replaces older lists. Qwen2.5 7B and Llama 3.3 70B are not in the catalog
+- **Money.** Public buyers are not charged in pre-beta (daily token quota); USDC payouts are off; wallet registration only records an address
+- **Routing tiers.** New Macs move from provisional to trusted by meeting trust criteria; pinned is set only in operator configuration
+- **Litepaper.** Removed per-Mac annual dollar figures and hardware-payback lines, and labeled the PoMW prototype numbers as unaudited
+- New pages: [Trust disclosure](/network/trust-disclosure), [Responses](/api/responses), [Messages](/api/messages)
+
 ## August 2026
 
 ### Product (docs catch-up)
@@ -18,9 +78,9 @@ icon: list
 - `GET /v1/models` requires a Bearer token
 - Provider admission is **invite-gated pre-beta** ([malibu.tech/host](https://malibu.tech/host)); fresh register needs `malibu.tech/j#/…`
 - USDC-on-Base payout rail marked **Planned (beta)** on [Network status](/status) — credits accrue in pre-beta; USDC payout ships when Malibu enters public beta
-- Download pin follows GitHub Latest (accepted Malibu app **v1.8.123** as of 19 Sep 2026); public button links the immutable GitHub release DMG (`github.com/Augustas11/macprovider/releases/download/<tag>/Malibu-<tag>.dmg`), never `latest.dmg`. JS upgrades at request time; no-JS / first-paint is the deploy-time pin. Production prebuild fail-closes if Latest resolves to a different Malibu GUI tag than the pin.
+- Download button follows GitHub Latest and links the immutable GitHub release DMG for that tag, never a moving `latest.dmg`
 - Console: agent tools, stop control, activity bus, client-measured decode tok/s on the bill line
-- Catalog vs warm set: Qwen2.5 7B, Qwen3.5 35B, Llama 3.3 70B, gpt-oss 120B stay **catalog-eligible** (route when matching-RAM Macs join). Warm snapshot on 16 Aug 2026 was 3B + Qwen3-8B
+- Catalog vs warm set documented: priced catalog rows route only when a matching-RAM Mac is serving them. Warm snapshot on 16 Aug 2026 was 3B + Qwen3-8B (the model list in this entry was corrected in September 2026)
 - Homepage and `/host` earn copy matches the ledger: 90/10 credits live in pre-beta; USDC payout at public beta; $MALIBU / 70/12/18 planned
 - Operator named on site: Malibu, jurisdiction Cayman Islands ([privacy](https://malibu.tech/privacy), [terms](https://malibu.tech/terms))
 
@@ -49,8 +109,8 @@ icon: list
 
 ### API (live)
 
-- Receipt tuple **v0.3** — nine-field signed receipt on settlement-capable traffic
-- `usage.cached_prompt_tokens` — always present on sticky-routed requests
+- Receipt tuple **v0.3**: nine-field signed buyer receipt (September 2026 correction: v0.3 receipts are not settlement receipts; settlement uses v0.4)
+- `usage.cached_prompt_tokens` — always present; non-zero only on a sticky hit
 
 ### Deprecation policy
 
