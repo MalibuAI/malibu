@@ -62,7 +62,7 @@ Response (live, 23 Sep 2026):
 * `model` (same IDs as [`/v1/models`](/api/models)) and `max_tokens` (same 4,096 cap)
 * `system`, as a string or text-only content blocks
 * `messages[]` with user and assistant text blocks, assistant `tool_use`, and user `tool_result`
-* `tools[]` with `input_schema`, and `tool_choice`
+* `tools[]` with `input_schema`, and `tool_choice`. Only `auto` takes effect: `any` and `tool` are accepted but treated as `auto` (not forced), and `none` returns `400 unsupported_tool_choice`
 * `stream`, which emits `message_start`, `content_block_start` / `_delta` / `_stop`, `message_delta`, and `message_stop`. Tool arguments stream as `input_json_delta`.
 * `stop_sequences`, `temperature`, `top_p`
 

@@ -17,7 +17,7 @@ For the buyer-facing guide, see [Guides → Signed receipts](/guides/receipts).
 | Profile | `receipt_version` | Used for | Buyer can verify offline today |
 | --- | --- | --- | --- |
 | **Settlement receipt (v0.4)** | `"4"` | Paid chat completions the coordinator dispatches with a route-time settlement snapshot. In production that covers most dispatches, but not all. It drives [verified model settlement](/operations/verified-model-settlement). | **No.** It is checked by the coordinator and never returned in a response header. |
-| **Legacy receipt (v0.3)** | `"3"` | Requests dispatched *without* a settlement snapshot, when the snapshot step is skipped under store pressure (currently roughly a quarter to a third of dispatches). These requests settle as quarantined | **Pending.** Offline verification of current receipts is pending a verifier update. See [`macprovider-verify`](/cli/malibu-verify) |
+| **Legacy receipt (v0.3)** | `"3"` | Requests dispatched *without* a settlement snapshot, when the snapshot step is skipped under store pressure (currently roughly a quarter to a third of non-streaming responses). These requests settle as quarantined | **Pending.** Offline verification of current receipts is pending a verifier update. See [`macprovider-verify`](/cli/malibu-verify) |
 
 Both profiles are signed the same way:
 

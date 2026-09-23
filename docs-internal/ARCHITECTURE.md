@@ -141,7 +141,7 @@ Examples:
 - Signed receipts: v0.4 settlement receipts → `Live`; buyer-visible v0.3 header → `Live` (partial)
 - Coordinator + gateway inference path → `Live`
 - 90% provider credit share → `Live`
-- USDC-on-Base payout → `Planned (beta)` (pipeline built, off)
+- USDC-on-Base payout → `Off` (planned for public beta; pipeline built, disabled)
 - $MALIBU emission, burn-and-mint (70/12/18) → `Planned v0`
 - TOPLOC per-request verification → `Planned v1`
 - On-chain reserves floor → `Planned v0`
