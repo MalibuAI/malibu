@@ -123,7 +123,7 @@
   <!-- ============ PRIMARY COUNTERS ============ -->
   <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(48px, 6vh, 80px);">
     <div style="position: relative; max-width: 1240px; margin: 0 auto;">
-      <div class="net-counter-grid">
+      <div class="net-counter-grid net-counter-grid--three">
         <div class="net-counter" data-accent="coral">
           <div class="net-counter-label">Tokens served</div>
           <div class="net-counter-value" data-metric="tokens_served_total">—</div>
@@ -132,17 +132,12 @@
         <div class="net-counter" data-accent="yellow">
           <div class="net-counter-label">Requests</div>
           <div class="net-counter-value" data-metric="requests_total">—</div>
-          <div class="net-counter-sub">Prompts routed by the coordinator</div>
+          <div class="net-counter-sub">All-time</div>
         </div>
         <div class="net-counter" data-accent="aqua">
           <div class="net-counter-label">Nodes online</div>
           <div class="net-counter-value" data-metric="nodes_online">—</div>
           <div class="net-counter-sub"><a href="/host/" style="color: #4BB8D0;">Add your Mac →</a></div>
-        </div>
-        <div class="net-counter" data-accent="cream">
-          <div class="net-counter-label">Bandwidth</div>
-          <div class="net-counter-value"><span data-metric="bandwidth_gb_per_s">—</span><span class="net-counter-unit">GB/s</span></div>
-          <div class="net-counter-sub">Aggregate pool capacity</div>
         </div>
       </div>
     </div>
@@ -182,8 +177,48 @@
 
   <!-- ============ CHARTS ============ -->
   <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(56px, 8vh, 96px);">
-    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
-      <div class="net-chart-grid">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+      <article class="net-growth-card">
+        <div class="net-chart-head">
+          <div>
+            <div class="net-chart-eyebrow">Tokens served · by day</div>
+            <div class="net-chart-title" data-growth-title>Last 30 days</div>
+          </div>
+          <div class="net-growth-tools">
+            <button type="button" class="net-growth-window" data-growth-window="7" aria-pressed="false">7d</button>
+            <button type="button" class="net-growth-window" data-growth-window="30" aria-pressed="true">30d</button>
+            <button type="button" class="net-growth-window" data-growth-window="90" aria-pressed="false">90d</button>
+            <button type="button" class="net-growth-live" data-growth-live aria-expanded="false">Live · last 30 min</button>
+          </div>
+        </div>
+        <div class="net-growth-stats">
+          <div>
+            <div class="net-growth-value">
+              <span data-sample-total>—</span>
+              <span class="net-growth-sample">Sample</span>
+            </div>
+            <div class="net-growth-compare" data-sample-compare>vs prior 30 days</div>
+          </div>
+        </div>
+        <div class="net-growth-plot">
+          <svg data-growth-chart viewBox="0 0 720 280" role="img" aria-label="Sample daily tokens">
+            <g data-growth-grid></g>
+            <g data-growth-bars></g>
+            <path data-growth-avg d="" fill="none" stroke="#FFC629" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+            <g data-growth-axis></g>
+          </svg>
+        </div>
+        <div class="net-chart-legend">
+          <span class="net-chart-legend-dot" style="background: #4BB8D0;"></span>
+          <span>Sample daily tokens, millions</span>
+          <span class="net-chart-legend-dot" style="background: #FFC629; margin-left: 14px;"></span>
+          <span>7-day average · 30d and 90d</span>
+        </div>
+        <p class="net-growth-note">Day 1 is the first bar in this sample, not a date. The yellow line is a 7-day average. The public feed has no daily history yet.</p>
+      </article>
+      <div class="net-live-panel" data-live-panel hidden>
+        <div class="net-live-kicker">Last 30 minutes · live</div>
+        <div class="net-chart-grid">
         <div class="net-chart-card">
           <div class="net-chart-head">
             <div>
@@ -283,27 +318,6 @@
             <span data-decode-samples class="net-decode-samples"></span>
           </div>
         </div>
-      </div>
-
-      <!-- Token IO split -->
-      <div class="net-io-card">
-        <div class="net-io-head">
-          <div>
-            <div class="net-chart-eyebrow">Token split · all-time</div>
-            <div class="net-chart-title">In vs out</div>
-          </div>
-          <div class="net-io-numbers">
-            <div><span class="net-io-swatch" style="background: #4BB8D0;"></span> in <strong data-metric="tokens_in_total">—</strong></div>
-            <div><span class="net-io-swatch" style="background: #FFC629;"></span> out <strong data-metric="tokens_out_total">—</strong></div>
-          </div>
-        </div>
-        <div class="net-io-bar" role="img" aria-label="Ratio of input to output tokens served">
-          <div class="net-io-bar-fill" data-io-bar="in" style="width: 0%;"></div>
-          <div class="net-io-bar-fill" data-io-bar="out" style="width: 0%;"></div>
-        </div>
-        <div class="net-io-foot">
-          <span data-io-pct="in">— %</span>
-          <span data-io-pct="out">— %</span>
         </div>
       </div>
     </div>
@@ -335,6 +349,10 @@
         <div class="net-card">
           <div class="net-card-label">Unified RAM</div>
           <div class="net-card-value"><span data-metric="unified_ram_gb_total">—</span><span class="net-card-unit">GB</span></div>
+        </div>
+        <div class="net-card">
+          <div class="net-card-label">Bandwidth</div>
+          <div class="net-card-value"><span data-metric="bandwidth_gb_per_s">—</span><span class="net-card-unit">GB/s</span></div>
         </div>
         <div class="net-card">
           <div class="net-card-label">Models serving</div>
@@ -414,5 +432,6 @@
 
 <script type="module" src="/src/nav.js"></script>
 <script type="module" src="/src/network.js"></script>
+<script type="module" src="/src/network-growth.js"></script>
 </body>
 </html>
