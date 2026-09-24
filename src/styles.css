@@ -1450,3 +1450,133 @@ nav[data-nav-pill] .nav-cta:hover { background: #E05A48; color: #FAFBFF; }
   .net-health-inner { padding: 22px 18px; }
   .net-health-summary { padding: 14px; }
 }
+
+/* Network growth proposal — local review only. Daily bars are a sample shape. */
+.net-proposal-banner {
+  margin-top: 28px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 198, 41, 0.45);
+  background: rgba(255, 198, 41, 0.1);
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  color: rgba(250, 251, 255, 0.92);
+}
+.net-proposal-banner strong {
+  font-weight: 600;
+  color: #FFC629;
+}
+.net-growth-card {
+  background: rgba(250, 251, 255, 0.03);
+  border: 1px solid rgba(250, 251, 255, 0.1);
+  border-radius: 20px;
+  padding: 24px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.net-growth-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.net-growth-window,
+.net-growth-live {
+  border: 1px solid rgba(250, 251, 255, 0.18);
+  background: transparent;
+  color: rgba(250, 251, 255, 0.72);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.net-growth-window[aria-pressed="true"],
+.net-growth-live[aria-expanded="true"] {
+  background: #FAFBFF;
+  color: #143A45;
+  border-color: #FAFBFF;
+}
+.net-growth-stats {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.net-growth-value {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: clamp(40px, 5vw, 64px);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  color: #FAFBFF;
+}
+.net-growth-sample {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #143A45;
+  background: #FFC629;
+  border-radius: 999px;
+  padding: 4px 8px;
+  position: relative;
+  top: -8px;
+}
+.net-growth-compare {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(250, 251, 255, 0.72);
+  margin-top: 8px;
+}
+.net-counter-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 520px) {
+  .net-counter-grid--three { grid-template-columns: 1fr; }
+}
+.net-growth-plot {
+  width: 100%;
+}
+.net-growth-plot svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.net-growth-plot text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  fill: rgba(250, 251, 255, 0.55);
+}
+.net-growth-note {
+  margin: 0;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(250, 251, 255, 0.62);
+}
+.net-live-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.net-live-panel[hidden] {
+  display: none;
+}
+.net-live-kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(250, 251, 255, 0.5);
+}

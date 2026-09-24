@@ -126,6 +126,7 @@ export default defineConfig({
         hostTroubleshoot: resolve(__dirname, 'host/troubleshoot/index.html'),
         join: resolve(__dirname, 'j/index.html'),
         network: resolve(__dirname, 'network/index.html'),
+        networkProposal: resolve(__dirname, 'network/proposal/index.html'),
         sellerPortal: resolve(__dirname, 'seller-portal/index.html'),
         privacy: resolve(__dirname, 'privacy/index.html'),
         terms: resolve(__dirname, 'terms/index.html'),
