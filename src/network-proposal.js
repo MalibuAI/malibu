@@ -1,5 +1,6 @@
-// Daily bars are a fixed sample. The public feed has all-time totals
-// and the last 30 minutes, not day buckets.
+// Design proposal only. The daily series is a fixed drawn shape.
+// The public overview feed publishes all-time totals and the last 30 minutes,
+// not day buckets. Live counters on this page come from that feed.
 
 const SAMPLE_MILLION = Array.from({ length: 90 }, (_, i) => {
   const trend = 0.7 + (i / 89) * 1.5;

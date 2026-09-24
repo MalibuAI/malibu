@@ -47,8 +47,6 @@
     }
   ],
   "redirects": [
-    { "source": "/network/proposal", "destination": "/network/", "permanent": true },
-    { "source": "/network/proposal/", "destination": "/network/", "permanent": true },
     { "source": "/skill.md", "destination": "https://get.malibu.tech/skill.md", "permanent": true },
     { "source": "/.well-known/skills/index.json", "destination": "https://get.malibu.tech/.well-known/skills/index.json", "permanent": true }
   ],
