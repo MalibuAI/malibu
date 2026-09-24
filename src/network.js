@@ -380,7 +380,6 @@ function healthStatusText(view) {
   if (!view) return 'Loading health feed…';
   if (view.status === 'error') return 'Health feed unavailable';
   if (view.status === 'stale' && view.errorMessage) return 'Showing last health snapshot';
-  if (view.freshness === 'stale') return 'Health feed stale';
   if (view.isEmpty) return 'Health feed empty';
   return 'Health feed live';
 }
@@ -390,7 +389,7 @@ function paintHealthSummary(view) {
   if (els.healthPanel) {
     els.healthPanel.dataset.state =
       view.status === 'error' ? 'error' :
-      view.freshness === 'stale' || view.status === 'stale' ? 'stale' :
+      view.status === 'stale' ? 'stale' :
       view.isEmpty ? 'empty' : 'live';
   }
   if (els.healthStatus) els.healthStatus.textContent = healthStatusText(view);
@@ -406,8 +405,6 @@ function paintHealthSummary(view) {
       els.healthFreshness.textContent = 'No health snapshot loaded.';
     } else if (view.status === 'stale' && view.errorMessage) {
       els.healthFreshness.textContent = 'Refresh failed; counters continue independently.';
-    } else if (view.freshness === 'stale') {
-      els.healthFreshness.textContent = 'Snapshot is past its freshness window.';
     } else {
       els.healthFreshness.textContent =
         plural(view.summary.modelsTotal, 'model') + ' published · availability updates live';
@@ -433,7 +430,7 @@ function metricLine(label, value) {
 }
 
 function modelStatusLabel(model, view) {
-  if (view?.status === 'stale' || view?.freshness === 'stale') return 'Last snapshot';
+  if (view?.status === 'stale') return 'Last snapshot';
   if (model.state === 'degraded') return 'Limited capacity';
   if (model.state === 'offline') return 'Unavailable';
   if (model.state === 'unknown') return 'Updating';
@@ -518,26 +515,14 @@ function paintRoutability(view) {
   paintMethodology(view);
 }
 
-function scheduleStaleCheck(staleAtMs) {
+function scheduleStaleCheck() {
   if (staleTimer) clearTimeout(staleTimer);
-  if (!Number.isFinite(staleAtMs)) return;
-  const delay = Math.max(1000, staleAtMs - Date.now());
-  staleTimer = setTimeout(() => {
-    if (!latestData) return;
-    setStatus('stale', 'Stale');
-    showBanner('Live snapshot is past its freshness window. Numbers may lag behind the coordinator.');
-  }, delay);
+  staleTimer = null;
 }
 
-function scheduleHealthStaleCheck(staleAtMs) {
+function scheduleHealthStaleCheck() {
   if (healthStaleTimer) clearTimeout(healthStaleTimer);
-  if (!Number.isFinite(staleAtMs)) return;
-  const delay = Math.max(1000, staleAtMs - Date.now());
-  healthStaleTimer = setTimeout(() => {
-    if (!latestHealth) return;
-    latestHealth = { ...latestHealth, freshness: 'stale' };
-    paintRoutability(latestHealth);
-  }, delay);
+  healthStaleTimer = null;
 }
 
 function updateUpdatedLabel() {
