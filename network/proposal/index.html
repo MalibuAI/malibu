@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Malibu · Network growth proposal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" href="/favicon.png" type="image/png" sizes="512x512" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+<nav data-nav-pill aria-label="Primary navigation" style="position: fixed; top: 22px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 10px 0 20px; background: #143A45; border-radius: 9999px; box-shadow: 0 18px 50px -22px rgba(20, 58, 69,0.55), 0 2px 6px rgba(20, 58, 69,0.18);">
+  <a href="/" style="display: flex; align-items: center; gap: 10px; padding-right: 10px; border-right: 1px solid rgba(250, 251, 255,0.12); flex-shrink: 0;">
+    <span class="brand-mark-circle">
+      <img src="/logo-mark.png" width="28" height="28" alt="" aria-hidden="true" />
+    </span>
+    <span class="brand-wordmark">Malibu<span class="brand-period brand-period--square" aria-hidden="true"></span></span>
+  </a>
+  <button type="button" data-nav-toggle aria-expanded="false" aria-controls="proposal-nav-menu" aria-label="Menu" class="nav-toggle">
+    <svg width="18" height="14" viewBox="0 0 18 14" fill="none" aria-hidden="true"><path d="M1 1 H17 M1 7 H17 M1 13 H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+  <div data-nav-menu id="proposal-nav-menu" class="nav-menu">
+    <div class="nav-links" style="display: flex; align-items: center; gap: 22px; font-family: 'Hanken Grotesk', sans-serif; font-size: 14px; color: rgba(250, 251, 255,0.72);">
+      <a href="/network/" style="color: #FAFBFF;">Network</a>
+      <a href="/blog/">Blog</a>
+      <a href="/#token">$MALIBU</a>
+      <a href="https://malibu.tech/docs">Docs</a>
+      <a href="/console/">Console</a>
+    </div>
+    <a href="/host/" class="nav-cta">
+      Host a model
+      <svg width="11" height="8" viewBox="0 0 14 10" fill="none" aria-hidden="true"><path d="M1 5 H13 M9 1 L13 5 L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</nav>
+
+<main style="background: #143A45; color: #FAFBFF; min-height: 100vh;">
+  <section style="position: relative; padding: clamp(120px, 16vh, 168px) clamp(20px, 5vw, 80px) clamp(28px, 4vh, 40px);">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: #FFC629; margin-bottom: 18px;">Design proposal · not live</div>
+      <h1 style="font-family: 'Hanken Grotesk', sans-serif; font-weight: 500; font-size: clamp(44px, 6vw, 84px); line-height: 0.92; letter-spacing: -0.035em; margin: 0;">
+        Network
+      </h1>
+      <div class="net-proposal-banner">
+        <strong>Sample chart.</strong>
+        The bars are made up. The counters are live. The public feed has no daily history yet.
+      </div>
+      <div data-net-status-wrap style="display: flex; align-items: center; gap: 12px; margin-top: 18px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(250, 251, 255,0.72);">
+        <div data-net-status-pill style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: rgba(250, 251, 255,0.06); border: 1px solid rgba(250, 251, 255,0.14); border-radius: 9999px;">
+          <span data-net-status-dot style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: rgba(250, 251, 255,0.35);"></span>
+          <span data-net-status-label>Connecting…</span>
+        </div>
+        <span data-net-updated>—</span>
+        <button data-net-refresh type="button" aria-label="Refresh now" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid rgba(250, 251, 255,0.18); border-radius: 9999px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(250, 251, 255,0.82); background: transparent;">Refresh</button>
+      </div>
+      <div data-net-banner hidden style="margin-top: 16px; padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(255, 198, 41,0.35); background: rgba(255, 198, 41,0.08); font-family: 'Hanken Grotesk', sans-serif; font-size: 14px;">
+        <span data-net-banner-text></span>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 0 clamp(20px, 5vw, 80px) clamp(28px, 4vh, 40px);">
+    <div style="max-width: 1240px; margin: 0 auto;">
+      <div class="net-counter-grid net-counter-grid--three">
+        <div class="net-counter" data-accent="coral">
+          <div class="net-counter-label">Tokens served</div>
+          <div class="net-counter-value" data-metric="tokens_served_total">—</div>
+          <div class="net-counter-sub">Live · all-time · in + out</div>
+        </div>
+        <div class="net-counter" data-accent="yellow">
+          <div class="net-counter-label">Requests</div>
+          <div class="net-counter-value" data-metric="requests_total">—</div>
+          <div class="net-counter-sub">Live · all-time</div>
+        </div>
+        <div class="net-counter" data-accent="aqua">
+          <div class="net-counter-label">Nodes online</div>
+          <div class="net-counter-value" data-metric="nodes_online">—</div>
+          <div class="net-counter-sub">Live · right now</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="net-health-section" data-health-panel data-state="loading">
+    <div class="net-health-inner">
+      <div class="net-health-head">
+        <div>
+          <div class="net-chart-eyebrow">Model availability · live</div>
+          <h2 class="net-health-title">Which models are available now?</h2>
+        </div>
+        <div class="net-health-status" data-health-status>Loading health feed…</div>
+      </div>
+      <div class="net-health-summary">
+        <div class="net-health-summary-main">
+          <span class="net-state-chip" data-health-state>Unknown</span>
+          <strong data-health-routable>Checking availability</strong>
+          <span data-health-freshness>Awaiting first snapshot</span>
+        </div>
+      </div>
+      <div class="net-health-models" data-health-models aria-live="polite"></div>
+      <div class="net-health-empty" data-health-models-empty hidden>No model availability is published yet.</div>
+    </div>
+  </section>
+
+  <section style="padding: 0 clamp(20px, 5vw, 80px) clamp(56px, 8vh, 96px);">
+    <div style="max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+      <article class="net-growth-card">
+        <div class="net-chart-head">
+          <div>
+            <div class="net-chart-eyebrow">Tokens served · by day</div>
+            <div class="net-chart-title" data-growth-title>Last 30 days</div>
+          </div>
+          <div class="net-growth-tools">
+            <button type="button" class="net-growth-window" data-growth-window="7" aria-pressed="false">7d</button>
+            <button type="button" class="net-growth-window" data-growth-window="30" aria-pressed="true">30d</button>
+            <button type="button" class="net-growth-window" data-growth-window="90" aria-pressed="false">90d</button>
+            <button type="button" class="net-growth-live" data-growth-live aria-expanded="false">Live · last 30 min</button>
+          </div>
+        </div>
+
+        <div class="net-growth-stats">
+          <div>
+            <div class="net-growth-value">
+              <span data-sample-total>—</span>
+              <span class="net-growth-sample">Sample</span>
+            </div>
+            <div class="net-growth-compare" data-sample-compare>vs prior 30 days</div>
+          </div>
+        </div>
+
+        <div class="net-growth-plot">
+          <svg data-growth-chart viewBox="0 0 720 280" role="img" aria-label="Sample daily tokens">
+            <g data-growth-grid></g>
+            <g data-growth-bars></g>
+            <path data-growth-avg d="" fill="none" stroke="#FFC629" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+            <g data-growth-axis></g>
+          </svg>
+        </div>
+        <div class="net-chart-legend">
+          <span class="net-chart-legend-dot" style="background: #4BB8D0;"></span>
+          <span>Sample daily tokens, millions</span>
+          <span class="net-chart-legend-dot" style="background: #FFC629; margin-left: 14px;"></span>
+          <span>7-day average · 30d and 90d</span>
+        </div>
+        <p class="net-growth-note">Day 1 is the first bar in this sample, not a date. The yellow line is a 7-day average.</p>
+      </article>
+
+      <div class="net-live-panel" data-live-panel hidden>
+        <div class="net-live-kicker">Last 30 minutes · live</div>
+        <div class="net-chart-grid">
+          <div class="net-chart-card">
+            <div class="net-chart-head">
+              <div>
+                <div class="net-chart-eyebrow">Requests / min · last 30m</div>
+                <div class="net-chart-title">Traffic</div>
+              </div>
+              <div class="net-chart-legend">
+                <span class="net-chart-legend-dot" style="background: #F76B57;"></span>
+                <span>rpm</span>
+              </div>
+            </div>
+            <div class="net-chart-body">
+              <svg data-chart="rpm" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Requests per minute over the last 30 minutes">
+                <defs>
+                  <linearGradient id="grad-rpm" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#F76B57" stop-opacity="0.55"/>
+                    <stop offset="100%" stop-color="#F76B57" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <g data-chart-grid></g>
+                <path data-chart-area d="" fill="url(#grad-rpm)"/>
+                <path data-chart-line d="" fill="none" stroke="#F76B57" stroke-width="2"/>
+              </svg>
+              <div class="net-chart-empty" data-chart-empty="rpm" hidden>Awaiting first traffic.</div>
+            </div>
+            <div class="net-chart-foot">
+              <span>Peak <strong data-chart-peak="rpm">—</strong></span>
+              <span>Now <strong data-chart-now="rpm">—</strong></span>
+            </div>
+          </div>
+          <div class="net-chart-card" data-chart-card="tpm" hidden>
+            <div class="net-chart-head">
+              <div>
+                <div class="net-chart-eyebrow">Tokens / min · last 30m</div>
+                <div class="net-chart-title">Aggregate network throughput</div>
+              </div>
+              <div class="net-chart-legend">
+                <span class="net-chart-legend-dot" style="background: #4BB8D0;"></span><span>in</span>
+                <span class="net-chart-legend-dot" style="background: #FFC629; margin-left: 12px;"></span><span>out</span>
+              </div>
+            </div>
+            <div class="net-chart-body">
+              <svg data-chart="tpm" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="Tokens per minute over the last 30 minutes">
+                <g data-chart-grid></g>
+                <path data-chart-area-in d=""/>
+                <path data-chart-area-out d=""/>
+                <path data-chart-line-in d="" fill="none" stroke="#4BB8D0" stroke-width="2"/>
+                <path data-chart-line-out d="" fill="none" stroke="#FFC629" stroke-width="2"/>
+              </svg>
+              <div class="net-chart-empty" data-chart-empty="tpm" hidden>No throughput in the last 30 minutes.</div>
+            </div>
+            <div class="net-chart-foot">
+              <span>In peak <strong data-chart-peak="tpm-in">—</strong></span>
+              <span>Out peak <strong data-chart-peak="tpm-out">—</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script type="module" src="/src/nav.js"></script>
+<script type="module" src="/src/network.js"></script>
+<script type="module" src="/src/network-proposal.js"></script>
+</body>
+</html>
