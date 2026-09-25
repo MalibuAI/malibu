@@ -9,7 +9,7 @@
   <meta property="og:site_name" content="Malibu" />
   <meta property="og:url" content="https://malibu.tech/network/" />
   <meta property="og:title" content="Malibu · Network stats" />
-  <meta property="og:description" content="Live view of the Malibu AI network. Tokens, requests, nodes, bandwidth, and 30-minute throughput." />
+  <meta property="og:description" content="Live view of the Malibu AI network. Tokens, requests, nodes, bandwidth, and daily history." />
   <meta property="og:image" content="https://malibu.tech/images/brand/og-card.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -17,7 +17,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@malibuonbase" />
   <meta name="twitter:title" content="Malibu · Network stats" />
-  <meta name="twitter:description" content="Live view of the Malibu AI network. Tokens, requests, nodes, bandwidth, and 30-minute throughput." />
+  <meta name="twitter:description" content="Live view of the Malibu AI network. Tokens, requests, nodes, bandwidth, and daily history." />
   <meta name="twitter:image" content="https://malibu.tech/images/brand/og-card.jpg" />
   <title>Malibu · Network</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -182,7 +182,43 @@
 
   <!-- ============ CHARTS ============ -->
   <section style="position: relative; padding: 0 clamp(20px, 5vw, 80px) clamp(56px, 8vh, 96px);">
-    <div style="position: relative; max-width: 1240px; margin: 0 auto;">
+    <div style="position: relative; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+      <article class="net-growth-card">
+        <div class="net-chart-head">
+          <div>
+            <div class="net-chart-eyebrow">Tokens served · by day</div>
+            <div class="net-chart-title" data-growth-title>Daily tokens</div>
+          </div>
+          <div class="net-growth-tools">
+            <button type="button" class="net-growth-window" data-growth-window="7" aria-pressed="false">7d</button>
+            <button type="button" class="net-growth-window" data-growth-window="30" aria-pressed="true">30d</button>
+            <button type="button" class="net-growth-window" data-growth-window="90" aria-pressed="false">90d</button>
+          </div>
+        </div>
+        <div class="net-growth-stats">
+          <div>
+            <div class="net-growth-value">
+              <span data-growth-total>—</span>
+            </div>
+            <div class="net-growth-compare" data-growth-compare>Loading daily history…</div>
+          </div>
+        </div>
+        <div class="net-growth-plot">
+          <svg data-growth-chart viewBox="0 0 720 280" role="img" aria-label="Daily tokens">
+            <g data-growth-grid></g>
+            <g data-growth-bars></g>
+            <path data-growth-avg d="" fill="none" stroke="#FFC629" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+            <g data-growth-axis></g>
+          </svg>
+        </div>
+        <div class="net-chart-legend">
+          <span class="net-chart-legend-dot" style="background: #4BB8D0;"></span>
+          <span>Daily tokens</span>
+          <span class="net-chart-legend-dot" style="background: #FFC629; margin-left: 14px;"></span>
+          <span>7-day average · 30d and 90d</span>
+        </div>
+        <p class="net-growth-note">Complete UTC days from the public stats feed. Today is left out until midnight UTC. The yellow line is a 7-day average.</p>
+      </article>
       <div class="net-chart-grid">
         <div class="net-chart-card">
           <div class="net-chart-head">

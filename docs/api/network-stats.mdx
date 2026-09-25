@@ -12,7 +12,7 @@ None of these endpoints need an API key. All are served from `https://api.malibu
 
 | Endpoint | What it returns |
 | --- | --- |
-| `GET /v1/stats/overview` | Network totals and a 30-minute requests-per-minute series |
+| `GET /v1/stats/overview` | Network totals, a 30-minute series, and up to 90 complete UTC days |
 | `GET /v1/stats/routability` | Per-model and per-provider routability, with a summary |
 | `GET /v1/stats/models` | The `models` section of the routability snapshot |
 | `GET /v1/stats/providers` | The `providers` section of the routability snapshot |
@@ -71,6 +71,7 @@ These values are a **dated snapshot** from 23 Sep 2026. Call the endpoint for li
 | `network.unified_ram_gb_total` | Sum of reported unified memory |
 | `timeseries.rpm_30m` | Requests per minute in 60-second buckets, last 30 minutes |
 | `timeseries.tpm_30m` | Tokens per minute in 60-second buckets, last 30 minutes. Each point carries `input_tokens` and `output_tokens` |
+| `timeseries.daily_90d` | Up to 90 complete UTC days, oldest first. The UTC day of the snapshot is omitted. `bucket` is `1d`. Each point has `t` (`YYYY-MM-DD`), `requests`, `input_tokens`, and `output_tokens`. A quiet day inside the window is zero |
 | `idle_prewarm` | Idle pre-warm diagnostics: the share of the pool with pre-warm active, and skip counts by reason over the last hour |
 
 Capacity fields (`bandwidth_gb_per_s`, `network_power_kw`, core counts) are **estimates** from hardware profiles. `capacity_estimate_sources` names the method for each one. They are not metered telemetry. For measured throughput, use `timeseries.tpm_30m`.
