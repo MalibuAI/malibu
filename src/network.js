@@ -1,4 +1,12 @@
 import { normalizeRoutabilityPayload, routabilityErrorView } from '../j/network-routability.mjs';
+import {
+  compareText,
+  formatCompact,
+  formatDay,
+  growthWindow,
+  rollingAverage,
+  sumTokens,
+} from './network-daily.mjs';
 
 const STATS_BASE = (import.meta.env.VITE_MACPROVIDER_STATS_BASE_URL || '').replace(/\/+$/, '');
 const OVERVIEW_URL = STATS_BASE + '/v1/stats/overview';
@@ -37,6 +45,7 @@ let latestFetchedAt = 0;
 let latestHealth = null;
 let staleTimer = null;
 let healthStaleTimer = null;
+let growthDays = 30;
 
 function nfmt(n) {
   if (n === null || n === undefined || Number.isNaN(n)) return '—';
@@ -182,6 +191,7 @@ function paintOverview(data) {
   if (outPctEl) outPctEl.textContent = total > 0 ? outPct.toFixed(1) + '% out' : '—';
 
   // Charts
+  paintDaily(data.timeseries && data.timeseries.daily_90d);
   paintRpm(data.timeseries && data.timeseries.rpm_30m);
   paintTpm(data.timeseries && data.timeseries.tpm_30m);
 
@@ -296,6 +306,131 @@ function drawGrid(gridEl, w, h, pad, lines = 4) {
     el.setAttribute('stroke-width', '1');
     gridEl.appendChild(el);
   }
+}
+
+function niceCeil(max) {
+  if (!Number.isFinite(max) || max <= 0) return 1;
+  const exp = Math.floor(Math.log10(max));
+  const base = 10 ** exp;
+  const n = max / base;
+  const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+  return step * base;
+}
+
+function paintDaily(series) {
+  const svg = document.querySelector('[data-growth-chart]');
+  if (!svg) return;
+  const view = growthWindow(series, growthDays);
+  const values = view.current.map((point) => point.tokens);
+  const count = values.length;
+  const titleEl = document.querySelector('[data-growth-title]');
+  const totalEl = document.querySelector('[data-growth-total]');
+  const compareEl = document.querySelector('[data-growth-compare]');
+  if (titleEl) titleEl.textContent = count ? 'Last ' + count + (count === 1 ? ' day' : ' days') : 'Daily tokens';
+  if (totalEl) totalEl.textContent = count ? formatCompact(sumTokens(view.current)) : '—';
+  if (compareEl) compareEl.textContent = compareText(view);
+
+  const bars = svg.querySelector('[data-growth-bars]');
+  const line = svg.querySelector('[data-growth-avg]');
+  const grid = svg.querySelector('[data-growth-grid]');
+  const axis = svg.querySelector('[data-growth-axis]');
+  if (!bars || !line || !grid || !axis) return;
+  bars.replaceChildren();
+  grid.replaceChildren();
+  axis.replaceChildren();
+  line.setAttribute('d', '');
+  line.setAttribute('visibility', 'hidden');
+
+  const first = view.current[0];
+  const last = view.current[count - 1];
+  svg.setAttribute(
+    'aria-label',
+    count
+      ? 'Daily tokens, ' + formatDay(first.t) + ' to ' + formatDay(last.t) + '. Complete UTC days. Today is not included.'
+      : 'Daily tokens are not in this snapshot.',
+  );
+  if (!count) return;
+
+  const showAverage = view.windowDays >= 30;
+  const average = showAverage ? rollingAverage(values, 7) : [];
+  const niceMax = niceCeil(Math.max(...values, ...(average.length ? average : [0])));
+  const w = 720;
+  const h = 280;
+  const padL = 52;
+  const padR = 12;
+  const padT = 16;
+  const padB = 36;
+  const innerW = w - padL - padR;
+  const innerH = h - padT - padB;
+
+  for (let i = 0; i <= 2; i++) {
+    const y = padT + (innerH / 2) * i;
+    const rule = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    rule.setAttribute('x1', String(padL));
+    rule.setAttribute('x2', String(w - padR));
+    rule.setAttribute('y1', y.toFixed(1));
+    rule.setAttribute('y2', y.toFixed(1));
+    rule.setAttribute('stroke', 'rgba(250, 251, 255, 0.08)');
+    grid.appendChild(rule);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', String(padL - 8));
+    label.setAttribute('y', (y + 4).toFixed(1));
+    label.setAttribute('text-anchor', 'end');
+    label.textContent = formatCompact(niceMax - (niceMax / 2) * i);
+    axis.appendChild(label);
+  }
+
+  const gap = count > 40 ? 2 : 4;
+  const slot = innerW / count;
+  const barW = Math.max(2, slot - gap);
+  values.forEach((value, i) => {
+    const bh = (value / niceMax) * innerH;
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', (padL + i * slot + (slot - barW) / 2).toFixed(1));
+    rect.setAttribute('y', (padT + innerH - bh).toFixed(1));
+    rect.setAttribute('width', barW.toFixed(1));
+    rect.setAttribute('height', Math.max(value > 0 ? 1 : 0, bh).toFixed(1));
+    rect.setAttribute('rx', '2');
+    rect.setAttribute('fill', '#4BB8D0');
+    bars.appendChild(rect);
+  });
+
+  if (showAverage) {
+    let d = '';
+    average.forEach((value, i) => {
+      const x = padL + i * slot + slot / 2;
+      const y = padT + innerH - (value / niceMax) * innerH;
+      d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+    });
+    line.setAttribute('d', d.trim());
+    line.setAttribute('visibility', 'visible');
+  }
+
+  const tickIdx = [...new Set([0, Math.floor((count - 1) / 2), count - 1])];
+  tickIdx.forEach((i, idx) => {
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', (padL + i * slot + slot / 2).toFixed(1));
+    label.setAttribute('y', String(h - 10));
+    const anchor = idx === 0 ? 'start' : idx === tickIdx.length - 1 ? 'end' : 'middle';
+    label.setAttribute('text-anchor', anchor);
+    label.textContent = formatDay(view.current[i].t);
+    axis.appendChild(label);
+  });
+}
+
+function bindGrowthWindows() {
+  document.querySelectorAll('[data-growth-window]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const next = Number(btn.getAttribute('data-growth-window'));
+      if (next !== 7 && next !== 30 && next !== 90) return;
+      growthDays = next;
+      document.querySelectorAll('[data-growth-window]').forEach((other) => {
+        other.setAttribute('aria-pressed', other === btn ? 'true' : 'false');
+      });
+      if (latestData) paintOverview(latestData);
+    });
+  });
 }
 
 function paintRpm(series) {
@@ -737,5 +872,6 @@ setInterval(updateUpdatedLabel, 15000);
   btn.addEventListener('click', run);
 })();
 
+bindGrowthWindows();
 fetchAll();
 startPolling();
