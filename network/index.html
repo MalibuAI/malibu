@@ -193,6 +193,7 @@
             <button type="button" class="net-growth-window" data-growth-window="7" aria-pressed="false">7d</button>
             <button type="button" class="net-growth-window" data-growth-window="30" aria-pressed="true">30d</button>
             <button type="button" class="net-growth-window" data-growth-window="90" aria-pressed="false">90d</button>
+            <button type="button" class="net-growth-live" data-growth-live aria-expanded="false">Live · last 30 min</button>
           </div>
         </div>
         <div class="net-growth-stats">
@@ -219,7 +220,9 @@
         </div>
         <p class="net-growth-note">Complete UTC days from the public stats feed. Today is left out until midnight UTC. The yellow line is a 7-day average.</p>
       </article>
-      <div class="net-chart-grid">
+      <div class="net-live-panel" data-live-panel hidden>
+        <div class="net-live-kicker">Last 30 minutes · live</div>
+        <div class="net-chart-grid">
         <div class="net-chart-card">
           <div class="net-chart-head">
             <div>
@@ -320,27 +323,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Token IO split -->
-      <div class="net-io-card">
-        <div class="net-io-head">
-          <div>
-            <div class="net-chart-eyebrow">Token split · all-time</div>
-            <div class="net-chart-title">In vs out</div>
-          </div>
-          <div class="net-io-numbers">
-            <div><span class="net-io-swatch" style="background: #4BB8D0;"></span> in <strong data-metric="tokens_in_total">—</strong></div>
-            <div><span class="net-io-swatch" style="background: #FFC629;"></span> out <strong data-metric="tokens_out_total">—</strong></div>
-          </div>
-        </div>
-        <div class="net-io-bar" role="img" aria-label="Ratio of input to output tokens served">
-          <div class="net-io-bar-fill" data-io-bar="in" style="width: 0%;"></div>
-          <div class="net-io-bar-fill" data-io-bar="out" style="width: 0%;"></div>
-        </div>
-        <div class="net-io-foot">
-          <span data-io-pct="in">— %</span>
-          <span data-io-pct="out">— %</span>
-        </div>
       </div>
     </div>
   </section>

@@ -419,6 +419,19 @@ function paintDaily(series) {
   });
 }
 
+function bindLivePanel() {
+  const btn = document.querySelector('[data-growth-live]');
+  const panel = document.querySelector('[data-live-panel]');
+  if (!btn || !panel) return;
+  btn.addEventListener('click', () => {
+    const open = panel.hasAttribute('hidden');
+    if (open) panel.removeAttribute('hidden');
+    else panel.setAttribute('hidden', '');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.textContent = open ? 'Hide live' : 'Live · last 30 min';
+  });
+}
+
 function bindGrowthWindows() {
   document.querySelectorAll('[data-growth-window]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -873,5 +886,6 @@ setInterval(updateUpdatedLabel, 15000);
 })();
 
 bindGrowthWindows();
+bindLivePanel();
 fetchAll();
 startPolling();
