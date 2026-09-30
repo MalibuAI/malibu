@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { compareText, formatDay, growthWindow, sumTokens } from '../src/network-daily.mjs';
+import { compareText, cumulativeTokens, formatDay, growthWindow, sumTokens } from '../src/network-daily.mjs';
 
 function day(t, tokens, requests = 1) {
   return { t, requests, input_tokens: tokens, output_tokens: 0 };
@@ -23,7 +23,28 @@ test('30-day window compares the previous 30 complete days', () => {
   assert.equal(view.comparable, true);
   assert.equal(sumTokens(view.current), 60_000_000);
   assert.equal(sumTokens(view.prior), 30_000_000);
-  assert.equal(compareText(view), 'vs prior 30 days: +100% · +30M tokens');
+  assert.equal(compareText(view), '2.0× the prior 30 days · +30M tokens');
+  assert.deepEqual(cumulativeTokens(view.current).slice(-3), [56_000_000, 58_000_000, 60_000_000]);
+});
+
+test('cumulative totals preserve plateaus and end at the selected-period total', () => {
+  const points = growthWindow({
+    points: [day('2026-09-27', 5), day('2026-09-28', 0), day('2026-09-29', 7)],
+  }, 7).current;
+  assert.deepEqual(cumulativeTokens(points), [5, 5, 12]);
+  assert.equal(cumulativeTokens(points).at(-1), sumTokens(points));
+});
+
+test('comparison copy tells the growth multiple without an inflated percentage', () => {
+  const points = [];
+  for (let i = 1; i <= 60; i += 1) {
+    const date = new Date(Date.UTC(2026, 6, i));
+    points.push(day(date.toISOString().slice(0, 10), i <= 30 ? 1_000_000 : 16_000_000));
+  }
+  const view = growthWindow({
+    points,
+  }, 30);
+  assert.equal(compareText(view), '16× the prior 30 days · +450M tokens');
 });
 
 test('a short series does not invent the missing days', () => {

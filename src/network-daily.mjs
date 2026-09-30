@@ -63,17 +63,17 @@ export function sumTokens(points) {
   return points.reduce((acc, point) => acc + point.tokens, 0);
 }
 
-export function rollingAverage(values, size = 7) {
-  return values.map((_, i) => {
-    const start = Math.max(0, i - (size - 1));
-    const slice = values.slice(start, i + 1);
-    const total = slice.reduce((acc, n) => acc + n, 0);
-    return total / slice.length;
+export function cumulativeTokens(points) {
+  let total = 0;
+  return points.map((point) => {
+    total += point.tokens;
+    return total;
   });
 }
 
 export function compareText(view) {
   const days = view.windowDays;
+  const dayLabel = days === 1 ? 'day' : 'days';
   const count = view.current.length;
   if (!count) return 'No complete days in this snapshot.';
   if (!view.comparable) {
@@ -83,8 +83,16 @@ export function compareText(view) {
   const currentSum = sumTokens(view.current);
   const priorSum = sumTokens(view.prior);
   const delta = currentSum - priorSum;
-  const pct = priorSum > 0 ? (delta / priorSum) * 100 : null;
   const sign = delta > 0 ? '+' : delta < 0 ? '−' : '';
-  const pctText = pct == null ? '' : sign + Math.abs(pct).toFixed(0) + '% · ';
-  return 'vs prior ' + days + ' days: ' + pctText + sign + formatCompact(Math.abs(delta)) + ' tokens';
+  if (priorSum === 0) {
+    return currentSum > 0
+      ? 'New activity · +' + formatCompact(currentSum) + ' tokens'
+      : 'No token activity in either ' + days + '-' + dayLabel + ' window.';
+  }
+  const multiple = currentSum / priorSum;
+  const multipleText = multiple.toLocaleString('en-US', {
+    minimumFractionDigits: multiple < 10 ? 1 : 0,
+    maximumFractionDigits: multiple < 10 ? 1 : 0,
+  });
+  return multipleText + '× the prior ' + days + ' ' + dayLabel + ' · ' + sign + formatCompact(Math.abs(delta)) + ' tokens';
 }

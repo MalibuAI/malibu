@@ -1501,6 +1501,16 @@ nav[data-nav-pill] .nav-cta:hover { background: #E05A48; color: #FAFBFF; }
   color: #143A45;
   border-color: #FAFBFF;
 }
+.net-growth-window:hover,
+.net-growth-live:hover {
+  color: #FAFBFF;
+  border-color: rgba(250, 251, 255, 0.45);
+}
+.net-growth-window:focus-visible,
+.net-growth-live:focus-visible {
+  outline: 2px solid #FFC629;
+  outline-offset: 3px;
+}
 .net-growth-stats {
   display: flex;
   align-items: flex-end;
@@ -1518,6 +1528,7 @@ nav[data-nav-pill] .nav-cta:hover { background: #E05A48; color: #FAFBFF; }
   letter-spacing: -0.03em;
   line-height: 0.95;
   color: #FAFBFF;
+  font-variant-numeric: tabular-nums;
 }
 .net-growth-sample {
   font-family: 'JetBrains Mono', monospace;
@@ -1538,6 +1549,7 @@ nav[data-nav-pill] .nav-cta:hover { background: #E05A48; color: #FAFBFF; }
   letter-spacing: 0.04em;
   color: rgba(250, 251, 255, 0.72);
   margin-top: 8px;
+  font-variant-numeric: tabular-nums;
 }
 .net-counter-grid--three {
   grid-template-columns: repeat(3, minmax(0, 1fr));

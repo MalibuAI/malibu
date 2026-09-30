@@ -186,8 +186,8 @@
       <article class="net-growth-card">
         <div class="net-chart-head">
           <div>
-            <div class="net-chart-eyebrow">Tokens served · by day</div>
-            <div class="net-chart-title" data-growth-title>Daily tokens</div>
+            <div class="net-chart-eyebrow">Network growth · cumulative</div>
+            <div class="net-chart-title" data-growth-title>Cumulative token volume</div>
           </div>
           <div class="net-growth-tools">
             <button type="button" class="net-growth-window" data-growth-window="7" aria-pressed="false">7d</button>
@@ -205,20 +205,21 @@
           </div>
         </div>
         <div class="net-growth-plot">
-          <svg data-growth-chart viewBox="0 0 720 280" role="img" aria-label="Daily tokens">
+          <svg data-growth-chart viewBox="0 0 720 280" role="img" aria-label="Cumulative token volume">
             <g data-growth-grid></g>
             <g data-growth-bars></g>
-            <path data-growth-avg d="" fill="none" stroke="#FFC629" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+            <path data-growth-line d="" fill="none" stroke="#FFC629" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+            <circle data-growth-end r="5" fill="#FFC629" stroke="#143A45" stroke-width="2" visibility="hidden"></circle>
             <g data-growth-axis></g>
           </svg>
         </div>
         <div class="net-chart-legend">
           <span class="net-chart-legend-dot" style="background: #4BB8D0;"></span>
-          <span>Daily tokens</span>
+          <span>Daily tokens · right axis</span>
           <span class="net-chart-legend-dot" style="background: #FFC629; margin-left: 14px;"></span>
-          <span>7-day average · 30d and 90d</span>
+          <span>Cumulative growth · left axis</span>
         </div>
-        <p class="net-growth-note">Complete UTC days from the public stats feed. Today is left out until midnight UTC. The yellow line is a 7-day average.</p>
+        <p class="net-growth-note">Daily activity builds the cumulative total across complete UTC days. Today enters the chart after midnight UTC.</p>
       </article>
       <div class="net-live-panel" data-live-panel hidden>
         <div class="net-live-kicker">Last 30 minutes · live</div>

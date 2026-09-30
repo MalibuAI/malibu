@@ -1,10 +1,10 @@
 import { normalizeRoutabilityPayload, routabilityErrorView } from '../j/network-routability.mjs';
 import {
   compareText,
+  cumulativeTokens,
   formatCompact,
   formatDay,
   growthWindow,
-  rollingAverage,
   sumTokens,
 } from './network-daily.mjs';
 
@@ -321,43 +321,46 @@ function paintDaily(series) {
   const svg = document.querySelector('[data-growth-chart]');
   if (!svg) return;
   const view = growthWindow(series, growthDays);
-  const values = view.current.map((point) => point.tokens);
-  const count = values.length;
+  const dailyValues = view.current.map((point) => point.tokens);
+  const cumulativeValues = cumulativeTokens(view.current);
+  const count = dailyValues.length;
   const titleEl = document.querySelector('[data-growth-title]');
   const totalEl = document.querySelector('[data-growth-total]');
   const compareEl = document.querySelector('[data-growth-compare]');
-  if (titleEl) titleEl.textContent = count ? 'Last ' + count + (count === 1 ? ' day' : ' days') : 'Daily tokens';
+  if (titleEl) titleEl.textContent = count
+    ? 'Last ' + count + ' complete UTC ' + (count === 1 ? 'day' : 'days')
+    : 'Cumulative token volume';
   if (totalEl) totalEl.textContent = count ? formatCompact(sumTokens(view.current)) : '—';
   if (compareEl) compareEl.textContent = compareText(view);
 
   const bars = svg.querySelector('[data-growth-bars]');
-  const line = svg.querySelector('[data-growth-avg]');
+  const line = svg.querySelector('[data-growth-line]');
+  const end = svg.querySelector('[data-growth-end]');
   const grid = svg.querySelector('[data-growth-grid]');
   const axis = svg.querySelector('[data-growth-axis]');
-  if (!bars || !line || !grid || !axis) return;
+  if (!bars || !line || !end || !grid || !axis) return;
   bars.replaceChildren();
   grid.replaceChildren();
   axis.replaceChildren();
   line.setAttribute('d', '');
-  line.setAttribute('visibility', 'hidden');
+  end.setAttribute('visibility', 'hidden');
 
   const first = view.current[0];
   const last = view.current[count - 1];
   svg.setAttribute(
     'aria-label',
     count
-      ? 'Daily tokens, ' + formatDay(first.t) + ' to ' + formatDay(last.t) + '. Complete UTC days. Today is not included.'
-      : 'Daily tokens are not in this snapshot.',
+      ? 'Daily token bars and a cumulative growth line totaling ' + formatCompact(sumTokens(view.current)) + ' tokens from ' + formatDay(first.t) + ' to ' + formatDay(last.t) + '. Complete UTC days; today is not included.'
+      : 'Cumulative token history is not in this snapshot.',
   );
   if (!count) return;
 
-  const showAverage = view.windowDays >= 30;
-  const average = showAverage ? rollingAverage(values, 7) : [];
-  const niceMax = niceCeil(Math.max(...values, ...(average.length ? average : [0])));
+  const cumulativeMax = niceCeil(Math.max(...cumulativeValues));
+  const dailyMax = niceCeil(Math.max(...dailyValues));
   const w = 720;
   const h = 280;
   const padL = 52;
-  const padR = 12;
+  const padR = 58;
   const padT = 16;
   const padB = 36;
   const innerW = w - padL - padR;
@@ -377,35 +380,44 @@ function paintDaily(series) {
     label.setAttribute('x', String(padL - 8));
     label.setAttribute('y', (y + 4).toFixed(1));
     label.setAttribute('text-anchor', 'end');
-    label.textContent = formatCompact(niceMax - (niceMax / 2) * i);
+    label.textContent = formatCompact(cumulativeMax - (cumulativeMax / 2) * i);
     axis.appendChild(label);
+
+    const dailyLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    dailyLabel.setAttribute('x', String(w - padR + 8));
+    dailyLabel.setAttribute('y', (y + 4).toFixed(1));
+    dailyLabel.setAttribute('fill', 'rgba(75,184,208,0.72)');
+    dailyLabel.setAttribute('font-size', '11');
+    dailyLabel.setAttribute('font-family', 'JetBrains Mono, monospace');
+    dailyLabel.textContent = formatCompact(dailyMax - (dailyMax / 2) * i);
+    axis.appendChild(dailyLabel);
   }
 
-  const gap = count > 40 ? 2 : 4;
   const slot = innerW / count;
-  const barW = Math.max(2, slot - gap);
-  values.forEach((value, i) => {
-    const bh = (value / niceMax) * innerH;
+  const gap = count > 40 ? 2 : 4;
+  const barWidth = Math.max(2, slot - gap);
+  let linePath = '';
+  dailyValues.forEach((value, i) => {
+    const barHeight = dailyMax > 0 ? (value / dailyMax) * innerH : 0;
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', (padL + i * slot + (slot - barW) / 2).toFixed(1));
-    rect.setAttribute('y', (padT + innerH - bh).toFixed(1));
-    rect.setAttribute('width', barW.toFixed(1));
-    rect.setAttribute('height', Math.max(value > 0 ? 1 : 0, bh).toFixed(1));
+    rect.setAttribute('x', (padL + i * slot + (slot - barWidth) / 2).toFixed(1));
+    rect.setAttribute('y', (padT + innerH - barHeight).toFixed(1));
+    rect.setAttribute('width', barWidth.toFixed(1));
+    rect.setAttribute('height', Math.max(value > 0 ? 1 : 0, barHeight).toFixed(1));
     rect.setAttribute('rx', '2');
-    rect.setAttribute('fill', '#4BB8D0');
+    rect.setAttribute('fill', 'rgba(75,184,208,0.68)');
     bars.appendChild(rect);
-  });
 
-  if (showAverage) {
-    let d = '';
-    average.forEach((value, i) => {
-      const x = padL + i * slot + slot / 2;
-      const y = padT + innerH - (value / niceMax) * innerH;
-      d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
-    });
-    line.setAttribute('d', d.trim());
-    line.setAttribute('visibility', 'visible');
-  }
+    const x = padL + i * slot + slot / 2;
+    const y = padT + innerH - (cumulativeValues[i] / cumulativeMax) * innerH;
+    linePath += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+  });
+  const endX = padL + (count - 1) * slot + slot / 2;
+  const endY = padT + innerH - (cumulativeValues[count - 1] / cumulativeMax) * innerH;
+  line.setAttribute('d', linePath.trim());
+  end.setAttribute('cx', endX.toFixed(1));
+  end.setAttribute('cy', endY.toFixed(1));
+  end.setAttribute('visibility', 'visible');
 
   const tickIdx = [...new Set([0, Math.floor((count - 1) / 2), count - 1])];
   tickIdx.forEach((i, idx) => {
