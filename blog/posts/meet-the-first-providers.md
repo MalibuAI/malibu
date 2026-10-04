@@ -29,7 +29,7 @@ Then he did the thing the early ones always do. He found bugs, wrote them up, an
 
 ## Why the early ones turn it on now
 
-Be clear-eyed about the timing. This is pre-beta, and payouts are barely a trickle so far — the counter on a provider's screen sits close to zero. That is not the catch. That is the window.
+Be clear-eyed about the timing. This is pre-beta, and payouts are barely a trickle so far — the counter on a provider's screen sits close to zero. That is not the catch. That is the window. For where the money comes from and the real one, see [your idle Mac is worth money, here's the catch](/blog/whats-the-catch-idle-mac/).
 
 The people running Macs today are not here for week-one numbers. They are here because they can watch the loop close in real time: a host comes online, serves real traffic, hits a rough edge, reports it, the edge gets fixed, and the network gets stronger. Every turn of that loop pulls it closer to the two-hundred-million-Mac version. The providers online now will have been here since it was four nodes and a signed receipt. You do not get that moment back.
 
