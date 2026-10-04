@@ -1506,6 +1506,11 @@ nav[data-nav-pill] .nav-cta:hover { background: #E05A48; color: #FAFBFF; }
   color: #FAFBFF;
   border-color: rgba(250, 251, 255, 0.45);
 }
+.net-growth-window[aria-pressed="true"]:hover,
+.net-growth-live[aria-expanded="true"]:hover {
+  color: #143A45;
+  border-color: #FAFBFF;
+}
 .net-growth-window:focus-visible,
 .net-growth-live:focus-visible {
   outline: 2px solid #FFC629;
@@ -1569,6 +1574,31 @@ nav[data-nav-pill] .nav-cta:hover { background: #E05A48; color: #FAFBFF; }
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   fill: rgba(250, 251, 255, 0.55);
+}
+.net-growth-plot text[data-growth-scale="cumulative"] {
+  fill: rgba(255, 198, 41, 0.9);
+}
+.net-growth-plot text[data-growth-scale="daily"] {
+  fill: rgba(75, 184, 208, 0.92);
+}
+.net-growth-plot text[data-growth-caption] {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.net-growth-plot text[data-growth-caption="cumulative"] {
+  fill: rgba(255, 198, 41, 0.92);
+}
+.net-growth-plot text[data-growth-caption="daily"] {
+  fill: rgba(75, 184, 208, 0.92);
+}
+.net-growth-plot text[data-growth-end-label] {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #FFC629;
+  stroke: #143A45;
+  stroke-width: 4px;
+  paint-order: stroke;
 }
 .net-growth-note {
   margin: 0;
