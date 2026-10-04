@@ -2,8 +2,10 @@ import { normalizeRoutabilityPayload, routabilityErrorView } from '../j/network-
 import {
   compareText,
   cumulativeTokens,
+  DEFAULT_GROWTH_DAYS,
   formatCompact,
   formatDay,
+  growthChartGeometry,
   growthWindow,
   sumTokens,
 } from './network-daily.mjs';
@@ -45,7 +47,7 @@ let latestFetchedAt = 0;
 let latestHealth = null;
 let staleTimer = null;
 let healthStaleTimer = null;
-let growthDays = 30;
+let growthDays = DEFAULT_GROWTH_DAYS;
 
 function nfmt(n) {
   if (n === null || n === undefined || Number.isNaN(n)) return '—';
@@ -308,15 +310,6 @@ function drawGrid(gridEl, w, h, pad, lines = 4) {
   }
 }
 
-function niceCeil(max) {
-  if (!Number.isFinite(max) || max <= 0) return 1;
-  const exp = Math.floor(Math.log10(max));
-  const base = 10 ** exp;
-  const n = max / base;
-  const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
-  return step * base;
-}
-
 function paintDaily(series) {
   const svg = document.querySelector('[data-growth-chart]');
   if (!svg) return;
@@ -324,6 +317,9 @@ function paintDaily(series) {
   const dailyValues = view.current.map((point) => point.tokens);
   const cumulativeValues = cumulativeTokens(view.current);
   const count = dailyValues.length;
+  const geo = growthChartGeometry(dailyValues, cumulativeValues);
+  svg.setAttribute('viewBox', '0 0 ' + geo.width + ' ' + geo.height);
+
   const titleEl = document.querySelector('[data-growth-title]');
   const totalEl = document.querySelector('[data-growth-total]');
   const compareEl = document.querySelector('[data-growth-compare]');
@@ -335,99 +331,116 @@ function paintDaily(series) {
 
   const bars = svg.querySelector('[data-growth-bars]');
   const line = svg.querySelector('[data-growth-line]');
+  const area = svg.querySelector('[data-growth-area]');
   const end = svg.querySelector('[data-growth-end]');
+  const endLabel = svg.querySelector('[data-growth-end-label]');
   const grid = svg.querySelector('[data-growth-grid]');
   const axis = svg.querySelector('[data-growth-axis]');
-  if (!bars || !line || !end || !grid || !axis) return;
+  if (!bars || !line || !area || !end || !endLabel || !grid || !axis) return;
   bars.replaceChildren();
   grid.replaceChildren();
   axis.replaceChildren();
   line.setAttribute('d', '');
+  area.setAttribute('d', '');
   end.setAttribute('visibility', 'hidden');
+  endLabel.textContent = '';
+  endLabel.setAttribute('visibility', 'hidden');
 
   const first = view.current[0];
-  const last = view.current[count - 1];
+  const lastPoint = view.current[count - 1];
+  const totalText = count ? formatCompact(sumTokens(view.current)) : '';
   svg.setAttribute(
     'aria-label',
     count
-      ? 'Daily token bars and a cumulative growth line totaling ' + formatCompact(sumTokens(view.current)) + ' tokens from ' + formatDay(first.t) + ' to ' + formatDay(last.t) + '. Complete UTC days; today is not included.'
+      ? 'Running total of ' + totalText + ' tokens from ' + formatDay(first.t) + ' to ' + formatDay(lastPoint.t) + '. The line is the running total. Bars below are each day on a separate scale. Complete UTC days; today is not included.'
       : 'Cumulative token history is not in this snapshot.',
   );
   if (!count) return;
 
-  const cumulativeMax = niceCeil(Math.max(...cumulativeValues));
-  const dailyMax = niceCeil(Math.max(...dailyValues));
-  const w = 720;
-  const h = 280;
-  const padL = 52;
-  const padR = 58;
-  const padT = 16;
-  const padB = 36;
-  const innerW = w - padL - padR;
-  const innerH = h - padT - padB;
-
-  for (let i = 0; i <= 2; i++) {
-    const y = padT + (innerH / 2) * i;
-    const rule = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    rule.setAttribute('x1', String(padL));
-    rule.setAttribute('x2', String(w - padR));
+  const ns = 'http://www.w3.org/2000/svg';
+  const plotRight = geo.width - geo.padR;
+  const addLine = (y, stroke) => {
+    const rule = document.createElementNS(ns, 'line');
+    rule.setAttribute('x1', String(geo.padL));
+    rule.setAttribute('x2', String(plotRight));
     rule.setAttribute('y1', y.toFixed(1));
     rule.setAttribute('y2', y.toFixed(1));
-    rule.setAttribute('stroke', 'rgba(250, 251, 255, 0.08)');
+    rule.setAttribute('stroke', stroke);
     grid.appendChild(rule);
-
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', String(padL - 8));
-    label.setAttribute('y', (y + 4).toFixed(1));
-    label.setAttribute('text-anchor', 'end');
-    label.textContent = formatCompact(cumulativeMax - (cumulativeMax / 2) * i);
+  };
+  const addText = (text, x, y, attrs) => {
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('x', String(x));
+    label.setAttribute('y', typeof y === 'number' ? y.toFixed(1) : String(y));
+    for (const [key, value] of Object.entries(attrs)) label.setAttribute(key, value);
+    label.textContent = text;
     axis.appendChild(label);
+  };
 
-    const dailyLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    dailyLabel.setAttribute('x', String(w - padR + 8));
-    dailyLabel.setAttribute('y', (y + 4).toFixed(1));
-    dailyLabel.setAttribute('fill', 'rgba(75,184,208,0.72)');
-    dailyLabel.setAttribute('font-size', '11');
-    dailyLabel.setAttribute('font-family', 'JetBrains Mono, monospace');
-    dailyLabel.textContent = formatCompact(dailyMax - (dailyMax / 2) * i);
-    axis.appendChild(dailyLabel);
+  for (const tick of geo.cumulativeGrid) {
+    addLine(tick.y, tick.value === 0 ? 'rgba(255, 198, 41, 0.28)' : 'rgba(255, 198, 41, 0.14)');
+    addText(tick.label, geo.padL - 8, tick.y + 4, {
+      'text-anchor': 'end',
+      'data-growth-scale': 'cumulative',
+    });
+  }
+  for (const tick of geo.dailyGrid) {
+    addLine(tick.y, tick.value === 0 ? 'rgba(75, 184, 208, 0.32)' : 'rgba(75, 184, 208, 0.14)');
+    addText(tick.label, geo.padL - 8, tick.y + 4, {
+      'text-anchor': 'end',
+      'data-growth-scale': 'daily',
+    });
+  }
+  addText('Cumulative', geo.padL, geo.cumulative.top - 8, {
+    'data-growth-caption': 'cumulative',
+  });
+  addText('Each day', plotRight, geo.daily.top - 10, {
+    'text-anchor': 'end',
+    'data-growth-caption': 'daily',
+  });
+
+  const band = document.createElementNS(ns, 'rect');
+  band.setAttribute('x', String(geo.padL));
+  band.setAttribute('y', String(geo.daily.top));
+  band.setAttribute('width', String(plotRight - geo.padL));
+  band.setAttribute('height', String(geo.daily.height));
+  band.setAttribute('rx', '8');
+  band.setAttribute('fill', 'rgba(75, 184, 208, 0.06)');
+  bars.appendChild(band);
+
+  for (const point of geo.points) {
+    const rect = document.createElementNS(ns, 'rect');
+    rect.setAttribute('x', point.barX.toFixed(1));
+    rect.setAttribute('y', point.barY.toFixed(1));
+    rect.setAttribute('width', point.barWidth.toFixed(1));
+    rect.setAttribute('height', point.barHeight.toFixed(1));
+    rect.setAttribute('rx', String(Math.min(2, point.barWidth / 2)));
+    rect.setAttribute('fill', 'rgba(75, 184, 208, 0.82)');
+    bars.appendChild(rect);
   }
 
-  const slot = innerW / count;
-  const gap = count > 40 ? 2 : 4;
-  const barWidth = Math.max(2, slot - gap);
-  let linePath = '';
-  dailyValues.forEach((value, i) => {
-    const barHeight = dailyMax > 0 ? (value / dailyMax) * innerH : 0;
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', (padL + i * slot + (slot - barWidth) / 2).toFixed(1));
-    rect.setAttribute('y', (padT + innerH - barHeight).toFixed(1));
-    rect.setAttribute('width', barWidth.toFixed(1));
-    rect.setAttribute('height', Math.max(value > 0 ? 1 : 0, barHeight).toFixed(1));
-    rect.setAttribute('rx', '2');
-    rect.setAttribute('fill', 'rgba(75,184,208,0.68)');
-    bars.appendChild(rect);
-
-    const x = padL + i * slot + slot / 2;
-    const y = padT + innerH - (cumulativeValues[i] / cumulativeMax) * innerH;
-    linePath += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
-  });
-  const endX = padL + (count - 1) * slot + slot / 2;
-  const endY = padT + innerH - (cumulativeValues[count - 1] / cumulativeMax) * innerH;
-  line.setAttribute('d', linePath.trim());
-  end.setAttribute('cx', endX.toFixed(1));
-  end.setAttribute('cy', endY.toFixed(1));
+  const firstPoint = geo.points[0];
+  const lastGeom = geo.points[geo.points.length - 1];
+  const linePath = geo.points.map((point, i) => (i === 0 ? 'M' : 'L') + point.x.toFixed(1) + ' ' + point.cumulativeY.toFixed(1)).join(' ');
+  const areaPath =
+    'M' + firstPoint.x.toFixed(1) + ' ' + geo.cumulativeBase.toFixed(1) + ' ' +
+    geo.points.map((point) => 'L' + point.x.toFixed(1) + ' ' + point.cumulativeY.toFixed(1)).join(' ') +
+    ' L' + lastGeom.x.toFixed(1) + ' ' + geo.cumulativeBase.toFixed(1) + ' Z';
+  area.setAttribute('d', areaPath);
+  line.setAttribute('d', linePath);
+  end.setAttribute('cx', lastGeom.x.toFixed(1));
+  end.setAttribute('cy', lastGeom.cumulativeY.toFixed(1));
   end.setAttribute('visibility', 'visible');
+  endLabel.setAttribute('x', geo.endLabel.x.toFixed(1));
+  endLabel.setAttribute('y', geo.endLabel.y.toFixed(1));
+  endLabel.setAttribute('text-anchor', geo.endLabel.anchor);
+  endLabel.textContent = geo.endLabel.text;
+  endLabel.setAttribute('visibility', 'visible');
 
   const tickIdx = [...new Set([0, Math.floor((count - 1) / 2), count - 1])];
   tickIdx.forEach((i, idx) => {
-    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    label.setAttribute('x', (padL + i * slot + slot / 2).toFixed(1));
-    label.setAttribute('y', String(h - 10));
     const anchor = idx === 0 ? 'start' : idx === tickIdx.length - 1 ? 'end' : 'middle';
-    label.setAttribute('text-anchor', anchor);
-    label.textContent = formatDay(view.current[i].t);
-    axis.appendChild(label);
+    addText(formatDay(view.current[i].t), geo.points[i].x, geo.axisY, { 'text-anchor': anchor });
   });
 }
 
@@ -446,6 +459,7 @@ function bindLivePanel() {
 
 function bindGrowthWindows() {
   document.querySelectorAll('[data-growth-window]').forEach((btn) => {
+    btn.setAttribute('aria-pressed', Number(btn.getAttribute('data-growth-window')) === growthDays ? 'true' : 'false');
     btn.addEventListener('click', () => {
       const next = Number(btn.getAttribute('data-growth-window'));
       if (next !== 7 && next !== 30 && next !== 90) return;

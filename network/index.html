@@ -191,8 +191,8 @@
           </div>
           <div class="net-growth-tools">
             <button type="button" class="net-growth-window" data-growth-window="7" aria-pressed="false">7d</button>
-            <button type="button" class="net-growth-window" data-growth-window="30" aria-pressed="true">30d</button>
-            <button type="button" class="net-growth-window" data-growth-window="90" aria-pressed="false">90d</button>
+            <button type="button" class="net-growth-window" data-growth-window="30" aria-pressed="false">30d</button>
+            <button type="button" class="net-growth-window" data-growth-window="90" aria-pressed="true">90d</button>
             <button type="button" class="net-growth-live" data-growth-live aria-expanded="false">Live · last 30 min</button>
           </div>
         </div>
@@ -205,21 +205,29 @@
           </div>
         </div>
         <div class="net-growth-plot">
-          <svg data-growth-chart viewBox="0 0 720 280" role="img" aria-label="Cumulative token volume">
+          <svg data-growth-chart viewBox="0 0 720 372" role="img" aria-label="Cumulative token volume">
+            <defs>
+              <linearGradient id="growth-area" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#FFC629" stop-opacity="0.42"/>
+                <stop offset="100%" stop-color="#FFC629" stop-opacity="0.02"/>
+              </linearGradient>
+            </defs>
             <g data-growth-grid></g>
+            <path data-growth-area d="" fill="url(#growth-area)"></path>
             <g data-growth-bars></g>
-            <path data-growth-line d="" fill="none" stroke="#FFC629" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+            <path data-growth-line d="" fill="none" stroke="#FFC629" stroke-width="2.75" stroke-linejoin="round" stroke-linecap="round"></path>
             <circle data-growth-end r="5" fill="#FFC629" stroke="#143A45" stroke-width="2" visibility="hidden"></circle>
+            <text data-growth-end-label visibility="hidden"></text>
             <g data-growth-axis></g>
           </svg>
         </div>
         <div class="net-chart-legend">
-          <span class="net-chart-legend-dot" style="background: #4BB8D0;"></span>
-          <span>Daily tokens · right axis</span>
-          <span class="net-chart-legend-dot" style="background: #FFC629; margin-left: 14px;"></span>
-          <span>Cumulative growth · left axis</span>
+          <span class="net-chart-legend-dot" style="background: #FFC629;"></span>
+          <span>Running total</span>
+          <span class="net-chart-legend-dot" style="background: #4BB8D0; margin-left: 14px;"></span>
+          <span>Each day</span>
         </div>
-        <p class="net-growth-note">Daily activity builds the cumulative total across complete UTC days. Today enters the chart after midnight UTC.</p>
+        <p class="net-growth-note">The line is the running total for these days. Bars below are tokens each day, on their own scale. Today enters the chart after midnight UTC.</p>
       </article>
       <div class="net-live-panel" data-live-panel hidden>
         <div class="net-live-kicker">Last 30 minutes · live</div>
