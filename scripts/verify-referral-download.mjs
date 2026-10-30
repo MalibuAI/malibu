@@ -24,12 +24,12 @@ const RELEASE_API_URL =
 const GITHUB_DOWNLOAD_BASE =
   `https://github.com/Augustas11/macprovider/releases/download/${TAG}/`;
 const REQUIRED_ASSETS = [DMG_ASSET, CHECKSUM_ASSET, CHECKSUM_SIG_ASSET, PROVENANCE_ASSET];
-const ACCEPTED_SOURCE_COMMIT = 'd98b74a6a158000dabaecb89d75886b6817e9d0f';
+const ACCEPTED_SOURCE_COMMIT = '11c4107744116ac426b0eab4cd37a20c511526a9';
 const ACCEPTED_ASSET_SHA256 = Object.freeze({
-  [DMG_ASSET]: '8667eb8b32e7ad73eb7bd7738286679757c835db90154643474f6eebd0a410b1',
-  [CHECKSUM_ASSET]: 'd7a3f5580a833e2ceb1b4c7bda14ad7ef6648e0961cffeb34964ba5ac2b8495c',
-  [CHECKSUM_SIG_ASSET]: '32dee40d39d418e959e0cdc76ac1269a575ded8bc492455c9ec1058f71758631',
-  [PROVENANCE_ASSET]: '80d712ed648f0937f4b3ab5f78c5d1941a2ae5cb471d66602ec7b0e7d7138328',
+  [DMG_ASSET]: '3fa6ec0e48da41cb1122db0da11700c3a8f3c9e7cd2ceb2ff62600d82feb6827',
+  [CHECKSUM_ASSET]: '88e093575a2cfdc2031117bcf66783411d7409620477ac3cd16bab68ed2f6ac8',
+  [CHECKSUM_SIG_ASSET]: 'dfba0d074d5edaf75fcfd7d57b65dd962408e91881f1166d24278a362fa22b81',
+  [PROVENANCE_ASSET]: 'ca7d4eacaf07bd3f7e9aeaecb2b03caec9b5d2ee304c647cb0da54ce994681d3',
 });
 const ACCEPTED_DOWNLOAD_URL = GITHUB_DOWNLOAD_BASE + DMG_ASSET;
 const TRUSTED_API_HOSTS = new Set(['api.github.com']);
@@ -189,7 +189,7 @@ export async function verifyReferralDownload(fetchImpl = fetch) {
       fetchImpl,
       MALIBU_DOWNLOAD_URL,
       TRUSTED_DOWNLOAD_HOSTS,
-      128 * 1024 * 1024,
+      256 * 1024 * 1024,
       'application/octet-stream',
     ),
     fetchBounded(
