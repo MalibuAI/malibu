@@ -52,10 +52,10 @@ test('compatibility preview is bound to the MacProvider catalog snapshot', () =>
 });
 
 test('catalog digest matches the checked-in signed candidate payload', async () => {
-  const raw = await readFile(new URL('../j/macprovider/autotune-candidates.published-2026-07-29.json', import.meta.url));
+  const raw = await readFile(new URL('../j/macprovider/autotune-candidates.published-2026-10-27.json', import.meta.url));
   const digest = createHash('sha256').update(raw).digest('hex');
-  const sig = JSON.parse(await readFile(new URL('../j/macprovider/autotune-candidates.published-2026-07-29.json.sig', import.meta.url), 'utf8'));
-  const release = JSON.parse(await readFile(new URL('../j/macprovider/release.published-2026-07-29.json', import.meta.url), 'utf8'));
+  const sig = JSON.parse(await readFile(new URL('../j/macprovider/autotune-candidates.published-2026-10-27.json.sig', import.meta.url), 'utf8'));
+  const release = JSON.parse(await readFile(new URL('../j/macprovider/release.published-2026-10-27.json', import.meta.url), 'utf8'));
   assert.equal(digest, HOST_CATALOG.candidateCatalogSha256);
   assert.equal(release.feeds['autotune-candidates.json'].sha256, HOST_CATALOG.candidateCatalogSha256);
   assert.equal(release.feeds['autotune-candidates.json'].signer_key_id, HOST_CATALOG.signerKeyId);
@@ -74,24 +74,34 @@ test('16 GB base Mac fits only the small current catalog rows', () => {
     'qwen3-8b',
     'meta-llama/llama-3.1-8b-instruct',
     'meta-llama/llama-3.2-3b-instruct',
+    'mlx-community/qwen2-vl-2b-instruct-4bit',
   ]));
   assert.equal(result.hardware.usableRamGb, 12);
   assert.equal(result.catalogCeiling.state, 'within_current_preview');
 });
 
-test('128 GB Max Mac is represented as above current preview, not incapable', () => {
+test('128 GB Max Mac fits every row except the Ultra-tier models', () => {
   const result = evaluateHostCompatibility({ chip: 'Apple M4 Max', ramGb: 128 });
-  assert.equal(result.compatibleCount, HOST_CATALOG.rows.length);
-  assert.equal(result.catalogCeiling.state, 'above_current_preview');
-  assert.match(result.catalogCeiling.message, /more memory than the current public preview rows need/);
-  assert.equal(result.rows[0].eligiblePreview, true);
+  const blocked = result.rows.filter((row) => !row.eligiblePreview).map((row) => row.key);
+  assert.deepEqual(new Set(blocked), new Set(['zai-org/glm-5.3-flash', 'deepseek/deepseek-v4-flash']));
+  assert.equal(result.rows.find((row) => row.key === 'zai-org/glm-5.3-flash').label, 'Needs higher tier');
+  assert.equal(result.rows[0].key, 'openai/gpt-oss-120b');
   assert.equal(result.rows.some((row) => row.label === 'Needs more RAM'), false);
+});
+
+test('best pick is the strongest current model that fits', () => {
+  assert.equal(evaluateHostCompatibility({ chip: 'Apple M5', ramGb: 32 }).rows[0].key, 'qwen/qwen3.6-35b-a3b');
+  assert.equal(evaluateHostCompatibility({ chip: 'Apple M3 Pro', ramGb: 36 }).rows[0].key, 'qwen/qwen3.8-27b');
+  assert.equal(evaluateHostCompatibility({ chip: 'Apple M3 Ultra', ramGb: 256 }).rows[0].key, 'zai-org/glm-5.3-flash');
+});
+
+test('candidate rows stay out of the host preview', () => {
+  assert.equal(HOST_CATALOG.rows.some((row) => row.key === 'prism-ml/ternary-bonsai-2-2b-mlx-2bit'), false);
+  assert.equal(HOST_CATALOG.rows.every((row) => row.runtimeStatus === 'recommendable'), true);
 });
 
 test('high-RAM base Macs still respect catalog bandwidth tiers', () => {
   const result = evaluateHostCompatibility({ chip: 'Apple M4', ramGb: 128 });
-  assert.equal(result.catalogCeiling.state, 'high_memory_tier_limited');
-  assert.match(result.catalogCeiling.message, /some rows still require a Pro, Max, or Ultra/);
   const qwen32 = result.rows.find((row) => row.key === 'qwen3-32b');
   const qwenCoder32 = result.rows.find((row) => row.key === 'qwen2.5-coder-32b-instruct');
   assert.equal(qwen32.eligiblePreview, false);

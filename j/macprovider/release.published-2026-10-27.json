@@ -1,0 +1,50 @@
+{
+  "feeds": {
+    "autotune-artifacts.json": {
+      "bytes": 16141,
+      "sha256": "d81ce2d8144e155a8d716d55e3b2b0a8f9181d27f6083b2d1c4ee49217713ca5",
+      "signer_key_id": "streamvc-autotune-static-v4",
+      "version": "published-2026-10-27-bonsai2b-candidate-v1"
+    },
+    "autotune-candidates.json": {
+      "bytes": 20070,
+      "sha256": "568dfb349b0e42a00863a5d5800ef11927afeaebcb1df69cd2f2bc3e7d899a39",
+      "signer_key_id": "streamvc-autotune-static-v4",
+      "version": "published-2026-10-27-bonsai2b-candidate-v1"
+    },
+    "continuous-batching-policy.json": {
+      "bytes": 4926,
+      "sha256": "1acc7948cd699d78bd6527a0ea79e77167d2ef12c190aa3d863b522b3159b310",
+      "signer_key_id": "streamvc-autotune-static-v4",
+      "version": "published-2026-10-27-bonsai2b-candidate-v1"
+    },
+    "demand-rank.json": {
+      "bytes": 2441,
+      "sha256": "1be4949838a230637ef9e6f0d7fedd417c5befb4c6b09490a588e769fab411c0",
+      "signer_key_id": "streamvc-autotune-static-v4",
+      "version": "published-2026-10-27-bonsai2b-candidate-v1"
+    },
+    "native-mtp-admission.json": {
+      "bytes": 45673,
+      "sha256": "f9ab112e63123fb599eaf1a8194f2fef003f971b90feed0a90b56425ee14a4bc",
+      "signer_key_id": "streamvc-autotune-static-v4",
+      "version": "published-2026-10-27-bonsai2b-candidate-v1"
+    },
+    "rate-card.json": {
+      "bytes": 4447,
+      "sha256": "66474167251bb7a429a8d04cc8da72b46f493aeaf6de7028943ec5f4bd87787b",
+      "signer_key_id": "streamvc-autotune-static-v4",
+      "version": "10f735e38702e786a9da904b54c7d3764548e9ffbf09d562be1803a2ec26c20c"
+    },
+    "tier2-catalog.json": {
+      "bytes": 8223,
+      "sha256": "8c64863d3c05d91b40ae98990dd0723248af6adac4e0d9615a9b9e0cbf9bcf11",
+      "signer_key_id": "tier2-coordinator-key:707a860299e6a37f",
+      "version": "macprovider-tier2-model-catalog-2026-10-23-deepseek-v4-flash-v1"
+    }
+  },
+  "generated_at": "2026-10-27T07:38:00Z",
+  "policy_version": "autotune-policy-v1",
+  "release_id": "published-2026-10-27-bonsai2b-candidate-v1",
+  "schema_version": "macprovider.autotune-release.v1"
+}

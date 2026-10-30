@@ -1,10 +1,21 @@
-import MACPROVIDER_AUTOTUNE_CANDIDATES from './macprovider/autotune-candidates.published-2026-07-29.json' with { type: 'json' };
+import MACPROVIDER_AUTOTUNE_CANDIDATES from './macprovider/autotune-candidates.published-2026-10-27.json' with { type: 'json' };
 
 const SAFETY_MARGIN_GB = 4;
 
 const TIER_ORDER = { C: 1, B: 2, A: 3, S: 4 };
 
 const DISPLAY_NAMES = Object.freeze({
+  'deepseek/deepseek-v4-flash': 'DeepSeek V4 Flash',
+  'mlx-community/qwen2-vl-2b-instruct-4bit': 'Qwen2-VL 2B',
+  'openai/gpt-oss-120b': 'GPT-OSS 120B',
+  'qwen/qwen3-30b-a3b-instruct-2507': 'Qwen3 30B-A3B Instruct',
+  'qwen/qwen3.5-27b': 'Qwen3.5 27B',
+  'qwen/qwen3.5-35b-a3b': 'Qwen3.5 35B-A3B',
+  'qwen/qwen3.6-27b': 'Qwen3.6 27B',
+  'qwen/qwen3.6-35b-a3b': 'Qwen3.6 35B-A3B',
+  'qwen/qwen3.8-27b': 'Qwen3.8 27B',
+  'z-ai/glm-4.5-air': 'GLM-4.5 Air',
+  'zai-org/glm-5.3-flash': 'GLM-5.3-Flash',
   'google-gemma-4-26b-a4b-it': 'Gemma 4 26B-A4B',
   'meta-llama/llama-3.1-8b-instruct': 'Llama 3.1 8B Instruct',
   'meta-llama/llama-3.2-3b-instruct': 'Llama 3.2 3B Instruct',
@@ -91,12 +102,15 @@ export const HOST_CATALOG = Object.freeze({
   releaseId: MACPROVIDER_AUTOTUNE_CANDIDATES.version,
   generatedAt: MACPROVIDER_AUTOTUNE_CANDIDATES.generated_at,
   policyVersion: MACPROVIDER_AUTOTUNE_CANDIDATES.policy_version,
-  candidateCatalogSha256: '56c4c20a8d0b3a1944ff0539829d0f517097c5189f22d7f1453c8e491dff1720',
-  candidateCatalogPath: 'j/macprovider/autotune-candidates.published-2026-07-29.json',
-  signaturePath: 'j/macprovider/autotune-candidates.published-2026-07-29.json.sig',
+  candidateCatalogSha256: '568dfb349b0e42a00863a5d5800ef11927afeaebcb1df69cd2f2bc3e7d899a39',
+  candidateCatalogPath: 'j/macprovider/autotune-candidates.published-2026-10-27.json',
+  signaturePath: 'j/macprovider/autotune-candidates.published-2026-10-27.json.sig',
   signerKeyId: 'streamvc-autotune-static-v4',
   source: MACPROVIDER_AUTOTUNE_CANDIDATES.source,
-  rows: Object.freeze(Object.entries(MACPROVIDER_AUTOTUNE_CANDIDATES.rows).map(([key, row]) => Object.freeze({
+  // Only rows the catalog recommends to hosts; candidate rows are still in lab qualification.
+  rows: Object.freeze(Object.entries(MACPROVIDER_AUTOTUNE_CANDIDATES.rows)
+    .filter(([, row]) => row.runtime_status === 'recommendable')
+    .map(([key, row]) => Object.freeze({
     key,
     name: DISPLAY_NAMES[key] || key,
     modelId: row.model_id,
@@ -222,10 +236,23 @@ function gradeFor(headroomGb, tierFits) {
   return { grade: 'F', fit: 'future', label: 'Needs more RAM' };
 }
 
-function rowScore(row, verdict, headroomGb) {
-  const fitBase = { great: 300, good: 240, tight: 180, future: 0 }[verdict.fit] ?? 0;
-  const measured = row.provenance === 'measured_single_host' ? 30 : 0;
-  return fitBase + Math.min(row.minRamGb, 64) + measured + Math.max(0, Math.min(headroomGb, 32));
+// Newer model families rank first among rows of similar size.
+const FAMILY_RECENCY = Object.freeze([
+  [/glm-5\.3/, 6], [/deepseek-v4/, 6], [/qwen3\.8/, 5], [/qwen3\.6/, 4], [/gemma-4/, 3], [/qwen3\.5/, 2],
+]);
+
+function familyRecency(key) {
+  const hit = FAMILY_RECENCY.find(([pattern]) => pattern.test(key));
+  return hit ? hit[1] : 0;
+}
+
+// Best pick is the strongest model that fits: larger catalog rows first,
+// then newer families, then headroom. Rows that do not fit sort last.
+function rowScore(row, verdict) {
+  if (verdict.fit === 'future') return 0;
+  const fitBonus = { great: 20, good: 10, tight: 0 }[verdict.fit] ?? 0;
+  const measured = row.provenance === 'measured_single_host' ? 5 : 0;
+  return 1000 + row.minRamGb * 4 + familyRecency(row.key) * 10 + fitBonus + measured;
 }
 
 export function evaluateHostCompatibility(input = {}) {
@@ -257,7 +284,7 @@ export function evaluateHostCompatibility(input = {}) {
       eligiblePreview: verdict.fit !== 'future',
       advisorySpeed,
       speedLabel: speedHintLabel(advisorySpeed),
-      score: rowScore(row, verdict, headroomGb),
+      score: rowScore(row, verdict),
     };
   }).sort((a, b) => {
     if (b.eligiblePreview !== a.eligiblePreview) return Number(b.eligiblePreview) - Number(a.eligiblePreview);
