@@ -1,4 +1,4 @@
-import { buildSdkSnippet } from '../agent.js';
+import { buildSdkSnippet, DEFAULT_MODEL } from '../agent.js';
 import { loadKey } from '../api.js';
 
 export const title = 'Agent SDK';
@@ -6,7 +6,7 @@ export const title = 'Agent SDK';
 export function mount(root, { navigate }) {
   const base = `${location.origin}/api/mp/v1`;
   const snippet = buildSdkSnippet({
-    model: 'mlx-community/Qwen2.5-7B-Instruct-4bit',
+    model: DEFAULT_MODEL,
     apiKey: loadKey() || 'mp_YOUR_KEY',
   });
 
@@ -31,7 +31,7 @@ export function mount(root, { navigate }) {
         <li><strong>API Provider:</strong> OpenAI Compatible</li>
         <li><strong>Base URL:</strong> <code>${base}</code></li>
         <li><strong>API Key:</strong> your <code>mp_*</code> key from <button type="button" class="linkish" data-workspace-link="keys">API keys</button></li>
-        <li><strong>Model ID:</strong> e.g. <code>mlx-community/Qwen2.5-7B-Instruct-4bit</code> (pick from pool)</li>
+        <li><strong>Model ID:</strong> e.g. <code>${DEFAULT_MODEL}</code> (pick from the pool using <code>GET /v1/models</code> with your API key)</li>
       </ul>
       <p class="hint">Optional header for sticky KV cache: <code>X-MacProvider-Conversation: &lt;thread-id&gt;</code></p>
     </div>

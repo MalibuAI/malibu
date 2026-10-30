@@ -2,6 +2,7 @@ import { chatStream } from './api.js';
 import { executeTool, extractToolCallsFromContent, normalizeToolCallForReplay } from './tools.js';
 
 const MAX_AGENT_STEPS = 8;
+export const DEFAULT_MODEL = 'zai-org/glm-5.3-flash';
 
 export function createToolAccumulator() {
   const acc = {};
@@ -279,7 +280,7 @@ client = OpenAI(
 
 # Agent loop: pass tools= and handle tool_calls in your client.
 resp = client.chat.completions.create(
-    model="${model || 'mlx-community/Qwen2.5-7B-Instruct-4bit'}",
+    model="${model || DEFAULT_MODEL}",
     messages=[{"role": "user", "content": "Hello"}],
     stream=True,
 )
