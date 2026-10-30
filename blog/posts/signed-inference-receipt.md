@@ -24,7 +24,7 @@ That primitive is the difference between an inference bill you have to trust and
 The current wire format is v0.3. Nine fields, canonicalized in a fixed order, then signed:
 
 - `model_hash` — SHA-256 of the model weights actually loaded on the provider, anchored to the network's signed model catalog.
-- `model_id` — the model identifier, for example `mlx-community/Qwen2.5-7B-Instruct-4bit`.
+- `model_id` — the model identifier, for example `zai-org/glm-5.3-flash`.
 - `prompt_hash` — SHA-256 of the canonicalized request body.
 - `output_hash` — SHA-256 of the canonicalized response body.
 - `provider_pubkey` — the Ed25519 public key that signed the receipt.
@@ -54,7 +54,7 @@ You capture the receipt as an HTTP header, then hand it to `malibu-verify`. From
 
 ```
 raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="zai-org/glm-5.3-flash",
     messages=[{"role": "user", "content": "Hello"}],
 )
 resp = raw.parse()

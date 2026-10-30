@@ -6,6 +6,39 @@ const agentSource = await readFile(new URL('../console/agent.js', import.meta.ur
 const apiSource = await readFile(new URL('../console/api.js', import.meta.url), 'utf8');
 const consoleSource = await readFile(new URL('../console/index.html', import.meta.url), 'utf8');
 const settingsSource = await readFile(new URL('../console/views/settings.js', import.meta.url), 'utf8');
+const agentDocsSource = await readFile(new URL('../console/views/agent-docs.js', import.meta.url), 'utf8');
+const { buildSdkSnippet, DEFAULT_MODEL } = Function('location', `${agentSource
+  .replace(/^import .*;\n/gm, '')
+  .replaceAll('export ', '')}
+return { buildSdkSnippet, DEFAULT_MODEL };`)({ origin: 'https://malibu.tech' });
+
+test('SDK snippets use the signed catalog default and preserve explicit model selection', () => {
+  assert.equal(DEFAULT_MODEL, 'zai-org/glm-5.3-flash');
+  for (const model of [undefined, null, '']) {
+    assert.ok(buildSdkSnippet({ model }).includes(`model="${DEFAULT_MODEL}"`));
+  }
+  const snippet = buildSdkSnippet({ model: 'user-selected-model', apiKey: 'mp_example', threadId: 'thread-123' });
+  assert.ok(snippet.includes('model="user-selected-model"'));
+  assert.ok(snippet.includes('api_key="mp_example"'));
+  assert.ok(snippet.includes('"X-MacProvider-Conversation": "thread-123"'));
+});
+
+test('agent docs share the SDK default and explain authenticated model discovery', () => {
+  const { mount } = Function('buildSdkSnippet', 'DEFAULT_MODEL', 'loadKey', 'location', `${agentDocsSource
+    .replace(/^import .*;\n/gm, '')
+    .replaceAll('export ', '')}
+return { mount };`)(buildSdkSnippet, DEFAULT_MODEL, () => null, { origin: 'https://malibu.tech' });
+  const snippetEl = {};
+  const root = {
+    innerHTML: '',
+    querySelector: (selector) => selector === '[data-snippet]' ? snippetEl : { addEventListener() {} },
+    addEventListener() {},
+  };
+  mount(root, { navigate() {} });
+  assert.ok(snippetEl.textContent.includes(`model="${DEFAULT_MODEL}"`));
+  assert.ok(root.innerHTML.includes(`<code>${DEFAULT_MODEL}</code>`));
+  assert.match(root.innerHTML, /GET \/v1\/models<\/code> with your API key/);
+});
 
 test('agent mode does not inject a console-authored system prompt', () => {
   assert.doesNotMatch(agentSource, /AGENT_SYSTEM_PROMPT/);

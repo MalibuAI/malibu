@@ -213,7 +213,7 @@
 <p>The current wire format is v0.3. Nine fields, canonicalized in a fixed order, then signed:</p>
 <ul>
 <li><code>model_hash</code> — SHA-256 of the model weights actually loaded on the provider, anchored to the network's signed model catalog.</li>
-<li><code>model_id</code> — the model identifier, for example <code>mlx-community/Qwen2.5-7B-Instruct-4bit</code>.</li>
+<li><code>model_id</code> — the model identifier, for example <code>zai-org/glm-5.3-flash</code>.</li>
 <li><code>prompt_hash</code> — SHA-256 of the canonicalized request body.</li>
 <li><code>output_hash</code> — SHA-256 of the canonicalized response body.</li>
 <li><code>provider_pubkey</code> — the Ed25519 public key that signed the receipt.</li>
@@ -235,7 +235,7 @@
 <h2 id="verifying-a-receipt-in-thirty-seconds">Verifying a receipt in thirty seconds</h2>
 <p>You capture the receipt as an HTTP header, then hand it to <code>malibu-verify</code>. From Python:</p>
 <pre><code>raw = client.chat.completions.with_raw_response.create(
-    model="mlx-community/Qwen2.5-7B-Instruct-4bit",
+    model="zai-org/glm-5.3-flash",
     messages=[{"role": "user", "content": "Hello"}],
 )
 resp = raw.parse()
