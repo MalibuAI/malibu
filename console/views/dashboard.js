@@ -156,7 +156,7 @@ export function mount(root, { navigate, esc, openAccount, onAuthChanged }) {
             ? `<div class="val" style="font-size:24px;margin-bottom:8px;">${formatTokenCount(malibuBal)}</div><p class="hint">Wallet balance from gateway.</p>`
             : `<p class="hint" style="margin:0 0 10px;">Redeem $MALIBU for inference credits when the wallet API ships. Until then, use daily quota or USDC top-up.</p><span class="badge soon">Wallet API pending</span>`}
           <div class="nav-links">
-            <a href="/#token">$MALIBU token</a>
+            <a href="https://malibu.tech/docs/litepaper#the-token-flywheel">$MALIBU token</a>
             <button type="button" class="linkish" data-workspace-link="team">Team billing</button>
           </div>
         </div>
