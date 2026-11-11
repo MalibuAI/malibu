@@ -128,7 +128,7 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
   assert.equal(packageJSON.scripts.prebuild, 'node scripts/verify-referral-download.mjs');
   assert.equal(
     MALIBU_DOWNLOAD_URL,
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.277/Malibu-v1.8.277.dmg',
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.283/Malibu-v1.8.283.dmg',
   );
   assert.match(runtime, /loadPublicMalibuRelease/);
   assert.doesNotMatch(runtime, /Malibu-v1\.8\.49\.dmg/);
@@ -164,21 +164,21 @@ test('landing route keeps referral material away from Vercel and unsafe browser 
 });
 
 test('production download gate accepts only the frozen commit and asset digests', () => {
-  const sourceCommit = '11c4107744116ac426b0eab4cd37a20c511526a9';
-  const dmgAsset = 'Malibu-v1.8.277.dmg';
+  const sourceCommit = 'ec252246fbf91fbef8d218213e7bb465c0100771';
+  const dmgAsset = 'Malibu-v1.8.283.dmg';
   const checksumAsset = 'checksums.txt';
   const checksumSigAsset = 'checksums.txt.sig';
   const provenanceAsset = 'release-provenance.json';
   const githubDownloadBase =
-    'https://github.com/Augustas11/macprovider/releases/download/v1.8.277/';
+    'https://github.com/Augustas11/macprovider/releases/download/v1.8.283/';
   const acceptedDigests = new Map([
-    [dmgAsset, '3fa6ec0e48da41cb1122db0da11700c3a8f3c9e7cd2ceb2ff62600d82feb6827'],
-    [checksumAsset, '88e093575a2cfdc2031117bcf66783411d7409620477ac3cd16bab68ed2f6ac8'],
-    [checksumSigAsset, 'dfba0d074d5edaf75fcfd7d57b65dd962408e91881f1166d24278a362fa22b81'],
-    [provenanceAsset, 'ca7d4eacaf07bd3f7e9aeaecb2b03caec9b5d2ee304c647cb0da54ce994681d3'],
+    [dmgAsset, '53a331a3d346f574881268931f196a6b165a4d2b50bf7214be18120d1c6921ef'],
+    [checksumAsset, '77fb9222daea099ba5732220f4c49e063b40f33542c532bd399faa40657ca5a3'],
+    [checksumSigAsset, '5008d44a37e455a354a18855668974747f31249cdfcce27a76533b2fff4135ee'],
+    [provenanceAsset, 'a4b95f991ec65424ba075e187654eedf3461accd33f2add37f280561a7e0cc30'],
   ]);
   const release = {
-    tag_name: 'v1.8.277',
+    tag_name: 'v1.8.283',
     draft: false,
     prerelease: false,
     immutable: true,
@@ -188,9 +188,9 @@ test('production download gate accepts only the frozen commit and asset digests'
       browser_download_url: githubDownloadBase + name,
       digest: `sha256:${digest}`,
     })).concat({
-      name: 'macprovider-cli-v1.8.277-darwin-arm64.tar.gz',
+      name: 'macprovider-cli-v1.8.283-darwin-arm64.tar.gz',
       browser_download_url:
-        githubDownloadBase + 'macprovider-cli-v1.8.277-darwin-arm64.tar.gz',
+        githubDownloadBase + 'macprovider-cli-v1.8.283-darwin-arm64.tar.gz',
       digest: `sha256:${'b'.repeat(64)}`,
     }),
   };
@@ -231,7 +231,7 @@ test('production download gate accepts only the frozen commit and asset digests'
 });
 
 test('production download gate refuses a fallback pin that is not GitHub Latest', () => {
-  assert.equal(MALIBU_RELEASE_TAG, 'v1.8.277');
+  assert.equal(MALIBU_RELEASE_TAG, 'v1.8.283');
   assert.doesNotThrow(() => assertFallbackPinMatchesResolvedLatest(MALIBU_RELEASE_TAG));
   assert.throws(
     () => assertFallbackPinMatchesResolvedLatest('v1.8.276'),
@@ -351,9 +351,9 @@ test('verifyReferralDownload fail-closes when resolved Latest is a different Mal
   };
   await assert.rejects(
     () => verifyReferralDownload(fetchImpl),
-    /fallback pin v1\.8\.277 does not match resolved GitHub Latest v1\.8\.208/,
+    /fallback pin v1\.8\.283 does not match resolved GitHub Latest v1\.8\.208/,
   );
-  assert.equal(seen.some((href) => href.includes('/releases/tags/v1.8.277')), false);
+  assert.equal(seen.some((href) => href.includes('/releases/tags/v1.8.283')), false);
 });
 
 test('verifyReferralDownload keeps the pin byte gate when GitHub Latest cannot resolve', async () => {
@@ -363,7 +363,7 @@ test('verifyReferralDownload keeps the pin byte gate when GitHub Latest cannot r
     if (href === LATEST_RELEASE_API_URL) {
       throw new Error('latest-release request failed for /releases/latest: HTTP 502');
     }
-    if (href.includes('/releases/tags/v1.8.277')) {
+    if (href.includes('/releases/tags/v1.8.283')) {
       sawPinTag = true;
       throw new Error('pin probe');
     }
