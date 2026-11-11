@@ -20,11 +20,11 @@ import {
   verifyReleaseChecksumsSignature,
 } from './release-signature.mjs';
 
-export const MALIBU_RELEASE_TAG = 'v1.8.277';
+export const MALIBU_RELEASE_TAG = 'v1.8.283';
 export const MALIBU_DMG_SHA256 =
-  '3fa6ec0e48da41cb1122db0da11700c3a8f3c9e7cd2ceb2ff62600d82feb6827';
+  '53a331a3d346f574881268931f196a6b165a4d2b50bf7214be18120d1c6921ef';
 export const MALIBU_DOWNLOAD_URL =
-  'https://github.com/Augustas11/macprovider/releases/download/v1.8.277/Malibu-v1.8.277.dmg';
+  'https://github.com/Augustas11/macprovider/releases/download/v1.8.283/Malibu-v1.8.283.dmg';
 
 const TAG_RE = /^v\d+\.\d+\.\d+$/;
 const SHA256_RE = /^[0-9a-f]{64}$/;
