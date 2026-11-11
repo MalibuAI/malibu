@@ -6,7 +6,7 @@ icon: scale
 
 # Pricing comparison
 
-> Evidence for buyer-cost claims in the [Litepaper](/litepaper). **Last reviewed:** 23 September 2026.
+> Evidence for buyer-cost claims in the [Litepaper](/litepaper). **Last reviewed:** 11 November 2026.
 
 Savings depend on the model. Malibu is not uniformly cheaper. This page compares a dated snapshot of the Malibu rate card with public OpenRouter list prices for the same model family.
 
@@ -22,39 +22,42 @@ GET https://api.malibu.tech/v1/rate-card
 
 Rates are credits per million tokens, and `usd_per_million_credits` converts them to USD (it is `1.0` in this snapshot, so 1,000,000 credits = $1.00). For the full formula, see [Metering & billing](/network/metering-and-billing). For economic regimes, see [Economics](/guides/economics).
 
-## Dated snapshot: 23 September 2026
+## Dated snapshot: 11 November 2026
 
-**Malibu card:** `generated_at` 2026-09-22T10:18:09Z, `version` `bab7acfb…`.
-**OpenRouter:** public `GET https://openrouter.ai/api/v1/models` on 23 Sep 2026. Each listing's `pricing.prompt` / `pricing.completion` × 1e6 gives USD per 1M tokens.
+**Malibu card:** `generated_at` 2026-11-10T08:50:00Z, `version` `07203de3…`.
+**OpenRouter:** public `GET https://openrouter.ai/api/v1/models` on 11 Nov 2026. Each listing's `pricing.prompt` / `pricing.completion` × 1e6 gives USD per 1M tokens.
 
 The blend columns price **1M prompt + 0.5M completion** tokens.
 
 | Model family | Malibu in / out ($/1M) | OpenRouter in / out ($/1M) | Blend Malibu | Blend OpenRouter | Blend vs OpenRouter |
 | --- | --- | --- | --- | --- | --- |
 | Llama 3.2 3B ● | 0.0135 / 0.027 | 0.05 / 0.33 | $0.027 | $0.215 | **87% lower** |
-| Qwen3.6 27B ● | 0.24 / 2.16 | 0.32 / 2.70 | $1.320 | $1.670 | **21% lower** |
-| Qwen3 8B | 0.0135 / 0.027 | 0.117 / 0.455 | $0.027 | $0.345 | **92% lower** |
-| Llama 3.1 8B | 0.0135 / 0.027 | 0.05 / 0.08 | $0.027 | $0.090 | **70% lower** |
+| Ripple 65B Preview | 0.068 / 0.136 | 0.20 / 0.60 | $0.136 | $0.500 | **73% lower** |
 | gpt-oss-120b | 0.068 / 0.136 | 0.15 / 0.60 | $0.136 | $0.450 | **70% lower** |
-| Qwen3.8 27B | 0.192 / 2.00 | 0.42 / 3.00 | $1.192 | $1.920 | **38% lower** |
-| Qwen3.5 35B A3B | 0.13 / 1.00 | 0.3125 / 1.25 | $0.630 | $0.938 | **33% lower** |
-| Qwen2.5 Coder 32B | 0.425 / 0.85 | 0.66 / 1.00 | $0.850 | $1.160 | **27% lower** |
-| Gemma 4 26B A4B | 0.06 / 0.24 | 0.09 / 0.30 | $0.180 | $0.240 | **25% lower** |
-| GLM 4.5 Air | 0.112 / 0.688 | 0.13 / 0.85 | $0.456 | $0.555 | **18% lower** |
-| Qwen3.6 35B A3B | 0.1488 / 0.80 | 0.15 / 1.00 | $0.549 | $0.650 | **16% lower** |
+| Qwen3 Coder 30B A3B | 0.1175 / 0.235 | 0.15 / 0.60 | $0.235 | $0.450 | **48% lower** |
+| GLM 4.5 Air | 0.112 / 0.688 | 0.20 / 1.10 | $0.456 | $0.750 | **39% lower** |
+| DeepSeek V4 Flash | 0.045 / 0.13 | 0.09 / 0.18 | $0.110 | $0.180 | **39% lower** |
+| Llama 3.1 8B ● | 0.0135 / 0.027 | 0.02 / 0.04 | $0.027 | $0.040 | **32% lower** |
+| Qwen3.5 27B | 0.208 / 1.728 | 0.26 / 2.60 | $1.072 | $1.560 | **31% lower** |
+| Qwen3.6 27B | 0.24 / 2.16 | 0.32 / 3.20 | $1.320 | $1.920 | **31% lower** |
+| Qwen3 30B A3B Instruct 2507 | 0.072 / 0.24 | 0.10 / 0.30 | $0.192 | $0.250 | **23% lower** |
+| GLM-5.3-Flash | 0.0185 / 0.088 | 0.0399 / 0.0784 | $0.062 | $0.079 | **21% lower** |
+| Nemotron 3 Nano 30B | 0.08 / 0.16 | 0.06 / 0.24 | $0.160 | $0.180 | **11% lower** |
+| Qwen3.5 35B A3B | 0.13 / 1.00 | 0.14 / 1.00 | $0.630 | $0.640 | **about even** |
+| Qwen3.6 35B A3B | 0.1488 / 0.80 | 0.10 / 0.90 | $0.549 | $0.550 | **about even** |
 | Qwen3 32B | 0.11 / 0.22 | 0.08 / 0.28 | $0.220 | $0.220 | **about even** |
-| Nemotron 3 Nano 30B | 0.08 / 0.16 | 0.05 / 0.20 | $0.160 | $0.150 | **~7% higher** |
-| Qwen3.5 27B | 0.208 / 1.728 | 0.195 / 1.56 | $1.072 | $0.975 | **~10% higher** |
-| Qwen3 Coder 30B A3B | 0.1175 / 0.235 | 0.07 / 0.28 | $0.235 | $0.210 | **~12% higher** |
-| Qwen3 30B A3B Instruct 2507 | 0.072 / 0.24 | 0.0482 / 0.193 | $0.192 | $0.145 | **~33% higher** |
-| gpt-oss-20b | 0.05 / 0.10 | 0.018 / 0.09 | $0.100 | $0.063 | **~59% higher** |
+| gpt-oss-20b | 0.05 / 0.10 | 0.03 / 0.13 | $0.100 | $0.095 | **~5% higher** |
+| Qwen3.8 27B | 0.192 / 2.00 | 0.15 / 1.875 | $1.192 | $1.088 | **~10% higher** |
+| Gemma 4 26B A4B | 0.06 / 0.24 | 0.08 / 0.10 | $0.180 | $0.130 | **~38% higher** |
 
-● = served by at least one provider on 23 Sep 2026 (`/v1/models` listed `mlx-community/Llama-3.2-3B-Instruct-4bit` and `mlx-community/Qwen3.6-27B-4bit`). Every other row is priced but was **not being served** that day.
+● = listed by `GET /v1/stats/models` on 11 Nov 2026 (`mlx-community/Llama-3.2-3B-Instruct-4bit`, `mlx-community/Meta-Llama-3.1-8B-Instruct-4bit`). Every other row is priced but was **not listed as served** at snapshot time.
 
-Malibu rate-card keys: `meta-llama/llama-3.2-3b-instruct`, `qwen3.6-27b`, `qwen3-8b`, `meta-llama/llama-3.1-8b-instruct`, `openai/gpt-oss-120b`, `qwen3.8-27b`, `qwen3.5-35b-a3b`, `google-gemma-4-26b-a4b-it`, `z-ai/glm-4.5-air`, `qwen3.6-35b-a3b`, `qwen3-32b`, `nemotron-3-nano-30b-a3b`, `qwen3.5-27b`, `qwen3-coder-30b-a3b-instruct`, `qwen3-30b-a3b-instruct-2507`, `openai/gpt-oss-20b`, `qwen2.5-coder-32b-instruct`. OpenRouter IDs use the same family names under their vendor namespaces (`meta-llama/`, `qwen/`, `openai/`, `google/`, `z-ai/`, `nvidia/`).
+Malibu rate-card keys: `meta-llama/llama-3.2-3b-instruct`, `ricursiveai/ripple-65b-preview`, `openai/gpt-oss-120b`, `qwen3-coder-30b-a3b-instruct`, `z-ai/glm-4.5-air`, `deepseek/deepseek-v4-flash`, `meta-llama/llama-3.1-8b-instruct`, `qwen3.5-27b`, `qwen3.6-27b`, `qwen3-30b-a3b-instruct-2507`, `zai-org/glm-5.3-flash`, `nemotron-3-nano-30b-a3b`, `qwen3.5-35b-a3b`, `qwen3.6-35b-a3b`, `qwen3-32b`, `openai/gpt-oss-20b`, `qwen3.8-27b`, `google-gemma-4-26b-a4b-it`. OpenRouter IDs use the same family names under their vendor namespaces (`meta-llama/`, `ricursiveai/`, `openai/`, `qwen/`, `z-ai/`, `deepseek/`, `nvidia/`, `google/`).
+
+Priced Malibu rows with no OpenRouter listing on 11 Nov 2026 are left out: `qwen3-8b` and `qwen2.5-coder-32b-instruct` ($0.0135 / $0.027 and $0.425 / $0.85), `qwen2-vl-2b-instruct`, `prism-ml/ternary-bonsai-2-2b-mlx-2bit` and `zai-org/glm-5.3-flash-uncensored` (same rate as GLM-5.3-Flash). Qwen3 8B is also served (`mlx-community/Qwen3-8B-4bit`).
 
 <Warning>
-  A cheaper rate-card row does not mean the model can take requests today. Check `GET /v1/models` (with a key) or `GET /v1/stats/models` (without one). Quantization, latency, and receipt semantics also differ from OpenRouter, even when the family name matches. OpenRouter's `/models` price is one listed price per model. Individual OpenRouter endpoints can be cheaper or more expensive.
+  A cheaper rate-card row does not mean the model can take requests today. Check `GET /v1/models` (with a key) or `GET /v1/stats/models` (without one). Quantization, latency, and receipt semantics also differ from OpenRouter, even when the family name matches. OpenRouter's `/models` price is one listed price per model. Individual OpenRouter endpoints, and OpenRouter `:batch` variants, can be cheaper or more expensive.
 </Warning>
 
 ## How to rerun the comparison
@@ -72,7 +75,7 @@ A request for a model with no matching rate-card row bills at the `default` row:
 ## When Malibu is not cheaper
 
 - **Rows no provider is serving.** A price without supply saves nothing.
-- **Several 20B–35B rows.** In this snapshot, gpt-oss-20b, Qwen3 30B A3B Instruct, Qwen3 Coder 30B, Qwen3.5 27B, and Nemotron 3 Nano are above OpenRouter list, and Qwen3 32B is even.
+- **A few mid-size rows.** In this snapshot, Gemma 4 26B A4B, Qwen3.8 27B and gpt-oss-20b are above OpenRouter list, and Qwen3 32B, Qwen3.5 35B A3B and Qwen3.6 35B A3B are even.
 - **Latency and availability.** Requests route to consumer Macs, not dedicated GPU clusters.
 - **Confidential compute.** Providers read prompts in plaintext, with no TEE. This page compares price only.
 
