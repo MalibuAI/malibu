@@ -48,6 +48,22 @@
   ],
   "redirects": [
     {
+      "source": "/7299b6a71a38490e378e9eb6524c426392aa96e3fd561007e0540134bbef48f9/manifest",
+      "has": [
+        { "type": "host", "value": "models.malibu.tech" }
+      ],
+      "destination": "https://malibu.tech/model-mirror/7299b6a71a38490e378e9eb6524c426392aa96e3fd561007e0540134bbef48f9/manifest",
+      "permanent": false
+    },
+    {
+      "source": "/7299b6a71a38490e378e9eb6524c426392aa96e3fd561007e0540134bbef48f9/files/:path*",
+      "has": [
+        { "type": "host", "value": "models.malibu.tech" }
+      ],
+      "destination": "https://huggingface.co/aug11/GLM-5.3-Flash-oQ4e-mtp/resolve/2b2bdf90dd3db97a65736aea1cf8e08147c0252f/:path*",
+      "permanent": false
+    },
+    {
       "source": "/:path*",
       "has": [
         { "type": "host", "value": "models.malibu.tech" }
