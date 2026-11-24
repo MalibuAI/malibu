@@ -28,16 +28,16 @@ const CHECKSUM_TEXT = `${DMG_SHA}  ${DMG}\n`;
 // cryptographic verification happens client-side and is covered with real signed
 // data in release-signature.test.mjs and the loadPublicMalibuRelease test below.
 const CHECKSUM_SIG = 'test-detached-signature-bytes';
-// Real, immutable signed sample from release v1.8.283 (verifies against the
+// Real, immutable signed sample from release v1.8.296 (verifies against the
 // release public key committed in j/release-signature.mjs).
-const SIGNED_TAG = 'v1.8.283';
-const SIGNED_DMG_SHA = '53a331a3d346f574881268931f196a6b165a4d2b50bf7214be18120d1c6921ef';
+const SIGNED_TAG = 'v1.8.296';
+const SIGNED_DMG_SHA = '4ba1cc96ba2c3a7fdb4a3c9a9bb8db8169cb32d46c55dba802ae89b67514ec2b';
 const SIGNED_CHECKSUMS = readFileSync(
-  new URL('./fixtures/release-v1.8.283.checksums.txt', import.meta.url),
+  new URL('./fixtures/release-v1.8.296.checksums.txt', import.meta.url),
   'utf8',
 );
 const SIGNED_CHECKSUMS_SIG = readFileSync(
-  new URL('./fixtures/release-v1.8.283.checksums.txt.sig.base64', import.meta.url),
+  new URL('./fixtures/release-v1.8.296.checksums.txt.sig.base64', import.meta.url),
   'utf8',
 ).trim();
 const PROVENANCE = {
